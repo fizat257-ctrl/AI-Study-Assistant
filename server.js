@@ -28,9 +28,7 @@ app.use(
 
 app.get("/", (req, res) => {
 
-    res.sendFile(
-        path.join(__dirname, "public", "AUTH.html")
-    );
+    res.redirect("/AUTH.html");
 
 });
 
