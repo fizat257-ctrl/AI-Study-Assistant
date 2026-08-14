@@ -27,21 +27,20 @@ app.use(
 // ==================================================
 
 app.get("/", (req, res) => {
-
     res.sendFile(
         path.join(__dirname, "public", "auth.html")
     );
-
 });
 
 
-// Direct auth.html route
-app.get("/auth.html", (req, res) => {
+// ==================================================
+// DIRECT AUTH PAGE
+// ==================================================
 
+app.get("/auth.html", (req, res) => {
     res.sendFile(
         path.join(__dirname, "public", "auth.html")
     );
-
 });
 
 
@@ -64,23 +63,18 @@ app.post("/api/study", async (req, res) => {
 
         const question = req.body.question;
 
-
         if (!question || !question.trim()) {
-
             return res.status(400).json({
                 error: "Please enter a study question."
             });
-
         }
 
+        const response = await ai.models.generateContent({
 
-        const response =
-            await ai.models.generateContent({
+            model: "gemini-2.5-flash",
 
-                model: "gemini-2.5-flash",
-
-                contents:
-                    `You are an AI Study Assistant.
+            contents:
+                `You are an AI Study Assistant.
 
 Explain the following question clearly and simply for a student.
 
@@ -90,32 +84,22 @@ ${question}
 Give an accurate, helpful and student-friendly explanation.
 Use simple examples when useful.`
 
-            });
+        });
 
-
-        const answer =
-            response.text;
-
+        const answer = response.text;
 
         res.json({
             answer: answer
         });
 
-
     } catch (error) {
 
-        console.error(
-            "Gemini AI Error:"
-        );
-
+        console.error("Gemini AI Error:");
         console.error(error);
 
-
         res.status(500).json({
-
             error:
                 "Sorry, I could not connect to the AI. Please try again."
-
         });
 
     }
