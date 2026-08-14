@@ -29,6 +29,10 @@
             <a href="#quiz">Quiz</a>
             <a href="#planner">Study Planner</a>
             <a href="#team">Team</a>
+
+            <button id="logoutButton" type="button">
+                Logout
+            </button>
         </nav>
 
     </header>
@@ -82,7 +86,6 @@
                     Ask your study question and get help from AI.
                 </p>
 
-
                 <div class="question-box">
 
                     <textarea
@@ -90,7 +93,6 @@
                         rows="6"
                         placeholder="Example: Explain functions in C++ in simple words..."
                     ></textarea>
-
 
                     <button
                         id="askButton"
@@ -101,7 +103,6 @@
                     </button>
 
                 </div>
-
 
                 <!-- AI ANSWER -->
 
@@ -141,13 +142,11 @@
                     Paste your study notes and create a short summary.
                 </p>
 
-
                 <textarea
                     id="notesInput"
                     rows="8"
                     placeholder="Paste your notes here..."
                 ></textarea>
-
 
                 <button
                     class="primary-button"
@@ -155,7 +154,6 @@
                 >
                     Summarize Notes
                 </button>
-
 
                 <div
                     id="summary"
@@ -185,13 +183,11 @@
                     Enter a topic and practice your knowledge.
                 </p>
 
-
                 <input
                     id="quizTopic"
                     type="text"
                     placeholder="Example: C++ Loops"
                 >
-
 
                 <button
                     class="primary-button"
@@ -199,7 +195,6 @@
                 >
                     Generate Quiz
                 </button>
-
 
                 <div
                     id="quizContainer"
@@ -229,13 +224,11 @@
                     Create a simple study plan.
                 </p>
 
-
                 <input
                     id="subject"
                     type="text"
                     placeholder="Enter subject"
                 >
-
 
                 <input
                     id="studyTime"
@@ -243,14 +236,12 @@
                     placeholder="Study time in minutes"
                 >
 
-
                 <button
                     class="primary-button"
                     onclick="createStudyPlan()"
                 >
                     Create Study Plan
                 </button>
-
 
                 <div
                     id="studyPlan"
@@ -302,7 +293,35 @@
     <!-- JAVASCRIPT -->
     <!-- ============================= -->
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="protect.js"></script>
+
     <script src="script.js"></script>
+
+    <script>
+        const SUPABASE_URL = "https://ftqkinmdgeyzlmmpqdix.supabase.co";
+        const SUPABASE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+
+        const supabaseClient = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        const logoutButton = document.getElementById("logoutButton");
+
+        logoutButton.addEventListener("click", async () => {
+
+            const { error } = await supabaseClient.auth.signOut();
+
+            if (error) {
+                alert(error.message);
+                return;
+            }
+
+            window.location.href = "AUTH.html";
+        });
+    </script>
 
 </body>
 
