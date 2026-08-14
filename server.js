@@ -26,21 +26,23 @@ app.use(
 // LOGIN / SIGN UP PAGE
 // ==================================================
 
+// Main homepage → Login / Sign Up
 app.get("/", (req, res) => {
+
     res.sendFile(
         path.join(__dirname, "public", "auth.html")
     );
+
 });
 
 
-// ==================================================
-// DIRECT AUTH PAGE
-// ==================================================
-
+// Direct Login / Sign Up page
 app.get("/auth.html", (req, res) => {
+
     res.sendFile(
         path.join(__dirname, "public", "auth.html")
     );
+
 });
 
 
@@ -54,7 +56,7 @@ const ai = new GoogleGenAI({
 
 
 // ==================================================
-// AI STUDY ASSISTANT
+// AI STUDY ASSISTANT API
 // ==================================================
 
 app.post("/api/study", async (req, res) => {
@@ -63,18 +65,25 @@ app.post("/api/study", async (req, res) => {
 
         const question = req.body.question;
 
+
+        // Check question
         if (!question || !question.trim()) {
+
             return res.status(400).json({
                 error: "Please enter a study question."
             });
+
         }
 
-        const response = await ai.models.generateContent({
 
-            model: "gemini-2.5-flash",
+        // Send question to Gemini
+        const response =
+            await ai.models.generateContent({
 
-            contents:
-                `You are an AI Study Assistant.
+                model: "gemini-2.5-flash",
+
+                contents:
+                    `You are an AI Study Assistant.
 
 Explain the following question clearly and simply for a student.
 
@@ -84,22 +93,30 @@ ${question}
 Give an accurate, helpful and student-friendly explanation.
 Use simple examples when useful.`
 
-        });
+            });
 
+
+        // Get AI answer
         const answer = response.text;
 
+
+        // Send answer to frontend
         res.json({
             answer: answer
         });
+
 
     } catch (error) {
 
         console.error("Gemini AI Error:");
         console.error(error);
 
+
         res.status(500).json({
+
             error:
                 "Sorry, I could not connect to the AI. Please try again."
+
         });
 
     }
