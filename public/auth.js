@@ -6,6 +6,11 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_KEY
 );
 
+
+// ==================================================
+// ELEMENTS
+// ==================================================
+
 const authForm = document.getElementById("authForm");
 const authButton = document.getElementById("authButton");
 const switchButton = document.getElementById("switchButton");
@@ -15,69 +20,194 @@ const message = document.getElementById("message");
 
 let isLogin = false;
 
+
+// ==================================================
+// CHECK EXISTING LOGIN
+// ==================================================
+
+async function checkExistingSession() {
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+    window.location.href = "index.html";
+  }
+}
+
+checkExistingSession();
+
+
+// ==================================================
+// SWITCH LOGIN / SIGN UP
+// ==================================================
+
 switchButton.addEventListener("click", () => {
+
   isLogin = !isLogin;
 
+  message.textContent = "";
+
   if (isLogin) {
+
     formTitle.textContent = "Welcome back";
+
     authButton.textContent = "Login";
-    switchText.textContent = "Don't have an account?";
-    switchButton.textContent = "Sign Up";
+
+    switchText.textContent =
+      "Don't have an account?";
+
+    switchButton.textContent =
+      "Sign Up";
+
   } else {
-    formTitle.textContent = "Create your account";
-    authButton.textContent = "Sign Up";
-    switchText.textContent = "Already have an account?";
-    switchButton.textContent = "Login";
+
+    formTitle.textContent =
+      "Create your account";
+
+    authButton.textContent =
+      "Sign Up";
+
+    switchText.textContent =
+      "Already have an account?";
+
+    switchButton.textContent =
+      "Login";
   }
 
-  message.textContent = "";
 });
 
+
+// ==================================================
+// SIGN UP / LOGIN
+// ==================================================
+
 authForm.addEventListener("submit", async (event) => {
+
   event.preventDefault();
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+  const email =
+    document.getElementById("email").value.trim();
 
-  message.textContent = "Please wait...";
+  const password =
+    document.getElementById("password").value;
 
-  if (isLogin) {
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
 
-    if (error) {
-      message.textContent = error.message;
-      return;
-    }
+  if (!email || !password) {
 
-    message.textContent = "Login successful!";
+    message.textContent =
+      "Please enter your email and password.";
 
-    setTimeout(() => {
-      window.location.href = "index.html";
-    }, 1000);
+    return;
+  }
 
-  } else {
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password
-    });
 
-    if (error) {
-      message.textContent = error.message;
-      return;
-    }
+  message.textContent =
+    "Please wait...";
 
-    if (data.user && !data.session) {
+  authButton.disabled = true;
+
+
+  try {
+
+    // ==================================================
+    // LOGIN
+    // ==================================================
+
+    if (isLogin) {
+
+      const { error } =
+        await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+
+      if (error) {
+
+        message.textContent =
+          error.message;
+
+        authButton.disabled = false;
+
+        return;
+      }
+
+
       message.textContent =
-        "Account created! Please check your email to confirm your account.";
-    } else {
-      message.textContent = "Account created successfully!";
+        "Login successful!";
+
 
       setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1000);
+
+        window.location.href =
+          "index.html";
+
+      }, 700);
+
+
     }
+
+    // ==================================================
+    // SIGN UP
+    // ==================================================
+
+    else {
+
+      const { data, error } =
+        await supabaseClient.auth.signUp({
+          email: email,
+          password: password
+        });
+
+
+      if (error) {
+
+        message.textContent =
+          error.message;
+
+        authButton.disabled = false;
+
+        return;
+      }
+
+
+      // Email confirmation is required
+      if (data.user && !data.session) {
+
+        message.textContent =
+          "Account created! Please check your email and confirm your account.";
+
+        authButton.disabled = false;
+
+        return;
+      }
+
+
+      // Account created and logged in
+      message.textContent =
+        "Account created successfully!";
+
+
+      setTimeout(() => {
+
+        window.location.href =
+          "index.html";
+
+      }, 700);
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    message.textContent =
+      "Something went wrong. Please try again.";
+
+    authButton.disabled = false;
+
   }
+
 });
