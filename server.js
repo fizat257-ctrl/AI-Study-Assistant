@@ -29,17 +29,17 @@ app.use(
 app.get("/", (req, res) => {
 
     res.sendFile(
-        path.join(__dirname, "public", "AUTH.html")
+        path.join(__dirname, "public", "auth.html")
     );
 
 });
 
 
-// Direct AUTH.html route
-app.get("/AUTH.html", (req, res) => {
+// Direct auth.html route
+app.get("/auth.html", (req, res) => {
 
     res.sendFile(
-        path.join(__dirname, "public", "AUTH.html")
+        path.join(__dirname, "public", "auth.html")
     );
 
 });
