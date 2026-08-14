@@ -28,7 +28,19 @@ app.use(
 
 app.get("/", (req, res) => {
 
-    res.redirect("/AUTH.html");
+    res.sendFile(
+        path.join(__dirname, "public", "AUTH.html")
+    );
+
+});
+
+
+// Direct AUTH.html route
+app.get("/AUTH.html", (req, res) => {
+
+    res.sendFile(
+        path.join(__dirname, "public", "AUTH.html")
+    );
 
 });
 
