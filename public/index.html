@@ -12,420 +12,295 @@
 
 <body>
 
-    <!-- ================= NAVBAR ================= -->
+    <!-- ============================= -->
+    <!-- NAVBAR -->
+    <!-- ============================= -->
 
     <header class="navbar">
 
         <div class="logo">
-            🎓 AI Study Assistant
+            AI Study Assistant
         </div>
 
         <nav>
             <a href="#home">Home</a>
-            <a href="#features">Features</a>
-            <a href="#assistant">AI Assistant</a>
-            <a href="#summarizer">Notes</a>
+            <a href="#assistant">Study Assistant</a>
+            <a href="#notes">Notes</a>
             <a href="#quiz">Quiz</a>
+            <a href="#planner">Study Planner</a>
+            <a href="#team">Team</a>
         </nav>
-
-        <button class="nav-button" onclick="startAssistant()">
-            Start Studying
-        </button>
 
     </header>
 
 
-    <!-- ================= HERO ================= -->
+    <!-- ============================= -->
+    <!-- HOME -->
+    <!-- ============================= -->
 
-    <section id="home" class="hero">
+    <main>
 
-        <div class="hero-content">
+        <section id="home" class="hero">
 
-            <div class="badge">
-                ✨ AI-Powered Learning
-            </div>
+            <div class="hero-content">
 
-            <h1>
-                Study Smarter.
-                <span>Learn Better.</span>
-            </h1>
+                <h1>
+                    AI Study Assistant
+                </h1>
 
-            <p>
-                Your personal AI study assistant that helps you
-                understand difficult topics, summarize notes,
-                practice quizzes and organize your studies.
-            </p>
-
-            <div class="hero-buttons">
-
-                <button onclick="startAssistant()">
-                    Start Studying →
-                </button>
+                <p>
+                    Your smart learning companion.
+                    Ask questions, understand difficult topics,
+                    create quizzes and plan your study.
+                </p>
 
                 <button
-                    class="secondary-button"
-                    onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
-
-                    Explore Features
-
+                    class="primary-button"
+                    onclick="startAssistant()"
+                >
+                    Start Studying
                 </button>
 
             </div>
 
-        </div>
-
-    </section>
+        </section>
 
 
-    <!-- ================= FEATURES ================= -->
+        <!-- ============================= -->
+        <!-- AI ASSISTANT -->
+        <!-- ============================= -->
 
-    <section id="features" class="features-section">
+        <section id="assistant" class="study-section">
 
-        <div class="section-heading">
+            <div class="study-container">
 
-            <p class="small-title">
-                POWERFUL FEATURES
-            </p>
+                <h2>
+                    🤖 AI Study Assistant
+                </h2>
+
+                <p class="subtitle">
+                    Ask your study question and get help from AI.
+                </p>
+
+
+                <div class="question-box">
+
+                    <textarea
+                        id="question"
+                        rows="6"
+                        placeholder="Example: Explain functions in C++ in simple words..."
+                    ></textarea>
+
+
+                    <button
+                        id="askButton"
+                        class="primary-button"
+                        onclick="askAssistant()"
+                    >
+                        Ask AI
+                    </button>
+
+                </div>
+
+
+                <!-- AI ANSWER -->
+
+                <div class="answer-container">
+
+                    <h3>
+                        AI Answer
+                    </h3>
+
+                    <div
+                        id="answer"
+                        class="answer-box"
+                    >
+                        Your AI answer will appear here.
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ============================= -->
+        <!-- NOTES SUMMARIZER -->
+        <!-- ============================= -->
+
+        <section id="notes" class="study-section">
+
+            <div class="study-container">
+
+                <h2>
+                    📝 Notes Summarizer
+                </h2>
+
+                <p class="subtitle">
+                    Paste your study notes and create a short summary.
+                </p>
+
+
+                <textarea
+                    id="notesInput"
+                    rows="8"
+                    placeholder="Paste your notes here..."
+                ></textarea>
+
+
+                <button
+                    class="primary-button"
+                    onclick="summarizeNotes()"
+                >
+                    Summarize Notes
+                </button>
+
+
+                <div
+                    id="summary"
+                    class="answer-box"
+                >
+                    Your summary will appear here.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ============================= -->
+        <!-- QUIZ GENERATOR -->
+        <!-- ============================= -->
+
+        <section id="quiz" class="study-section">
+
+            <div class="study-container">
+
+                <h2>
+                    🧠 Quiz Generator
+                </h2>
+
+                <p class="subtitle">
+                    Enter a topic and practice your knowledge.
+                </p>
+
+
+                <input
+                    id="quizTopic"
+                    type="text"
+                    placeholder="Example: C++ Loops"
+                >
+
+
+                <button
+                    class="primary-button"
+                    onclick="generateQuiz()"
+                >
+                    Generate Quiz
+                </button>
+
+
+                <div
+                    id="quizContainer"
+                    class="answer-box"
+                >
+                    Your quiz will appear here.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ============================= -->
+        <!-- STUDY PLANNER -->
+        <!-- ============================= -->
+
+        <section id="planner" class="study-section">
+
+            <div class="study-container">
+
+                <h2>
+                    📅 Study Planner
+                </h2>
+
+                <p class="subtitle">
+                    Create a simple study plan.
+                </p>
+
+
+                <input
+                    id="subject"
+                    type="text"
+                    placeholder="Enter subject"
+                >
+
+
+                <input
+                    id="studyTime"
+                    type="number"
+                    placeholder="Study time in minutes"
+                >
+
+
+                <button
+                    class="primary-button"
+                    onclick="createStudyPlan()"
+                >
+                    Create Study Plan
+                </button>
+
+
+                <div
+                    id="studyPlan"
+                    class="answer-box"
+                >
+                    Your study plan will appear here.
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ============================= -->
+        <!-- TEAM -->
+        <!-- ============================= -->
+
+        <section id="team" class="team-section">
 
             <h2>
-                Everything you need to
-                <span>study smarter</span>
+                Our Team
             </h2>
 
             <p>
-                One simple platform for your everyday learning needs.
+                AI Study Assistant is designed to make
+                learning easier, smarter and more accessible.
             </p>
 
-        </div>
+        </section>
 
+    </main>
 
-        <div class="features-grid">
 
-
-            <!-- AI ASSISTANT -->
-
-            <div class="feature-card">
-
-                <div class="feature-icon">
-                    🤖
-                </div>
-
-                <h3>
-                    AI Study Assistant
-                </h3>
-
-                <p>
-                    Ask questions about your subjects and get
-                    easy-to-understand explanations.
-                </p>
-
-            </div>
-
-
-            <!-- NOTES -->
-
-            <div class="feature-card">
-
-                <div class="feature-icon">
-                    📝
-                </div>
-
-                <h3>
-                    Notes Summarizer
-                </h3>
-
-                <p>
-                    Turn your study notes into short and
-                    easy-to-review summaries.
-                </p>
-
-            </div>
-
-
-            <!-- QUIZ -->
-
-            <div class="feature-card">
-
-                <div class="feature-icon">
-                    ❓
-                </div>
-
-                <h3>
-                    Quiz Generator
-                </h3>
-
-                <p>
-                    Practice questions help you test
-                    your understanding.
-                </p>
-
-            </div>
-
-
-            <!-- STUDY PLANNER -->
-
-            <div class="feature-card">
-
-                <div class="feature-icon">
-                    📅
-                </div>
-
-                <h3>
-                    Study Planner
-                </h3>
-
-                <p>
-                    Organize your study goals and create
-                    a simple learning routine.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= AI ASSISTANT ================= -->
-
-    <section id="assistant" class="assistant-section">
-
-        <div class="assistant-box">
-
-            <div class="assistant-header">
-
-                <div>
-
-                    <p class="small-title">
-                        AI STUDY ASSISTANT
-                    </p>
-
-                    <h2>
-                        What would you like to learn?
-                    </h2>
-
-                    <p>
-                        Ask a question and your study assistant
-                        will help you understand it.
-                    </p>
-
-                </div>
-
-                <div class="ai-icon">
-                    🤖
-                </div>
-
-            </div>
-
-
-            <textarea
-                id="question"
-                placeholder="Example: Explain loops in C++ in simple words...">
-            </textarea>
-
-
-            <button onclick="askAssistant()">
-                Ask AI →
-            </button>
-
-
-            <div id="answer" class="answer">
-
-                Your AI response will appear here.
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= NOTES SUMMARIZER ================= -->
-
-    <section id="summarizer" class="assistant-section">
-
-        <div class="assistant-box">
-
-            <div class="assistant-header">
-
-                <div>
-
-                    <p class="small-title">
-                        NOTES SUMMARIZER
-                    </p>
-
-                    <h2>
-                        Summarize your notes
-                    </h2>
-
-                    <p>
-                        Paste your study notes below and get
-                        a short summary.
-                    </p>
-
-                </div>
-
-                <div class="ai-icon">
-                    📝
-                </div>
-
-            </div>
-
-
-            <textarea
-                id="notes"
-                placeholder="Paste your lecture notes here...">
-            </textarea>
-
-
-            <button onclick="summarizeNotes()">
-                Summarize Notes →
-            </button>
-
-
-            <div id="summary" class="answer">
-
-                Your summary will appear here.
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= QUIZ GENERATOR ================= -->
-
-    <section id="quiz" class="assistant-section">
-
-        <div class="assistant-box">
-
-            <div class="assistant-header">
-
-                <div>
-
-                    <p class="small-title">
-                        QUIZ GENERATOR
-                    </p>
-
-                    <h2>
-                        Test your knowledge
-                    </h2>
-
-                    <p>
-                        Enter a topic and practice with a quiz.
-                    </p>
-
-                </div>
-
-                <div class="ai-icon">
-                    ❓
-                </div>
-
-            </div>
-
-
-            <input
-                type="text"
-                id="quizTopic"
-                placeholder="Example: C++ Loops">
-
-
-            <button onclick="generateQuiz()">
-                Generate Quiz →
-            </button>
-
-
-            <div id="quizContainer" class="answer">
-
-                Your quiz will appear here.
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= STUDY PLANNER ================= -->
-
-    <section id="planner" class="assistant-section">
-
-        <div class="assistant-box">
-
-            <div class="assistant-header">
-
-                <div>
-
-                    <p class="small-title">
-                        STUDY PLANNER
-                    </p>
-
-                    <h2>
-                        Plan your study session
-                    </h2>
-
-                    <p>
-                        Enter your subject and available study time.
-                    </p>
-
-                </div>
-
-                <div class="ai-icon">
-                    📅
-                </div>
-
-            </div>
-
-
-            <input
-                type="text"
-                id="subject"
-                placeholder="Example: Programming Fundamentals">
-
-
-            <input
-                type="number"
-                id="studyTime"
-                placeholder="Study time in minutes">
-
-
-            <button onclick="createStudyPlan()">
-                Create Study Plan →
-            </button>
-
-
-            <div id="studyPlan" class="answer">
-
-                Your study plan will appear here.
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= FOOTER ================= -->
+    <!-- ============================= -->
+    <!-- FOOTER -->
+    <!-- ============================= -->
 
     <footer>
 
-        <h3>
-            🎓 AI Study Assistant
-        </h3>
-
         <p>
-            Learn smarter with the power of technology.
-        </p>
-
-        <p class="copyright">
-            © 2026 AI Study Assistant
+            © 2026 AI Study Assistant.
+            All rights reserved.
         </p>
 
     </footer>
 
 
-    <!-- ================= JAVASCRIPT ================= -->
+    <!-- ============================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================= -->
 
     <script src="script.js"></script>
 
