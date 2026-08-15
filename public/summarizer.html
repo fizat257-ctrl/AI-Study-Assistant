@@ -230,6 +230,7 @@
 
       <button
         class="primary-btn"
+        id="summarizeButton"
         type="button"
         onclick="summarizeNotes()"
       >
@@ -260,9 +261,155 @@
   </main>
 
 
-  <!-- SCRIPT -->
+  <!-- ==========================================
+       NOTE SUMMARIZER + PROGRESS
+  =========================================== -->
 
-  <script src="script.js"></script>
+  <script>
+
+    function summarizeNotes() {
+
+      const notesInput =
+        document.getElementById("notesInput");
+
+      const summary =
+        document.getElementById("summary");
+
+      const button =
+        document.getElementById("summarizeButton");
+
+
+      if (!notesInput || !summary) {
+        return;
+      }
+
+
+      const notes =
+        notesInput.value.trim();
+
+
+      // Empty notes
+      if (notes === "") {
+
+        summary.innerText =
+          "Please paste your study notes first.";
+
+        return;
+      }
+
+
+      // Loading
+      summary.innerText =
+        "📝 Creating summary...";
+
+      if (button) {
+        button.disabled = true;
+        button.innerText = "Creating Summary...";
+      }
+
+
+      setTimeout(function () {
+
+        const words =
+          notes.split(/\s+/);
+
+
+        let shortSummary =
+          words.slice(0, 60).join(" ");
+
+
+        if (words.length > 60) {
+          shortSummary += "...";
+        }
+
+
+        summary.innerText =
+          "📝 Study Summary\n\n" +
+          shortSummary +
+          "\n\n" +
+          "💡 Study Tip:\n" +
+          "Review the main concepts and important keywords from these notes.";
+
+
+        if (button) {
+          button.disabled = false;
+          button.innerText = "Summarize Notes";
+        }
+
+
+        // ==========================================
+        // RECENT ACTIVITY
+        // ==========================================
+
+        let activities =
+          JSON.parse(
+            localStorage.getItem("studyActivity") || "[]"
+          );
+
+
+        activities.push({
+
+          icon: "📝",
+
+          text: "Note Summary Created",
+
+          time: new Date().toLocaleString()
+
+        });
+
+
+        // Latest 20 activities
+        if (activities.length > 20) {
+
+          activities =
+            activities.slice(-20);
+
+        }
+
+
+        localStorage.setItem(
+          "studyActivity",
+          JSON.stringify(activities)
+        );
+
+
+        // ==========================================
+        // OVERALL LEARNING
+        // ==========================================
+
+        const tutorProgress =
+          Number(
+            localStorage.getItem("tutorProgress")
+          ) || 0;
+
+
+        const flashcardProgress =
+          Number(
+            localStorage.getItem("flashcardProgress")
+          ) || 0;
+
+
+        const overall =
+          Math.round(
+            (
+              tutorProgress +
+              flashcardProgress
+            ) / 2
+          );
+
+
+        localStorage.setItem(
+          "overallProgress",
+          overall
+        );
+
+
+      }, 600);
+
+    }
+
+  </script>
+
 
 </body>
 
