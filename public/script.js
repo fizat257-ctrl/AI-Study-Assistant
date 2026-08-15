@@ -3,206 +3,36 @@
 // ==================================================
 
 function startAssistant() {
-    const assistant = document.getElementById("assistant");
+
+    const assistant =
+        document.getElementById("assistant");
 
     if (assistant) {
+
         assistant.scrollIntoView({
             behavior: "smooth"
         });
+
     }
 }
 
 
 // ==================================================
-// AI TUTOR PROGRESS SYSTEM
+// STUDY ACTIVITY HELPER
 // ==================================================
 
-function updateTutorProgress(questionText) {
+function addStudyActivity(icon, text) {
 
-    // ----------------------------------------------
-    // Get previously studied topics
-    // ----------------------------------------------
-
-    let studiedTopics = [];
-
-    try {
-
-        studiedTopics =
-            JSON.parse(
-                localStorage.getItem("studiedTopics") || "[]"
-            );
-
-    } catch (error) {
-
-        studiedTopics = [];
-
-    }
-
-
-    // ----------------------------------------------
-    // Detect topic
-    // ----------------------------------------------
-
-    const question =
-        questionText.toLowerCase();
-
-    let topic = "General Study";
-
-
-    if (
-        question.includes("loop")
-    ) {
-        topic = "C++ Loops";
-    }
-
-    else if (
-        question.includes("function")
-    ) {
-        topic = "C++ Functions";
-    }
-
-    else if (
-        question.includes("array")
-    ) {
-        topic = "C++ Arrays";
-    }
-
-    else if (
-        question.includes("if else") ||
-        question.includes("if-else") ||
-        question.includes("conditional")
-    ) {
-        topic = "C++ If-Else";
-    }
-
-    else if (
-        question.includes("switch")
-    ) {
-        topic = "C++ Switch";
-    }
-
-    else if (
-        question.includes("pointer")
-    ) {
-        topic = "C++ Pointers";
-    }
-
-    else if (
-        question.includes("class")
-    ) {
-        topic = "C++ Classes";
-    }
-
-    else if (
-        question.includes("artificial intelligence") ||
-        question.includes("machine learning") ||
-        question === "ai" ||
-        question.includes("what is ai")
-    ) {
-        topic = "Artificial Intelligence";
-    }
-
-
-    // ----------------------------------------------
-    // Add topic only if it is new
-    // ----------------------------------------------
-
-    if (!studiedTopics.includes(topic)) {
-
-        studiedTopics.push(topic);
-
-        localStorage.setItem(
-            "studiedTopics",
-            JSON.stringify(studiedTopics)
+    const activities =
+        JSON.parse(
+            localStorage.getItem("studyActivity") || "[]"
         );
 
-    }
-
-
-    // ----------------------------------------------
-    // Topics Studied
-    // ----------------------------------------------
-
-    localStorage.setItem(
-        "topicsStudied",
-        studiedTopics.length
-    );
-
-
-    // ----------------------------------------------
-    // AI Tutor Progress
-    // ----------------------------------------------
-
-    let tutorProgress =
-        Number(
-            localStorage.getItem("tutorProgress")
-        ) || 0;
-
-
-    // Increase progress only for a new topic
-
-    if (
-        !studiedTopics.includes(topic) === false
-    ) {
-
-        tutorProgress =
-            Math.min(
-                studiedTopics.length * 10,
-                100
-            );
-
-    }
-
-
-    localStorage.setItem(
-        "tutorProgress",
-        tutorProgress
-    );
-
-
-    // ----------------------------------------------
-    // Recent Activity
-    // ----------------------------------------------
-
-    let activities = [];
-
-    try {
-
-        activities =
-            JSON.parse(
-                localStorage.getItem("studyActivity") || "[]"
-            );
-
-    } catch (error) {
-
-        activities = [];
-
-    }
-
-
     activities.push({
-
-        icon: "🤖",
-
-        text:
-            "Asked AI Tutor: " +
-            questionText,
-
-        timestamp:
-            new Date().toISOString()
-
+        icon: icon,
+        text: text,
+        time: new Date().toLocaleString()
     });
-
-
-    // Keep latest 20 activities
-
-    if (activities.length > 20) {
-
-        activities =
-            activities.slice(-20);
-
-    }
-
 
     localStorage.setItem(
         "studyActivity",
@@ -212,7 +42,7 @@ function updateTutorProgress(questionText) {
 
 
 // ==================================================
-// AI STUDY ASSISTANT
+// AI TUTOR
 // ==================================================
 
 function askAssistant() {
@@ -245,6 +75,49 @@ function askAssistant() {
 
     answer.innerText =
         "🤖 AI Study Assistant is thinking...";
+
+
+    // ----------------------------------------------
+    // UPDATE PROGRESS
+    // ----------------------------------------------
+
+    let topics =
+        Number(
+            localStorage.getItem("topicsStudied")
+        ) || 0;
+
+    let tutorProgress =
+        Number(
+            localStorage.getItem("tutorProgress")
+        ) || 0;
+
+
+    topics += 1;
+
+    tutorProgress += 10;
+
+    if (tutorProgress > 100) {
+        tutorProgress = 100;
+    }
+
+
+    localStorage.setItem(
+        "topicsStudied",
+        topics
+    );
+
+    localStorage.setItem(
+        "tutorProgress",
+        tutorProgress
+    );
+
+
+    // Recent Activity
+
+    addStudyActivity(
+        "🤖",
+        "AI Tutor question: " + originalQuestion
+    );
 
 
     setTimeout(function () {
@@ -328,7 +201,8 @@ function askAssistant() {
 
                 "Example:\n\n" +
 
-                "int marks[5] = {80, 75, 90, 85, 70};\n\n" +
+                "int marks[5] = " +
+                "{80, 75, 90, 85, 70};\n\n" +
 
                 "Here, marks stores five integer values.";
 
@@ -377,7 +251,28 @@ function askAssistant() {
                 "🔄 Switch Statement in C++\n\n" +
 
                 "A switch statement is useful when you " +
-                "want to select one option from multiple cases.";
+                "want to select one option from multiple " +
+                "possible cases.\n\n" +
+
+                "Example:\n\n" +
+
+                "switch(choice) {\n\n" +
+
+                "case 1:\n" +
+                "    cout << \"Add\";\n" +
+                "    break;\n\n" +
+
+                "case 2:\n" +
+                "    cout << \"Exit\";\n" +
+                "    break;\n\n" +
+
+                "default:\n" +
+                "    cout << \"Invalid choice\";\n" +
+
+                "}\n\n" +
+
+                "The break statement stops execution " +
+                "from continuing into the next case.";
 
         }
 
@@ -400,7 +295,11 @@ function askAssistant() {
                 "Example:\n\n" +
 
                 "int number = 10;\n" +
-                "int *ptr = &number;";
+                "int *ptr = &number;\n\n" +
+
+                "& gives the address of a variable, " +
+                "while * is used to access the value " +
+                "stored at that address.";
 
         }
 
@@ -418,13 +317,27 @@ function askAssistant() {
                 "🏗️ C++ Classes\n\n" +
 
                 "A class is a user-defined data type " +
-                "that can contain data members and member functions.";
+                "that can contain data members and " +
+                "member functions.\n\n" +
+
+                "Example:\n\n" +
+
+                "class Student {\n" +
+                "public:\n" +
+                "    string name;\n" +
+                "    void study() {\n" +
+                "        cout << \"Studying\";\n" +
+                "    }\n" +
+                "};\n\n" +
+
+                "Classes are an important part of " +
+                "Object-Oriented Programming.";
 
         }
 
 
         // ==========================================
-        // AI
+        // ARTIFICIAL INTELLIGENCE
         // ==========================================
 
         else if (
@@ -437,9 +350,20 @@ function askAssistant() {
             response =
                 "🤖 Artificial Intelligence\n\n" +
 
-                "Artificial Intelligence is technology " +
-                "that enables computers to perform tasks " +
-                "that normally require human intelligence.";
+                "Artificial Intelligence (AI) is " +
+                "technology that enables computers " +
+                "to perform tasks that normally require " +
+                "human intelligence.\n\n" +
+
+                "Examples include:\n\n" +
+
+                "• Understanding language\n" +
+                "• Recognizing patterns\n" +
+                "• Answering questions\n" +
+                "• Learning from data\n\n" +
+
+                "AI is used in education, healthcare, " +
+                "business, robotics and many other fields.";
 
         }
 
@@ -457,7 +381,8 @@ function askAssistant() {
 
                 "\"" + originalQuestion + "\"\n\n" +
 
-                "Try asking about:\n\n" +
+                "This demo currently supports these " +
+                "study topics:\n\n" +
 
                 "• C++ Loops\n" +
                 "• Functions\n" +
@@ -466,23 +391,21 @@ function askAssistant() {
                 "• Switch\n" +
                 "• Pointers\n" +
                 "• Classes\n" +
-                "• Artificial Intelligence";
+                "• Artificial Intelligence\n\n" +
+
+                "Try asking:\n\n" +
+
+                "• Explain loops in C++\n" +
+                "• What is a function?\n" +
+                "• Explain arrays\n" +
+                "• What is a pointer?\n" +
+                "• What is Artificial Intelligence?";
 
         }
 
 
-        // Show answer
-
         answer.innerText =
             response;
-
-
-        // Update progress
-
-        updateTutorProgress(
-            originalQuestion
-        );
-
 
     }, 600);
 }
@@ -495,8 +418,7 @@ function askAssistant() {
 function summarizeNotes() {
 
     const notesElement =
-        document.getElementById("notesInput") ||
-        document.getElementById("notes");
+        document.getElementById("notesInput");
 
     const summary =
         document.getElementById("summary");
@@ -524,10 +446,19 @@ function summarizeNotes() {
         "📝 Creating summary...";
 
 
+    // Recent Activity
+
+    addStudyActivity(
+        "📝",
+        "Notes summarized"
+    );
+
+
     setTimeout(function () {
 
         const words =
             notes.split(/\s+/);
+
 
         let shortSummary =
             words.slice(0, 60).join(" ");
@@ -543,7 +474,8 @@ function summarizeNotes() {
             shortSummary +
             "\n\n" +
             "💡 Study Tip:\n" +
-            "Review the main concepts and important keywords.";
+            "Review the main concepts and important " +
+            "keywords from these notes.";
 
     }, 600);
 }
@@ -584,6 +516,14 @@ function generateQuiz() {
         "🤖 Generating your quiz...";
 
 
+    // Recent Activity
+
+    addStudyActivity(
+        "🧠",
+        "Quiz generated: " + topic
+    );
+
+
     setTimeout(function () {
 
         let quiz = "";
@@ -619,6 +559,52 @@ function generateQuiz() {
                     C. if statement
                 </button>
 
+                <br><br>
+
+                <p>
+                    <strong>Question 2:</strong>
+                </p>
+
+                <p>
+                    Which loop checks its condition
+                    before executing the body?
+                </p>
+
+                <button onclick="showQuizResult('correct')">
+                    A. while loop
+                </button>
+
+                <button onclick="showQuizResult('wrong')">
+                    B. do-while only
+                </button>
+
+                <button onclick="showQuizResult('wrong')">
+                    C. switch
+                </button>
+
+                <br><br>
+
+                <p>
+                    <strong>Question 3:</strong>
+                </p>
+
+                <p>
+                    Which operator increases a variable
+                    by one?
+                </p>
+
+                <button onclick="showQuizResult('correct')">
+                    A. ++
+                </button>
+
+                <button onclick="showQuizResult('wrong')">
+                    B. ==
+                </button>
+
+                <button onclick="showQuizResult('wrong')">
+                    C. &&
+                </button>
+
             `;
 
         }
@@ -632,6 +618,11 @@ function generateQuiz() {
                 <p>
                     Topic:
                     <strong>${topic}</strong>
+                </p>
+
+                <p>
+                    This demo quiz currently works best
+                    with C++ and programming topics.
                 </p>
 
                 <p>
@@ -743,13 +734,68 @@ function createStudyPlan() {
         "📅 Creating your study plan...";
 
 
+    // Recent Activity
+
+    addStudyActivity(
+        "📅",
+        "Study plan created: " + subject
+    );
+
+
     setTimeout(function () {
 
+        let plan = "";
+
+
+        if (time <= 30) {
+
+            plan =
+                "📚 Study Plan\n\n" +
+
+                "Subject: " + subject + "\n" +
+                "Total Time: " + time + " minutes\n\n" +
+
+                "1. 5 minutes — Review previous concepts\n" +
+                "2. 15 minutes — Study the main topic\n" +
+                "3. 5 minutes — Practice questions\n" +
+                "4. 5 minutes — Quick revision";
+
+        }
+
+        else if (time <= 60) {
+
+            plan =
+                "📚 Study Plan\n\n" +
+
+                "Subject: " + subject + "\n" +
+                "Total Time: " + time + " minutes\n\n" +
+
+                "1. 10 minutes — Review previous concepts\n" +
+                "2. 25 minutes — Learn the main topic\n" +
+                "3. 15 minutes — Practice questions\n" +
+                "4. 10 minutes — Revision";
+
+        }
+
+        else {
+
+            plan =
+                "📚 Study Plan\n\n" +
+
+                "Subject: " + subject + "\n" +
+                "Total Time: " + time + " minutes\n\n" +
+
+                "1. 15 minutes — Previous topic revision\n" +
+                "2. 30 minutes — Learn new concepts\n" +
+                "3. 15 minutes — Short break\n" +
+                "4. 30 minutes — Practice questions\n" +
+                "5. 15 minutes — Final revision";
+
+        }
+
+
         studyPlan.innerText =
-            "📚 Study Plan\n\n" +
-            "Subject: " + subject + "\n" +
-            "Total Time: " + time + " minutes\n\n" +
-            "Review → Learn → Practice → Revise";
+            plan;
 
     }, 600);
 }

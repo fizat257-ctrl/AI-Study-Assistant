@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Study Planner</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 45px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .planner-card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #d7dbe4;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+
+      padding: 14px;
+      margin-bottom: 18px;
+
+      border: 1px solid #363b46;
+      border-radius: 10px;
+
+      background: #101217;
+      color: white;
+
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+    }
+
+    .primary-btn {
+      width: 100%;
+
+      padding: 13px;
+
+      border: none;
+      border-radius: 9px;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .primary-btn:hover {
+      opacity: 0.9;
+    }
+
+    .plan-section {
+      margin-top: 30px;
+    }
+
+    .plan-section h3 {
+      margin-bottom: 12px;
+    }
+
+    .plan-box {
+      min-height: 150px;
+
+      padding: 20px;
+
+      background: #101217;
+
+      border: 1px solid #292d36;
+
+      border-radius: 10px;
+
+      color: #d7dbe4;
+
+      line-height: 1.8;
+
+      white-space: pre-wrap;
+    }
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 30px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .planner-card {
+        padding: 20px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- HEADER -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- MAIN -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        📅 Study Planner
+      </h2>
+
+      <p>
+        Create a simple study plan based on your subject and available time.
+      </p>
+
+    </section>
+
+
+    <section class="planner-card">
+
+
+      <!-- SUBJECT -->
+
+      <label for="subject">
+        Subject
+      </label>
+
+      <input
+        id="subject"
+        type="text"
+        placeholder="Example: Programming Fundamentals"
+      >
+
+
+      <!-- TIME -->
+
+      <label for="studyTime">
+        Study Time (minutes)
+      </label>
+
+      <input
+        id="studyTime"
+        type="number"
+        min="1"
+        placeholder="Example: 60"
+      >
+
+
+      <!-- BUTTON -->
+
+      <button
+        class="primary-btn"
+        type="button"
+        onclick="createStudyPlan()"
+      >
+        Create Study Plan
+      </button>
+
+
+      <!-- PLAN -->
+
+      <div class="plan-section">
+
+        <h3>
+          📚 Your Study Plan
+        </h3>
+
+        <div
+          id="studyPlan"
+          class="plan-box"
+        >
+          Your study plan will appear here.
+        </div>
+
+      </div>
+
+
+    </section>
+
+  </main>
+
+
+  <!-- SCRIPT -->
+
+  <script src="script.js"></script>
+
+</body>
+
+</html>

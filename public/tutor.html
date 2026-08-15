@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Study Assistant - AI Tutor</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0f1115;
+            color: white;
+        }
+
+        header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #292d36;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 22px;
+        }
+
+        .back-btn {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 45px 20px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .intro h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .intro p {
+            color: #a8afbf;
+        }
+
+        .tutor-card {
+            background: #181b21;
+            border: 1px solid #292d36;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            resize: vertical;
+
+            padding: 15px;
+
+            border: 1px solid #363b46;
+            border-radius: 10px;
+
+            background: #101217;
+            color: white;
+
+            font-size: 16px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #2563eb;
+        }
+
+        .ask-btn {
+            width: 100%;
+
+            margin-top: 15px;
+
+            padding: 13px;
+
+            border: none;
+            border-radius: 9px;
+
+            background: #2563eb;
+            color: white;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .ask-btn:hover {
+            opacity: 0.9;
+        }
+
+        .answer-section {
+            margin-top: 30px;
+        }
+
+        .answer-section h3 {
+            margin-bottom: 12px;
+        }
+
+        .answer {
+            min-height: 150px;
+
+            padding: 20px;
+
+            background: #101217;
+
+            border: 1px solid #292d36;
+
+            border-radius: 10px;
+
+            color: #d7dbe4;
+
+            line-height: 1.7;
+
+            white-space: pre-wrap;
+        }
+
+        .progress-note {
+            margin-top: 20px;
+
+            padding: 14px;
+
+            background: #111827;
+
+            border: 1px solid #1f2937;
+
+            border-radius: 9px;
+
+            color: #9ca3af;
+
+            font-size: 14px;
+
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 17px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+
+            .container {
+                padding: 30px 15px;
+            }
+
+            .intro h2 {
+                font-size: 26px;
+            }
+
+            .tutor-card {
+                padding: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- HEADER -->
+
+    <header>
+
+        <h1>
+            🤖 AI Study Assistant
+        </h1>
+
+        <button
+            class="back-btn"
+            onclick="window.location.href='dashboard.html'"
+        >
+            ← Dashboard
+        </button>
+
+    </header>
+
+
+    <!-- MAIN -->
+
+    <main class="container">
+
+
+        <section class="intro">
+
+            <h2>
+                🤖 AI Tutor
+            </h2>
+
+            <p>
+                Ask your study question and get a simple explanation.
+            </p>
+
+        </section>
+
+
+        <section class="tutor-card">
+
+
+            <!-- QUESTION -->
+
+            <textarea
+                id="question"
+                placeholder="Example: Explain loops in C++ in simple words..."
+            ></textarea>
+
+
+            <button
+                class="ask-btn"
+                id="askButton"
+                type="button"
+                onclick="askAssistant()"
+            >
+                Ask AI
+            </button>
+
+
+            <!-- ANSWER -->
+
+            <div class="answer-section">
+
+                <h3>
+                    AI Answer
+                </h3>
+
+                <div
+                    id="answer"
+                    class="answer"
+                >
+                    Your AI answer will appear here.
+                </div>
+
+            </div>
+
+
+            <div class="progress-note">
+
+                📊 Your AI Tutor questions will automatically
+                appear in Study Progress.
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+
+    <!-- SCRIPT -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

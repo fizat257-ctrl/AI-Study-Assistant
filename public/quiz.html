@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Quiz Generator</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 45px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .quiz-card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    input {
+      width: 100%;
+
+      padding: 14px;
+
+      border: 1px solid #363b46;
+      border-radius: 10px;
+
+      background: #101217;
+      color: white;
+
+      font-size: 16px;
+
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+    }
+
+    .primary-btn {
+      width: 100%;
+
+      margin-top: 15px;
+
+      padding: 13px;
+
+      border: none;
+      border-radius: 9px;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .primary-btn:hover {
+      opacity: 0.9;
+    }
+
+    .quiz-container {
+      margin-top: 30px;
+
+      padding: 20px;
+
+      background: #101217;
+
+      border: 1px solid #292d36;
+
+      border-radius: 10px;
+
+      line-height: 1.7;
+    }
+
+    .quiz-container h3 {
+      margin-bottom: 15px;
+    }
+
+    .quiz-container button {
+      display: block;
+
+      width: 100%;
+
+      margin-top: 10px;
+
+      padding: 11px;
+
+      border: 1px solid #363b46;
+
+      border-radius: 8px;
+
+      background: #181b21;
+
+      color: white;
+
+      cursor: pointer;
+
+      text-align: left;
+    }
+
+    .quiz-container button:hover {
+      border-color: #2563eb;
+    }
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 30px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .quiz-card {
+        padding: 20px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- HEADER -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- MAIN -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        🧠 Quiz Generator
+      </h2>
+
+      <p>
+        Enter a topic and test your knowledge.
+      </p>
+
+    </section>
+
+
+    <section class="quiz-card">
+
+
+      <!-- TOPIC -->
+
+      <input
+        id="quizTopic"
+        type="text"
+        placeholder="Example: C++ Loops"
+      >
+
+
+      <!-- GENERATE -->
+
+      <button
+        class="primary-btn"
+        type="button"
+        onclick="generateQuiz()"
+      >
+        Generate Quiz
+      </button>
+
+
+      <!-- QUIZ -->
+
+      <div
+        id="quizContainer"
+        class="quiz-container"
+      >
+
+        Your quiz will appear here.
+
+      </div>
+
+
+    </section>
+
+  </main>
+
+
+  <!-- SCRIPT -->
+
+  <script src="script.js"></script>
+
+</body>
+
+</html>
