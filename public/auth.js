@@ -32,7 +32,9 @@ async function checkExistingSession() {
   } = await supabaseClient.auth.getSession();
 
   if (session) {
-    window.location.href = "index.html";
+
+    window.location.href = "dashboard.html";
+
   }
 }
 
@@ -142,7 +144,7 @@ authForm.addEventListener("submit", async (event) => {
       setTimeout(() => {
 
         window.location.href =
-          "index.html";
+          "dashboard.html";
 
       }, 700);
 

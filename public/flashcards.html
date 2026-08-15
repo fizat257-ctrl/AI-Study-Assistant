@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Flashcards</title>
+
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+
+    body {
+
+      min-height: 100vh;
+
+      background: #0f1115;
+
+      color: white;
+
+    }
+
+
+    /* ================================
+       HEADER
+    ================================= */
+
+    header {
+
+      padding: 20px 30px;
+
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+    }
+
+
+    header h1 {
+
+      font-size: 22px;
+
+    }
+
+
+    .back-btn {
+
+      border: none;
+
+      background: #2563eb;
+
+      color: white;
+
+      padding: 10px 16px;
+
+      border-radius: 8px;
+
+      cursor: pointer;
+
+    }
+
+
+    .container {
+
+      max-width: 850px;
+
+      margin: auto;
+
+      padding: 40px 20px;
+
+    }
+
+
+    .intro {
+
+      text-align: center;
+
+      margin-bottom: 30px;
+
+    }
+
+
+    .intro h2 {
+
+      font-size: 30px;
+
+      margin-bottom: 10px;
+
+    }
+
+
+    .intro p {
+
+      color: #a8afbf;
+
+    }
+
+
+    /* ================================
+       INPUT
+    ================================= */
+
+    .input-area {
+
+      background: #181b21;
+
+      border: 1px solid #292d36;
+
+      padding: 25px;
+
+      border-radius: 16px;
+
+      margin-bottom: 25px;
+
+    }
+
+
+    textarea {
+
+      width: 100%;
+
+      min-height: 120px;
+
+      padding: 15px;
+
+      border-radius: 10px;
+
+      border: 1px solid #343944;
+
+      background: #101218;
+
+      color: white;
+
+      resize: vertical;
+
+      font-size: 15px;
+
+      outline: none;
+
+    }
+
+
+    .generate-btn {
+
+      width: 100%;
+
+      margin-top: 15px;
+
+      padding: 13px;
+
+      border: none;
+
+      border-radius: 9px;
+
+      background: #2563eb;
+
+      color: white;
+
+      font-size: 16px;
+
+      cursor: pointer;
+
+    }
+
+
+    .generate-btn:disabled {
+
+      opacity: 0.6;
+
+      cursor: not-allowed;
+
+    }
+
+
+    /* ================================
+       FLASHCARD
+    ================================= */
+
+    .flashcard {
+
+      display: none;
+
+      min-height: 260px;
+
+      background: #181b21;
+
+      border: 1px solid #292d36;
+
+      border-radius: 18px;
+
+      padding: 35px;
+
+      text-align: center;
+
+      justify-content: center;
+
+      align-items: center;
+
+      flex-direction: column;
+
+      cursor: pointer;
+
+    }
+
+
+    .flashcard h3 {
+
+      color: #8ea9ff;
+
+      margin-bottom: 20px;
+
+      font-size: 15px;
+
+    }
+
+
+    .flashcard p {
+
+      font-size: 22px;
+
+      line-height: 1.5;
+
+    }
+
+
+    .hint {
+
+      margin-top: 18px;
+
+      color: #7f8797;
+
+      font-size: 13px;
+
+    }
+
+
+    /* ================================
+       CONTROLS
+    ================================= */
+
+    .controls {
+
+      display: none;
+
+      justify-content: center;
+
+      gap: 12px;
+
+      margin-top: 20px;
+
+    }
+
+
+    .controls button {
+
+      padding: 11px 20px;
+
+      border: none;
+
+      border-radius: 8px;
+
+      background: #252a35;
+
+      color: white;
+
+      cursor: pointer;
+
+    }
+
+
+    .controls button:hover {
+
+      background: #303644;
+
+    }
+
+
+    #status {
+
+      text-align: center;
+
+      color: #a8afbf;
+
+      margin: 15px 0;
+
+    }
+
+
+    /* ================================
+       MOBILE
+    ================================= */
+
+    @media (max-width: 600px) {
+
+      header {
+
+        padding: 17px;
+
+      }
+
+
+      header h1 {
+
+        font-size: 18px;
+
+      }
+
+
+      .container {
+
+        padding: 25px 15px;
+
+      }
+
+
+      .intro h2 {
+
+        font-size: 25px;
+
+      }
+
+
+      .flashcard p {
+
+        font-size: 19px;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- =================================
+       HEADER
+  ================================= -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+
+    <button
+      class="back-btn"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+
+  <!-- =================================
+       MAIN
+  ================================= -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        🗂️ AI Flashcards
+      </h2>
+
+      <p>
+        Enter a topic and let AI create
+        flashcards for revision.
+      </p>
+
+    </section>
+
+
+
+    <!-- =================================
+         INPUT
+    ================================= -->
+
+    <section class="input-area">
+
+      <textarea
+        id="topic"
+        placeholder="Example: C++ Functions, Operating Systems, Biology, Mathematics..."
+      ></textarea>
+
+
+      <button
+        class="generate-btn"
+        id="generateButton"
+        onclick="generateFlashcards()"
+      >
+        Generate AI Flashcards
+      </button>
+
+    </section>
+
+
+
+    <!-- =================================
+         STATUS
+    ================================= -->
+
+    <p id="status"></p>
+
+
+
+    <!-- =================================
+         FLASHCARD
+    ================================= -->
+
+    <section
+      class="flashcard"
+      id="flashcard"
+      onclick="showAnswer()"
+    >
+
+      <h3 id="cardNumber">
+        Flashcard
+      </h3>
+
+
+      <p id="cardText">
+        Your flashcard will appear here.
+      </p>
+
+
+      <div
+        class="hint"
+        id="hint"
+      >
+        Click the card to see the answer
+      </div>
+
+    </section>
+
+
+
+    <!-- =================================
+         CONTROLS
+    ================================= -->
+
+    <div
+      class="controls"
+      id="controls"
+    >
+
+      <button onclick="previousCard()">
+        ← Previous
+      </button>
+
+
+      <button onclick="nextCard()">
+        Next →
+      </button>
+
+    </div>
+
+
+  </main>
+
+
+
+  <script>
+
+
+    // ==================================================
+    // VARIABLES
+    // ==================================================
+
+    let flashcards = [];
+
+    let currentCard = 0;
+
+    let showingAnswer = false;
+
+
+
+    // ==================================================
+    // GENERATE FLASHCARDS
+    // ==================================================
+
+    async function generateFlashcards() {
+
+
+      const topic =
+        document
+          .getElementById("topic")
+          .value
+          .trim();
+
+
+      const status =
+        document.getElementById(
+          "status"
+        );
+
+
+      const button =
+        document.getElementById(
+          "generateButton"
+        );
+
+
+      // Check topic
+
+      if (!topic) {
+
+        status.textContent =
+          "Please enter a study topic first.";
+
+        return;
+
+      }
+
+
+      // Disable button
+
+      button.disabled = true;
+
+      button.textContent =
+        "Generating with AI...";
+
+
+      status.textContent =
+        "AI is creating your flashcards...";
+
+
+      try {
+
+
+        // ==============================================
+        // CALL SERVER
+        // ==============================================
+
+        const response =
+          await fetch(
+            "/api/flashcards",
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type":
+                  "application/json"
+
+              },
+
+              body:
+                JSON.stringify({
+                  topic: topic
+                })
+
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        // ==============================================
+        // CHECK ERROR
+        // ==============================================
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.error ||
+            "Unable to generate flashcards."
+          );
+
+        }
+
+
+        // ==============================================
+        // GET FLASHCARDS
+        // ==============================================
+
+        flashcards =
+          data.flashcards;
+
+
+        if (
+          !Array.isArray(flashcards) ||
+          flashcards.length === 0
+        ) {
+
+          throw new Error(
+            "AI did not return valid flashcards."
+          );
+
+        }
+
+
+        // ==============================================
+        // RESET CARD
+        // ==============================================
+
+        currentCard = 0;
+
+        showingAnswer = false;
+
+
+        // ==============================================
+        // SHOW UI
+        // ==============================================
+
+        document.getElementById(
+          "flashcard"
+        ).style.display = "flex";
+
+
+        document.getElementById(
+          "controls"
+        ).style.display = "flex";
+
+
+        status.textContent =
+          `${flashcards.length} AI flashcards created successfully.`;
+
+
+
+        // ==============================================
+        // SAVE PROGRESS
+        // ==============================================
+
+        saveFlashcardProgress(
+          topic,
+          flashcards.length
+        );
+
+
+        // Show first card
+
+        showCard();
+
+
+      } catch (error) {
+
+
+        console.error(
+          "Flashcard Error:",
+          error
+        );
+
+
+        status.textContent =
+          error.message ||
+          "Sorry, I could not generate flashcards. Please try again.";
+
+
+      } finally {
+
+
+        button.disabled = false;
+
+        button.textContent =
+          "Generate AI Flashcards";
+
+      }
+
+    }
+
+
+
+    // ==================================================
+    // SAVE FLASHCARD PROGRESS
+    // ==================================================
+
+    function saveFlashcardProgress(
+      topic,
+      numberOfCards
+    ) {
+
+
+      // ----------------------------------------------
+      // FLASHCARDS CREATED
+      // ----------------------------------------------
+
+      const oldCount =
+        Number(
+          localStorage.getItem(
+            "flashcardsCreated"
+          )
+        ) || 0;
+
+
+      localStorage.setItem(
+        "flashcardsCreated",
+        oldCount + numberOfCards
+      );
+
+
+
+      // ----------------------------------------------
+      // FLASHCARD PROGRESS
+      // ----------------------------------------------
+
+      const oldProgress =
+        Number(
+          localStorage.getItem(
+            "flashcardProgress"
+          )
+        ) || 0;
+
+
+      const newProgress =
+        Math.min(
+          oldProgress + 10,
+          100
+        );
+
+
+      localStorage.setItem(
+        "flashcardProgress",
+        newProgress
+      );
+
+
+
+      // ----------------------------------------------
+      // TOPICS STUDIED
+      // ----------------------------------------------
+
+      const oldTopics =
+        Number(
+          localStorage.getItem(
+            "topicsStudied"
+          )
+        ) || 0;
+
+
+      localStorage.setItem(
+        "topicsStudied",
+        oldTopics + 1
+      );
+
+
+
+      // ----------------------------------------------
+      // RECENT ACTIVITY
+      // ----------------------------------------------
+
+      const activities =
+        JSON.parse(
+          localStorage.getItem(
+            "studyActivity"
+          ) || "[]"
+        );
+
+
+      activities.push({
+
+        icon: "🗂️",
+
+        text:
+          `Created ${numberOfCards} AI flashcards for ${topic}`
+
+      });
+
+
+      // Keep only last 20 activities
+
+      const recentActivities =
+        activities.slice(-20);
+
+
+      localStorage.setItem(
+        "studyActivity",
+        JSON.stringify(
+          recentActivities
+        )
+      );
+
+    }
+
+
+
+    // ==================================================
+    // SHOW CARD
+    // ==================================================
+
+    function showCard() {
+
+
+      if (
+        !flashcards.length
+      ) {
+
+        return;
+
+      }
+
+
+      const card =
+        flashcards[
+          currentCard
+        ];
+
+
+      showingAnswer = false;
+
+
+      document.getElementById(
+        "cardNumber"
+      ).textContent =
+        `Flashcard ${
+          currentCard + 1
+        } of ${
+          flashcards.length
+        }`;
+
+
+      document.getElementById(
+        "cardText"
+      ).textContent =
+        card.question;
+
+
+      document.getElementById(
+        "hint"
+      ).textContent =
+        "Click the card to see the answer.";
+
+    }
+
+
+
+    // ==================================================
+    // SHOW ANSWER
+    // ==================================================
+
+    function showAnswer() {
+
+
+      if (
+        !flashcards.length
+      ) {
+
+        return;
+
+      }
+
+
+      const card =
+        flashcards[
+          currentCard
+        ];
+
+
+      showingAnswer =
+        !showingAnswer;
+
+
+      if (
+        showingAnswer
+      ) {
+
+
+        document.getElementById(
+          "cardText"
+        ).textContent =
+          card.answer;
+
+
+        document.getElementById(
+          "hint"
+        ).textContent =
+          "Click the card to see the question.";
+
+
+      } else {
+
+
+        document.getElementById(
+          "cardText"
+        ).textContent =
+          card.question;
+
+
+        document.getElementById(
+          "hint"
+        ).textContent =
+          "Click the card to see the answer.";
+
+      }
+
+    }
+
+
+
+    // ==================================================
+    // NEXT CARD
+    // ==================================================
+
+    function nextCard() {
+
+
+      if (
+        currentCard <
+        flashcards.length - 1
+      ) {
+
+
+        currentCard++;
+
+        showCard();
+
+      }
+
+    }
+
+
+
+    // ==================================================
+    // PREVIOUS CARD
+    // ==================================================
+
+    function previousCard() {
+
+
+      if (
+        currentCard > 0
+      ) {
+
+
+        currentCard--;
+
+        showCard();
+
+      }
+
+    }
+
+
+  </script>
+
+
+</body>
+
+</html>

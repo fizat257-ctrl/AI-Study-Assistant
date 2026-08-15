@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>AI Study Assistant - Progress</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+    }
+
+    .stat-card .icon {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card h3 {
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .stat-card p {
+      color: #9299a8;
+      font-size: 14px;
+    }
+
+    .progress-section {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .progress-section h3 {
+      margin-bottom: 20px;
+    }
+
+    .progress-row {
+      margin-bottom: 20px;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .progress-info span:last-child {
+      color: #8ea9ff;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #292d36;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #2563eb;
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .activity {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 15px;
+      padding: 25px;
+    }
+
+    .activity h3 {
+      margin-bottom: 15px;
+    }
+
+    .activity-item {
+      padding: 15px 0;
+      border-bottom: 1px solid #292d36;
+      color: #c4c9d4;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .empty {
+      color: #9299a8;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    @media (max-width: 700px) {
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 25px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+
+    <h1>🎓 AI Study Assistant</h1>
+
+    <button
+      class="back-btn"
+      onclick="window.location.href='dashboard.html'">
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <main class="container">
+
+    <section class="intro">
+
+      <h2>📊 Study Progress</h2>
+
+      <p>
+        Track your learning activity and study progress.
+      </p>
+
+    </section>
+
+
+    <!-- STATS -->
+
+    <section class="stats">
+
+      <div class="stat-card">
+
+        <div class="icon">📚</div>
+
+        <h3 id="topicsCount">0</h3>
+
+        <p>Topics Studied</p>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="icon">🗂️</div>
+
+        <h3 id="flashcardsCount">0</h3>
+
+        <p>Flashcards Created</p>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="icon">🎯</div>
+
+        <h3 id="studyScore">0%</h3>
+
+        <p>Study Progress</p>
+
+      </div>
+
+    </section>
+
+
+    <!-- PROGRESS -->
+
+    <section class="progress-section">
+
+      <h3>Learning Progress</h3>
+
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+
+          <span>AI Tutor</span>
+
+          <span id="tutorPercent">0%</span>
+
+        </div>
+
+        <div class="progress-bar">
+
+          <div
+            class="progress-fill"
+            id="tutorBar">
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+
+          <span>Flashcards</span>
+
+          <span id="flashcardPercent">0%</span>
+
+        </div>
+
+        <div class="progress-bar">
+
+          <div
+            class="progress-fill"
+            id="flashcardBar">
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+
+          <span>Overall Learning</span>
+
+          <span id="overallPercent">0%</span>
+
+        </div>
+
+        <div class="progress-bar">
+
+          <div
+            class="progress-fill"
+            id="overallBar">
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ACTIVITY -->
+
+    <section class="activity">
+
+      <h3>Recent Activity</h3>
+
+      <div id="activityList">
+
+        <div class="empty">
+          Start studying to see your activity here.
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    // ==================================================
+    // LOAD STUDY PROGRESS
+    // ==================================================
+
+    function loadProgress() {
+
+      const topics =
+        Number(
+          localStorage.getItem("topicsStudied")
+        ) || 0;
+
+
+      const flashcards =
+        Number(
+          localStorage.getItem("flashcardsCreated")
+        ) || 0;
+
+
+      const tutor =
+        Math.min(
+          Number(
+            localStorage.getItem("tutorProgress")
+          ) || 0,
+          100
+        );
+
+
+      const flashcardProgress =
+        Math.min(
+          Number(
+            localStorage.getItem("flashcardProgress")
+          ) || 0,
+          100
+        );
+
+
+      const overall =
+        Math.round(
+          (tutor + flashcardProgress) / 2
+        );
+
+
+      document.getElementById(
+        "topicsCount"
+      ).textContent = topics;
+
+
+      document.getElementById(
+        "flashcardsCount"
+      ).textContent = flashcards;
+
+
+      document.getElementById(
+        "studyScore"
+      ).textContent = `${overall}%`;
+
+
+      document.getElementById(
+        "tutorPercent"
+      ).textContent = `${tutor}%`;
+
+
+      document.getElementById(
+        "flashcardPercent"
+      ).textContent = `${flashcardProgress}%`;
+
+
+      document.getElementById(
+        "overallPercent"
+      ).textContent = `${overall}%`;
+
+
+      document.getElementById(
+        "tutorBar"
+      ).style.width = `${tutor}%`;
+
+
+      document.getElementById(
+        "flashcardBar"
+      ).style.width = `${flashcardProgress}%`;
+
+
+      document.getElementById(
+        "overallBar"
+      ).style.width = `${overall}%`;
+
+
+      loadActivity();
+
+    }
+
+
+    // ==================================================
+    // ACTIVITY
+    // ==================================================
+
+    function loadActivity() {
+
+      const activities =
+        JSON.parse(
+          localStorage.getItem("studyActivity") || "[]"
+        );
+
+
+      const list =
+        document.getElementById(
+          "activityList"
+        );
+
+
+      if (activities.length === 0) {
+
+        list.innerHTML = `
+          <div class="empty">
+            Start studying to see your activity here.
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      list.innerHTML = "";
+
+
+      activities
+        .slice(-10)
+        .reverse()
+        .forEach(activity => {
+
+          const item =
+            document.createElement("div");
+
+          item.className =
+            "activity-item";
+
+          item.textContent =
+            `${activity.icon || "📖"} ${activity.text}`;
+
+          list.appendChild(item);
+
+        });
+
+    }
+
+
+    // ==================================================
+    // START
+    // ==================================================
+
+    loadProgress();
+
+  </script>
+
+</body>
+</html>

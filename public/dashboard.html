@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
   <title>AI Study Assistant - Dashboard</title>
 
+
   <style>
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -13,235 +22,649 @@
       font-family: Arial, sans-serif;
     }
 
+
     body {
+
       min-height: 100vh;
+
       background: #0f1115;
-      color: #f5f7ff;
+
+      color: white;
+
     }
+
+
+    /* ================================
+       HEADER
+    ================================= */
 
     header {
+
       padding: 20px 30px;
+
       border-bottom: 1px solid #292d36;
+
       display: flex;
+
       justify-content: space-between;
+
       align-items: center;
+
     }
+
 
     header h1 {
-      font-size: 24px;
+
+      font-size: 23px;
+
     }
 
-    .logout {
-      padding: 10px 18px;
+
+    .logout-btn {
+
       border: none;
-      border-radius: 8px;
-      background: #2563eb;
+
+      background: #dc2626;
+
       color: white;
+
+      padding: 10px 17px;
+
+      border-radius: 8px;
+
       cursor: pointer;
+
     }
+
+
+    .logout-btn:hover {
+
+      opacity: 0.9;
+
+    }
+
+
+    /* ================================
+       MAIN
+    ================================= */
 
     .container {
+
       max-width: 1100px;
+
       margin: auto;
-      padding: 40px 20px;
+
+      padding: 45px 20px;
+
     }
+
 
     .welcome {
-      margin-bottom: 30px;
+
+      text-align: center;
+
+      margin-bottom: 40px;
+
     }
+
 
     .welcome h2 {
+
       font-size: 32px;
-      margin-bottom: 8px;
+
+      margin-bottom: 10px;
+
     }
+
 
     .welcome p {
+
       color: #a8afbf;
+
+      font-size: 16px;
+
     }
 
-    .dashboard-grid {
+
+    /* ================================
+       CARDS
+    ================================= */
+
+    .tools {
+
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
       gap: 20px;
+
     }
 
-    .card {
+
+    .tool-card {
+
       background: #181b21;
+
       border: 1px solid #292d36;
+
       border-radius: 16px;
-      padding: 25px;
-      transition: 0.2s;
+
+      padding: 28px;
+
+      min-height: 190px;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.2s,
+        border-color 0.2s;
+
+      display: flex;
+
+      flex-direction: column;
+
+      justify-content: space-between;
+
     }
 
-    .card:hover {
-      transform: translateY(-3px);
+
+    .tool-card:hover {
+
+      transform: translateY(-4px);
+
       border-color: #2563eb;
+
     }
+
 
     .icon {
-      font-size: 32px;
+
+      font-size: 35px;
+
       margin-bottom: 15px;
+
     }
 
-    .card h3 {
+
+    .tool-card h3 {
+
+      font-size: 20px;
+
       margin-bottom: 8px;
+
     }
 
-    .card p {
-      color: #a8afbf;
+
+    .tool-card p {
+
+      color: #9299a8;
+
       line-height: 1.5;
-      margin-bottom: 18px;
-    }
 
-    .card button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 8px;
-      background: #172554;
-      color: white;
-      cursor: pointer;
-    }
-
-    .stats {
-      margin-top: 35px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 15px;
-    }
-
-    .stat {
-      background: #181b21;
-      border: 1px solid #292d36;
-      border-radius: 14px;
-      padding: 20px;
-    }
-
-    .stat span {
-      color: #a8afbf;
       font-size: 14px;
+
     }
 
-    .stat strong {
-      display: block;
-      font-size: 28px;
-      margin-top: 8px;
+
+    .open-text {
+
+      margin-top: 20px;
+
+      color: #6f91ff;
+
+      font-size: 14px;
+
+      font-weight: bold;
+
     }
 
-    @media (max-width: 600px) {
-      header {
-        padding: 18px;
+
+    /* ================================
+       MOBILE
+    ================================= */
+
+    @media (max-width: 800px) {
+
+      .tools {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+
       }
+
+    }
+
+
+    @media (max-width: 550px) {
+
+      header {
+
+        padding: 17px;
+
+      }
+
 
       header h1 {
-        font-size: 20px;
+
+        font-size: 18px;
+
       }
+
 
       .container {
-        padding: 25px 15px;
+
+        padding:
+          30px 15px;
+
       }
 
+
       .welcome h2 {
+
         font-size: 26px;
+
       }
+
+
+      .tools {
+
+        grid-template-columns: 1fr;
+
+      }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
+  <!-- =================================
+       HEADER
+  ================================== -->
+
   <header>
-    <h1>🎓 AI Study Assistant</h1>
-    <button class="logout" onclick="logout()">Logout</button>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+
+    <button
+      class="logout-btn"
+      onclick="logout()"
+    >
+      Logout
+    </button>
+
   </header>
+
+
+
+  <!-- =================================
+       MAIN DASHBOARD
+  ================================== -->
 
   <main class="container">
 
+
     <section class="welcome">
-      <h2>Welcome to your Dashboard 👋</h2>
-      <p>Manage your learning, practice with AI and track your study progress.</p>
-    </section>
 
-    <section class="dashboard-grid">
+      <h2>
+        Welcome to your Study Dashboard 👋
+      </h2>
 
-      <div class="card">
-        <div class="icon">🤖</div>
-        <h3>AI Tutor</h3>
-        <p>Ask questions and get AI-powered explanations.</p>
-        <button onclick="openHome()">Open AI Tutor</button>
-      </div>
-
-      <div class="card">
-        <div class="icon">📝</div>
-        <h3>Notes Summarizer</h3>
-        <p>Turn long study notes into simple summaries.</p>
-        <button onclick="openHome()">Summarize Notes</button>
-      </div>
-
-      <div class="card">
-        <div class="icon">🧠</div>
-        <h3>Quiz Generator</h3>
-        <p>Generate quizzes and test your knowledge.</p>
-        <button onclick="openHome()">Generate Quiz</button>
-      </div>
-
-      <div class="card">
-        <div class="icon">📅</div>
-        <h3>Study Planner</h3>
-        <p>Create a simple study plan for your subjects.</p>
-        <button onclick="openHome()">Create Plan</button>
-      </div>
-
-      <div class="card">
-        <div class="icon">🗂️</div>
-        <h3>Flashcards</h3>
-        <p>Practice important concepts using flashcards.</p>
-        <button>Coming Soon</button>
-      </div>
-
-      <div class="card">
-        <div class="icon">📊</div>
-        <h3>Progress</h3>
-        <p>Track your study time and quiz performance.</p>
-        <button>Coming Soon</button>
-      </div>
+      <p>
+        Choose a tool below to continue learning.
+      </p>
 
     </section>
 
-    <section class="stats">
 
-      <div class="stat">
-        <span>Study Sessions</span>
-        <strong>0</strong>
+
+    <!-- =================================
+         STUDY TOOLS
+    ================================== -->
+
+    <section class="tools">
+
+
+      <!-- AI TUTOR -->
+
+      <div
+        class="tool-card"
+        onclick="openTutor()"
+      >
+
+        <div>
+
+          <div class="icon">
+            🤖
+          </div>
+
+          <h3>
+            AI Tutor
+          </h3>
+
+          <p>
+            Ask questions and get
+            simple AI-powered explanations.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open AI Tutor →
+        </div>
+
       </div>
 
-      <div class="stat">
-        <span>Quizzes Completed</span>
-        <strong>0</strong>
+
+
+      <!-- NOTE SUMMARIZER -->
+
+      <div
+        class="tool-card"
+        onclick="openSummarizer()"
+      >
+
+        <div>
+
+          <div class="icon">
+            📝
+          </div>
+
+          <h3>
+            Note Summarizer
+          </h3>
+
+          <p>
+            Turn long study notes into
+            simple summaries.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Summarizer →
+        </div>
+
       </div>
 
-      <div class="stat">
-        <span>Study Time</span>
-        <strong>0 min</strong>
+
+
+      <!-- QUIZ -->
+
+      <div
+        class="tool-card"
+        onclick="openQuiz()"
+      >
+
+        <div>
+
+          <div class="icon">
+            🧠
+          </div>
+
+          <h3>
+            Quiz Generator
+          </h3>
+
+          <p>
+            Generate practice questions
+            to test your knowledge.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Quiz →
+        </div>
+
       </div>
 
-      <div class="stat">
-        <span>Average Score</span>
-        <strong>0%</strong>
+
+
+      <!-- STUDY PLANNER -->
+
+      <div
+        class="tool-card"
+        onclick="openPlanner()"
+      >
+
+        <div>
+
+          <div class="icon">
+            📅
+          </div>
+
+          <h3>
+            Study Planner
+          </h3>
+
+          <p>
+            Organize your study sessions
+            and learning goals.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Planner →
+        </div>
+
       </div>
+
+
+
+      <!-- FLASHCARDS -->
+
+      <div
+        class="tool-card"
+        onclick="openFlashcards()"
+      >
+
+        <div>
+
+          <div class="icon">
+            🗂️
+          </div>
+
+          <h3>
+            AI Flashcards
+          </h3>
+
+          <p>
+            Generate AI-powered flashcards
+            for quick revision.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Flashcards →
+        </div>
+
+      </div>
+
+
+
+      <!-- PROGRESS -->
+
+      <div
+        class="tool-card"
+        onclick="openProgress()"
+      >
+
+        <div>
+
+          <div class="icon">
+            📊
+          </div>
+
+          <h3>
+            Study Progress
+          </h3>
+
+          <p>
+            Track your study activity
+            and learning progress.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          View Progress →
+        </div>
+
+      </div>
+
 
     </section>
 
   </main>
 
+
+
+  <!-- =================================
+       JAVASCRIPT
+  ================================== -->
+
   <script>
-    function openHome() {
-      window.location.href = "index.html";
+
+
+    // ==================================
+    // AI TUTOR
+    // ==================================
+
+    function openTutor() {
+
+      window.location.href =
+        "index.html";
+
     }
 
-    function logout() {
-      window.location.href = "auth.html";
+
+
+    // ==================================
+    // NOTE SUMMARIZER
+    // ==================================
+
+    function openSummarizer() {
+
+      if (
+        document.querySelector(
+          '[data-page="summarizer"]'
+        )
+      ) {
+
+        window.location.href =
+          "summarizer.html";
+
+      } else {
+
+        window.location.href =
+          "summarizer.html";
+
+      }
+
     }
+
+
+
+    // ==================================
+    // QUIZ
+    // ==================================
+
+    function openQuiz() {
+
+      window.location.href =
+        "quiz.html";
+
+    }
+
+
+
+    // ==================================
+    // STUDY PLANNER
+    // ==================================
+
+    function openPlanner() {
+
+      window.location.href =
+        "planner.html";
+
+    }
+
+
+
+    // ==================================
+    // FLASHCARDS
+    // ==================================
+
+    function openFlashcards() {
+
+      window.location.href =
+        "flashcards.html";
+
+    }
+
+
+
+    // ==================================
+    // PROGRESS
+    // ==================================
+
+    function openProgress() {
+
+      window.location.href =
+        "progress.html";
+
+    }
+
+
+
+    // ==================================
+    // LOGOUT
+    // ==================================
+
+    async function logout() {
+
+      try {
+
+        if (
+          window.supabase &&
+          window.supabaseClient
+        ) {
+
+          await window.supabaseClient
+            .auth
+            .signOut();
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Logout error:",
+          error
+        );
+
+      }
+
+
+      window.location.href =
+        "auth.html";
+
+    }
+
   </script>
 
+
 </body>
+
 </html>
