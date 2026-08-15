@@ -193,7 +193,7 @@ authForm.addEventListener("submit", async (event) => {
       setTimeout(() => {
 
         window.location.href =
-          "index.html";
+          "dashboard.html";
 
       }, 700);
 
