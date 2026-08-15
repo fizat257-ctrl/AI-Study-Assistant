@@ -99,7 +99,6 @@
 
         .ask-btn {
             width: 100%;
-
             margin-top: 15px;
 
             padding: 13px;
@@ -218,7 +217,6 @@
 
     <main class="container">
 
-
         <section class="intro">
 
             <h2>
@@ -247,7 +245,7 @@
                 class="ask-btn"
                 id="askButton"
                 type="button"
-                onclick="askAssistant()"
+                onclick="askTutorQuestion()"
             >
                 Ask AI
             </button>
@@ -284,9 +282,158 @@
     </main>
 
 
-    <!-- SCRIPT -->
+    <!-- EXISTING AI TUTOR SCRIPT -->
 
     <script src="script.js"></script>
+
+
+    <!-- PROGRESS CONNECTION -->
+
+    <script>
+
+        function askTutorQuestion() {
+
+            const questionInput =
+                document.getElementById("question");
+
+            if (!questionInput) {
+                return;
+            }
+
+            const question =
+                questionInput.value.trim();
+
+            // Empty question ko progress mein add nahi karna
+            if (question === "") {
+                if (typeof askAssistant === "function") {
+                    askAssistant();
+                }
+                return;
+            }
+
+
+            // Existing AI Tutor function run karo
+            if (typeof askAssistant === "function") {
+
+                askAssistant();
+
+            } else {
+
+                alert("AI Tutor is not available.");
+
+                return;
+            }
+
+
+            // ==========================================
+            // TOPICS STUDIED
+            // ==========================================
+
+            let topics =
+                Number(
+                    localStorage.getItem("topicsStudied")
+                ) || 0;
+
+            topics += 1;
+
+            localStorage.setItem(
+                "topicsStudied",
+                topics
+            );
+
+
+            // ==========================================
+            // AI TUTOR PROGRESS
+            // ==========================================
+
+            let tutorProgress =
+                Number(
+                    localStorage.getItem("tutorProgress")
+                ) || 0;
+
+
+            tutorProgress =
+                Math.min(
+                    tutorProgress + 10,
+                    100
+                );
+
+
+            localStorage.setItem(
+                "tutorProgress",
+                tutorProgress
+            );
+
+
+            // ==========================================
+            // RECENT ACTIVITY
+            // ==========================================
+
+            let activities =
+                JSON.parse(
+                    localStorage.getItem("studyActivity") || "[]"
+                );
+
+
+            activities.push({
+
+                icon: "🤖",
+
+                text:
+                    "AI Tutor question: " + question,
+
+                time:
+                    new Date().toLocaleString()
+
+            });
+
+
+            // Sirf latest 20 activities rakhein
+            if (activities.length > 20) {
+
+                activities =
+                    activities.slice(-20);
+
+            }
+
+
+            localStorage.setItem(
+                "studyActivity",
+                JSON.stringify(activities)
+            );
+
+
+            // ==========================================
+            // FLASHCARD PROGRESS
+            // ==========================================
+
+            const flashcardProgress =
+                Number(
+                    localStorage.getItem("flashcardProgress")
+                ) || 0;
+
+
+            // ==========================================
+            // OVERALL LEARNING
+            // ==========================================
+
+            const overall =
+                Math.round(
+                    (
+                        tutorProgress +
+                        flashcardProgress
+                    ) / 2
+                );
+
+
+            localStorage.setItem(
+                "overallProgress",
+                overall
+            );
+
+        }
+
+    </script>
 
 </body>
 
