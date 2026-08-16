@@ -49,6 +49,10 @@
       cursor: pointer;
     }
 
+    .back-btn:hover {
+      opacity: 0.9;
+    }
+
     .container {
       max-width: 900px;
       margin: auto;
@@ -78,7 +82,6 @@
 
     input {
       width: 100%;
-
       padding: 14px;
 
       border: 1px solid #363b46;
@@ -88,7 +91,6 @@
       color: white;
 
       font-size: 16px;
-
       outline: none;
     }
 
@@ -98,7 +100,6 @@
 
     .primary-btn {
       width: 100%;
-
       margin-top: 15px;
 
       padding: 13px;
@@ -119,6 +120,11 @@
       opacity: 0.9;
     }
 
+    .primary-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .quiz-container {
       margin-top: 30px;
 
@@ -137,30 +143,45 @@
       margin-bottom: 15px;
     }
 
-    .quiz-container button {
-      display: block;
+    .question {
+      margin-bottom: 25px;
+    }
 
+    .question-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .option {
+      display: block;
       width: 100%;
 
       margin-top: 10px;
-
       padding: 11px;
 
       border: 1px solid #363b46;
-
       border-radius: 8px;
 
       background: #181b21;
-
       color: white;
 
       cursor: pointer;
-
       text-align: left;
     }
 
-    .quiz-container button:hover {
+    .option:hover {
       border-color: #2563eb;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 8px;
+
+      color: #d7dbe4;
     }
 
     @media (max-width: 600px) {
@@ -246,6 +267,7 @@
       <!-- GENERATE -->
 
       <button
+        id="generateButton"
         class="primary-btn"
         type="button"
         onclick="generateQuiz()"
@@ -271,9 +293,457 @@
   </main>
 
 
-  <!-- SCRIPT -->
+  <!-- ==========================================
+       JAVASCRIPT
+  =========================================== -->
 
-  <script src="script.js"></script>
+  <script>
+
+    // ==========================================
+    // GENERATE QUIZ
+    // ==========================================
+
+    function generateQuiz() {
+
+      const topicInput =
+        document.getElementById("quizTopic");
+
+      const quizContainer =
+        document.getElementById("quizContainer");
+
+      const generateButton =
+        document.getElementById("generateButton");
+
+
+      const topic =
+        topicInput.value.trim();
+
+
+      // ==========================================
+      // CHECK TOPIC
+      // ==========================================
+
+      if (!topic) {
+
+        quizContainer.innerHTML =
+          "Please enter a topic first.";
+
+        return;
+
+      }
+
+
+      // ==========================================
+      // LOADING
+      // ==========================================
+
+      quizContainer.innerHTML =
+        "🧠 Generating quiz...";
+
+
+      generateButton.disabled = true;
+
+      generateButton.innerText =
+        "Generating Quiz...";
+
+
+      // ==========================================
+      // CREATE SIMPLE QUIZ
+      // ==========================================
+
+      setTimeout(function() {
+
+
+        quizContainer.innerHTML = `
+
+          <h3>
+            🧠 Quiz: ${escapeHTML(topic)}
+          </h3>
+
+          <div class="question">
+
+            <div class="question-title">
+              1. What is the main purpose of studying ${escapeHTML(topic)}?
+            </div>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, true)"
+            >
+              A. To understand the topic and apply its concepts
+            </button>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, false)"
+            >
+              B. To avoid learning the topic
+            </button>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, false)"
+            >
+              C. To memorize without understanding
+            </button>
+
+          </div>
+
+
+          <div class="question">
+
+            <div class="question-title">
+              2. What is a good way to learn ${escapeHTML(topic)}?
+            </div>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, true)"
+            >
+              A. Practice and review regularly
+            </button>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, false)"
+            >
+              B. Never practice
+            </button>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, false)"
+            >
+              C. Skip the important concepts
+            </button>
+
+          </div>
+
+
+          <div class="question">
+
+            <div class="question-title">
+              3. What should you do after completing a topic?
+            </div>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, true)"
+            >
+              A. Test your understanding
+            </button>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, false)"
+            >
+              B. Forget everything
+            </button>
+
+            <button
+              class="option"
+              onclick="selectAnswer(this, false)"
+            >
+              C. Stop studying completely
+            </button>
+
+          </div>
+
+
+          <div
+            id="quizResult"
+            class="result"
+          >
+            Answer the questions to test your knowledge.
+          </div>
+
+        `;
+
+
+        generateButton.disabled = false;
+
+        generateButton.innerText =
+          "Generate Quiz";
+
+
+        // ==========================================
+        // QUIZ PROGRESS
+        // ==========================================
+
+        let quizProgress =
+          Number(
+            localStorage.getItem(
+              "quizProgress"
+            )
+          ) || 0;
+
+
+        quizProgress =
+          Math.min(
+            quizProgress + 20,
+            100
+          );
+
+
+        localStorage.setItem(
+          "quizProgress",
+          quizProgress
+        );
+
+
+        // ==========================================
+        // TOPICS STUDIED
+        // ==========================================
+
+        let topics =
+          Number(
+            localStorage.getItem(
+              "topicsStudied"
+            )
+          ) || 0;
+
+
+        topics += 1;
+
+
+        localStorage.setItem(
+          "topicsStudied",
+          topics
+        );
+
+
+        // ==========================================
+        // RECENT ACTIVITY
+        // ==========================================
+
+        let activities =
+          JSON.parse(
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
+          );
+
+
+        activities.push({
+
+          icon: "🧠",
+
+          text:
+            `Quiz Generated: ${topic}`,
+
+          time:
+            new Date().toLocaleString()
+
+        });
+
+
+        if (
+          activities.length > 20
+        ) {
+
+          activities =
+            activities.slice(-20);
+
+        }
+
+
+        localStorage.setItem(
+          "studyActivity",
+          JSON.stringify(activities)
+        );
+
+
+        // ==========================================
+        // UPDATE OVERALL
+        // ==========================================
+
+        updateOverallProgress();
+
+
+      }, 600);
+
+    }
+
+
+    // ==========================================
+    // SELECT ANSWER
+    // ==========================================
+
+    function selectAnswer(
+      button,
+      correct
+    ) {
+
+      const result =
+        document.getElementById(
+          "quizResult"
+        );
+
+
+      if (correct) {
+
+        result.textContent =
+          "✅ Correct! Good job.";
+
+      } else {
+
+        result.textContent =
+          "❌ Not quite. Review the topic and try again.";
+
+      }
+
+    }
+
+
+    // ==========================================
+    // UPDATE OVERALL PROGRESS
+    // ==========================================
+
+    function updateOverallProgress() {
+
+      const tutor =
+        getProgress(
+          "tutorProgress"
+        );
+
+
+      const summarizer =
+        getProgress(
+          "summarizerProgress"
+        );
+
+
+      const quiz =
+        getProgress(
+          "quizProgress"
+        );
+
+
+      const planner =
+        getProgress(
+          "plannerProgress"
+        );
+
+
+      const flashcards =
+        getProgress(
+          "flashcardProgress"
+        );
+
+
+      const pdf =
+        getProgress(
+          "pdfProgress"
+        );
+
+
+      // ==========================================
+      // STUDY LIBRARY
+      // ==========================================
+
+      const libraryResources =
+        JSON.parse(
+          localStorage.getItem(
+            "studyLibrary"
+          ) || "[]"
+        );
+
+
+      let libraryProgress = 0;
+
+
+      if (
+        libraryResources.length > 0
+      ) {
+
+        libraryProgress =
+          Math.min(
+            libraryResources.length * 20,
+            100
+          );
+
+      }
+
+
+      // ==========================================
+      // OVERALL
+      // ==========================================
+
+      const overall =
+        Math.round(
+          (
+            tutor +
+            summarizer +
+            quiz +
+            planner +
+            flashcards +
+            pdf +
+            libraryProgress
+          ) / 7
+        );
+
+
+      localStorage.setItem(
+        "overallProgress",
+        overall
+      );
+
+    }
+
+
+    // ==========================================
+    // GET PROGRESS
+    // ==========================================
+
+    function getProgress(key) {
+
+      return Math.min(
+        Number(
+          localStorage.getItem(key)
+        ) || 0,
+        100
+      );
+
+    }
+
+
+    // ==========================================
+    // ESCAPE HTML
+    // ==========================================
+
+    function escapeHTML(text) {
+
+      return String(text)
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+  </script>
+
 
 </body>
 

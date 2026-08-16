@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Study Library</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 45px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .library-card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    .add-section {
+      margin-bottom: 30px;
+    }
+
+    .add-section h3 {
+      margin-bottom: 15px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 13px;
+
+      background: #101217;
+      color: white;
+
+      border: 1px solid #363b46;
+      border-radius: 9px;
+
+      outline: none;
+      font-size: 15px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #2563eb;
+    }
+
+    .file-section {
+      margin-top: 15px;
+    }
+
+    .file-section label {
+      display: block;
+      margin-bottom: 8px;
+      color: #c4c9d4;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .primary-btn {
+      width: 100%;
+      margin-top: 15px;
+
+      padding: 13px;
+
+      border: none;
+      border-radius: 9px;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .primary-btn:hover {
+      opacity: 0.9;
+    }
+
+    .library-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      margin-bottom: 15px;
+    }
+
+    .resource-count {
+      color: #9299a8;
+      font-size: 14px;
+    }
+
+    .empty-message {
+      padding: 35px 20px;
+
+      background: #101217;
+      border: 1px solid #292d36;
+      border-radius: 10px;
+
+      text-align: center;
+      color: #9299a8;
+    }
+
+    .resources {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .resource {
+      background: #101217;
+      border: 1px solid #292d36;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .resource-icon {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .resource h4 {
+      font-size: 18px;
+      margin-bottom: 7px;
+    }
+
+    .resource p {
+      color: #9299a8;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .resource-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .small-btn {
+      flex: 1;
+      padding: 9px;
+
+      border: none;
+      border-radius: 7px;
+
+      background: #2563eb;
+      color: white;
+
+      cursor: pointer;
+    }
+
+    .delete-btn {
+      background: #dc2626;
+    }
+
+    @media (max-width: 650px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 30px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .library-card {
+        padding: 20px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .resources {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- HEADER -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      onclick="window.location.href='/dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- MAIN -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        📚 AI Study Library
+      </h2>
+
+      <p>
+        Store and open your study resources in one place.
+      </p>
+
+    </section>
+
+
+    <section class="library-card">
+
+
+      <!-- ADD RESOURCE -->
+
+      <div class="add-section">
+
+        <h3>
+          ➕ Add Study Resource
+        </h3>
+
+
+        <div class="form-row">
+
+          <input
+            type="text"
+            id="resourceName"
+            placeholder="Resource name e.g. C++ Notes"
+          >
+
+
+          <select id="resourceType">
+
+            <option value="PDF">
+              📄 PDF
+            </option>
+
+            <option value="Notes">
+              📝 Notes
+            </option>
+
+            <option value="Study Material">
+              📚 Study Material
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- PDF FILE -->
+
+        <div
+          class="file-section"
+          id="pdfFileSection"
+        >
+
+          <label for="resourceFile">
+            Select PDF file
+          </label>
+
+          <input
+            type="file"
+            id="resourceFile"
+            accept=".pdf,application/pdf"
+          >
+
+        </div>
+
+
+        <!-- NOTES CONTENT -->
+
+        <div
+          class="file-section"
+          id="notesSection"
+          style="display:none;"
+        >
+
+          <label for="notesContent">
+            Write or paste your notes
+          </label>
+
+          <textarea
+            id="notesContent"
+            placeholder="Write or paste your study notes here..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- STUDY MATERIAL CONTENT -->
+
+        <div
+          class="file-section"
+          id="studyMaterialSection"
+          style="display:none;"
+        >
+
+          <label for="studyMaterialContent">
+            Write or paste study material
+          </label>
+
+          <textarea
+            id="studyMaterialContent"
+            placeholder="Write or paste your study material here..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- ADD BUTTON -->
+
+        <button
+          class="primary-btn"
+          type="button"
+          onclick="addResource()"
+        >
+          Add to Library
+        </button>
+
+      </div>
+
+
+      <!-- LIBRARY -->
+
+      <div class="library-header">
+
+        <h3>
+          📚 My Resources
+        </h3>
+
+        <span
+          class="resource-count"
+          id="resourceCount"
+        >
+          0 resources
+        </span>
+
+      </div>
+
+
+      <div
+        id="emptyMessage"
+        class="empty-message"
+      >
+        No study resources added yet.
+      </div>
+
+
+      <div
+        id="resources"
+        class="resources"
+      ></div>
+
+
+    </section>
+
+  </main>
+
+
+  <!-- JAVASCRIPT -->
+
+  <script>
+
+    let resources =
+      JSON.parse(
+        localStorage.getItem("studyLibrary")
+      ) || [];
+
+
+    // ==================================
+    // RESOURCE TYPE CHANGE
+    // ==================================
+
+    document
+      .getElementById("resourceType")
+      .addEventListener(
+        "change",
+        function () {
+
+          const pdfSection =
+            document.getElementById(
+              "pdfFileSection"
+            );
+
+          const notesSection =
+            document.getElementById(
+              "notesSection"
+            );
+
+          const studyMaterialSection =
+            document.getElementById(
+              "studyMaterialSection"
+            );
+
+
+          pdfSection.style.display = "none";
+
+          notesSection.style.display = "none";
+
+          studyMaterialSection.style.display =
+            "none";
+
+
+          if (this.value === "PDF") {
+
+            pdfSection.style.display =
+              "block";
+
+          }
+
+
+          if (this.value === "Notes") {
+
+            notesSection.style.display =
+              "block";
+
+          }
+
+
+          if (this.value === "Study Material") {
+
+            studyMaterialSection.style.display =
+              "block";
+
+          }
+
+        }
+      );
+
+
+    // ==================================
+    // DISPLAY RESOURCES
+    // ==================================
+
+    function displayResources() {
+
+      const container =
+        document.getElementById(
+          "resources"
+        );
+
+      const emptyMessage =
+        document.getElementById(
+          "emptyMessage"
+        );
+
+      const count =
+        document.getElementById(
+          "resourceCount"
+        );
+
+
+      container.innerHTML = "";
+
+
+      count.textContent =
+        resources.length +
+        (
+          resources.length === 1
+            ? " resource"
+            : " resources"
+        );
+
+
+      if (resources.length === 0) {
+
+        emptyMessage.style.display =
+          "block";
+
+        return;
+
+      }
+
+
+      emptyMessage.style.display =
+        "none";
+
+
+      resources.forEach(
+        function(resource, index) {
+
+          const card =
+            document.createElement(
+              "div"
+            );
+
+
+          card.className =
+            "resource";
+
+
+          let icon = "📚";
+
+
+          if (resource.type === "PDF") {
+
+            icon = "📄";
+
+          }
+
+
+          if (resource.type === "Notes") {
+
+            icon = "📝";
+
+          }
+
+
+          if (
+            resource.type ===
+            "Study Material"
+          ) {
+
+            icon = "📚";
+
+          }
+
+
+          card.innerHTML = `
+
+            <div class="resource-icon">
+              ${icon}
+            </div>
+
+            <h4>
+              ${escapeHTML(resource.name)}
+            </h4>
+
+            <p>
+              ${escapeHTML(resource.type)}
+            </p>
+
+            <div class="resource-actions">
+
+              <button
+                class="small-btn"
+                onclick="openResource(${index})"
+              >
+                Open
+              </button>
+
+              <button
+                class="small-btn delete-btn"
+                onclick="deleteResource(${index})"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          `;
+
+
+          container.appendChild(card);
+
+        }
+      );
+
+    }
+
+
+    // ==================================
+    // ADD RESOURCE
+    // ==================================
+
+    async function addResource() {
+
+      const nameInput =
+        document.getElementById(
+          "resourceName"
+        );
+
+      const typeInput =
+        document.getElementById(
+          "resourceType"
+        );
+
+      const fileInput =
+        document.getElementById(
+          "resourceFile"
+        );
+
+      const notesInput =
+        document.getElementById(
+          "notesContent"
+        );
+
+      const studyMaterialInput =
+        document.getElementById(
+          "studyMaterialContent"
+        );
+
+
+      const name =
+        nameInput.value.trim();
+
+
+      const type =
+        typeInput.value;
+
+
+      if (!name) {
+
+        alert(
+          "Please enter a resource name."
+        );
+
+        return;
+
+      }
+
+
+      // ==================================
+      // PDF
+      // ==================================
+
+      if (type === "PDF") {
+
+        if (!fileInput.files.length) {
+
+          alert(
+            "Please select a PDF file."
+          );
+
+          return;
+
+        }
+
+
+        const file =
+          fileInput.files[0];
+
+
+        if (
+          file.type !== "application/pdf" &&
+          !file.name
+            .toLowerCase()
+            .endsWith(".pdf")
+        ) {
+
+          alert(
+            "Please select a valid PDF file."
+          );
+
+          return;
+
+        }
+
+
+        try {
+
+          const dataURL =
+            await fileToDataURL(file);
+
+
+          resources.push({
+
+            name: name,
+
+            type: "PDF",
+
+            fileName: file.name,
+
+            fileData: dataURL,
+
+            createdAt:
+              new Date().toISOString()
+
+          });
+
+
+        } catch (error) {
+
+          console.error(error);
+
+          alert(
+            "Could not save the PDF."
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      // ==================================
+      // NOTES
+      // ==================================
+
+      else if (type === "Notes") {
+
+        const content =
+          notesInput.value.trim();
+
+
+        if (!content) {
+
+          alert(
+            "Please enter your notes."
+          );
+
+          return;
+
+        }
+
+
+        resources.push({
+
+          name: name,
+
+          type: "Notes",
+
+          content: content,
+
+          createdAt:
+            new Date().toISOString()
+
+        });
+
+      }
+
+
+      // ==================================
+      // STUDY MATERIAL
+      // ==================================
+
+      else if (
+        type === "Study Material"
+      ) {
+
+        const content =
+          studyMaterialInput.value.trim();
+
+
+        if (!content) {
+
+          alert(
+            "Please enter your study material."
+          );
+
+          return;
+
+        }
+
+
+        resources.push({
+
+          name: name,
+
+          type: "Study Material",
+
+          content: content,
+
+          createdAt:
+            new Date().toISOString()
+
+        });
+
+      }
+
+
+      // ==================================
+      // SAVE
+      // ==================================
+
+      try {
+
+        localStorage.setItem(
+          "studyLibrary",
+          JSON.stringify(resources)
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Storage limit reached. Please use a smaller PDF."
+        );
+
+        resources.pop();
+
+        return;
+
+      }
+
+
+      nameInput.value = "";
+
+      fileInput.value = "";
+
+      notesInput.value = "";
+
+      studyMaterialInput.value = "";
+
+
+      displayResources();
+
+
+      alert(
+        "✅ Resource added successfully!"
+      );
+
+    }
+
+
+    // ==================================
+    // FILE → DATA URL
+    // ==================================
+
+    function fileToDataURL(file) {
+
+      return new Promise(
+        function(resolve, reject) {
+
+          const reader =
+            new FileReader();
+
+
+          reader.onload =
+            function() {
+
+              resolve(
+                reader.result
+              );
+
+            };
+
+
+          reader.onerror =
+            function() {
+
+              reject(
+                new Error(
+                  "Could not read file."
+                )
+              );
+
+            };
+
+
+          reader.readAsDataURL(file);
+
+        }
+      );
+
+    }
+
+
+    // ==================================
+    // OPEN RESOURCE
+    // ==================================
+
+    function openResource(index) {
+
+      const resource =
+        resources[index];
+
+
+      if (!resource) {
+
+        return;
+
+      }
+
+
+      // ==================================
+      // OPEN PDF
+      // ==================================
+
+      if (
+        resource.type === "PDF" &&
+        resource.fileData
+      ) {
+
+        const newWindow =
+          window.open(
+            "",
+            "_blank"
+          );
+
+
+        if (!newWindow) {
+
+          alert(
+            "Please allow pop-ups for this website."
+          );
+
+          return;
+
+        }
+
+
+        newWindow.document.write(`
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+            <title>
+              ${escapeHTML(resource.name)}
+            </title>
+
+            <style>
+
+              body {
+                margin: 0;
+                background: #111;
+              }
+
+              iframe {
+                width: 100vw;
+                height: 100vh;
+                border: none;
+              }
+
+            </style>
+
+          </head>
+
+          <body>
+
+            <iframe
+              src="${resource.fileData}"
+            ></iframe>
+
+          </body>
+
+          </html>
+
+        `);
+
+
+        newWindow.document.close();
+
+        return;
+
+      }
+
+
+      // ==================================
+      // OPEN NOTES / STUDY MATERIAL
+      // ==================================
+
+      if (
+        (
+          resource.type === "Notes" ||
+          resource.type === "Study Material"
+        ) &&
+        resource.content
+      ) {
+
+        const newWindow =
+          window.open(
+            "",
+            "_blank"
+          );
+
+
+        if (!newWindow) {
+
+          alert(
+            "Please allow pop-ups for this website."
+          );
+
+          return;
+
+        }
+
+
+        newWindow.document.write(`
+
+          <!DOCTYPE html>
+
+          <html>
+
+          <head>
+
+            <meta
+              charset="UTF-8"
+            >
+
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            >
+
+            <title>
+              ${escapeHTML(resource.name)}
+            </title>
+
+            <style>
+
+              * {
+                box-sizing: border-box;
+              }
+
+              body {
+                margin: 0;
+                padding: 30px;
+                background: #0f1115;
+                color: white;
+                font-family: Arial, sans-serif;
+              }
+
+              .notes {
+                max-width: 900px;
+                margin: auto;
+                background: #181b21;
+                border: 1px solid #292d36;
+                border-radius: 14px;
+                padding: 30px;
+              }
+
+              h1 {
+                margin-bottom: 20px;
+                font-size: 28px;
+              }
+
+              .type {
+                color: #6f91ff;
+                margin-bottom: 25px;
+                font-size: 14px;
+              }
+
+              .content {
+                line-height: 1.8;
+                white-space: pre-wrap;
+                color: #d7dbe4;
+                font-size: 16px;
+              }
+
+            </style>
+
+          </head>
+
+          <body>
+
+            <div class="notes">
+
+              <h1>
+                📝 ${escapeHTML(resource.name)}
+              </h1>
+
+              <div class="type">
+                ${escapeHTML(resource.type)}
+              </div>
+
+              <div class="content">
+                ${escapeHTML(resource.content)}
+              </div>
+
+            </div>
+
+          </body>
+
+          </html>
+
+        `);
+
+
+        newWindow.document.close();
+
+        return;
+
+      }
+
+
+      // ==================================
+      // OLD RESOURCE
+      // ==================================
+
+      alert(
+        "This resource does not contain saved content. Please delete it and add it again."
+      );
+
+    }
+
+
+    // ==================================
+    // DELETE
+    // ==================================
+
+    function deleteResource(index) {
+
+      if (
+        !confirm(
+          "Delete this resource?"
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      resources.splice(
+        index,
+        1
+      );
+
+
+      localStorage.setItem(
+        "studyLibrary",
+        JSON.stringify(resources)
+      );
+
+
+      displayResources();
+
+    }
+
+
+    // ==================================
+    // ESCAPE HTML
+    // ==================================
+
+    function escapeHTML(text) {
+
+      return String(text)
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+    // ==================================
+    // INITIAL LOAD
+    // ==================================
+
+    displayResources();
+
+  </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Profile & Settings</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 25px;
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .avatar {
+      width: 90px;
+      height: 90px;
+
+      margin: 0 auto 15px;
+
+      border-radius: 50%;
+
+      background: #2563eb;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 38px;
+    }
+
+    .profile-header h3 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .profile-header p {
+      color: #9299a8;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+
+      background: #101217;
+      color: white;
+
+      border: 1px solid #363b46;
+      border-radius: 9px;
+
+      font-size: 15px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #2563eb;
+    }
+
+    .settings-title {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      padding: 18px 0;
+
+      border-bottom: 1px solid #292d36;
+    }
+
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+
+    .setting-info h4 {
+      margin-bottom: 5px;
+    }
+
+    .setting-info p {
+      color: #9299a8;
+      font-size: 13px;
+    }
+
+    .toggle {
+      position: relative;
+
+      width: 50px;
+      height: 26px;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+
+      cursor: pointer;
+
+      inset: 0;
+
+      background: #363b46;
+
+      border-radius: 30px;
+
+      transition: 0.3s;
+    }
+
+    .slider:before {
+      content: "";
+
+      position: absolute;
+
+      width: 20px;
+      height: 20px;
+
+      left: 3px;
+      top: 3px;
+
+      background: white;
+
+      border-radius: 50%;
+
+      transition: 0.3s;
+    }
+
+    .toggle input:checked + .slider {
+      background: #2563eb;
+    }
+
+    .toggle input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .save-btn {
+      width: 100%;
+
+      margin-top: 10px;
+
+      padding: 13px;
+
+      border: none;
+
+      border-radius: 9px;
+
+      background: #2563eb;
+
+      color: white;
+
+      font-size: 16px;
+
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .save-btn:hover {
+      opacity: 0.9;
+    }
+
+    .logout-btn {
+      width: 100%;
+
+      padding: 13px;
+
+      border: none;
+
+      border-radius: 9px;
+
+      background: #dc2626;
+
+      color: white;
+
+      font-size: 16px;
+
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      opacity: 0.9;
+    }
+
+    .message {
+      margin-top: 15px;
+
+      padding: 12px;
+
+      border-radius: 8px;
+
+      text-align: center;
+
+      background: #111827;
+
+      color: #93c5fd;
+
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 30px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- ================================
+       HEADER
+  ================================= -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      type="button"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- ================================
+       MAIN
+  ================================= -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        👤 Profile & Settings
+      </h2>
+
+      <p>
+        Manage your profile and study preferences.
+      </p>
+
+    </section>
+
+
+    <!-- ================================
+         PROFILE CARD
+    ================================= -->
+
+    <section class="card">
+
+
+      <div class="profile-header">
+
+        <div class="avatar">
+          👩‍🎓
+        </div>
+
+        <h3 id="profileName">
+          Student
+        </h3>
+
+        <p id="profileEmail">
+          Your email
+        </p>
+
+      </div>
+
+
+      <!-- NAME -->
+
+      <div class="form-group">
+
+        <label for="studentName">
+          Full Name
+        </label>
+
+        <input
+          id="studentName"
+          type="text"
+          placeholder="Enter your name"
+        >
+
+      </div>
+
+
+      <!-- EMAIL -->
+
+      <div class="form-group">
+
+        <label for="studentEmail">
+          Email
+        </label>
+
+        <input
+          id="studentEmail"
+          type="email"
+          placeholder="Enter your email"
+        >
+
+      </div>
+
+
+      <!-- PROGRAM -->
+
+      <div class="form-group">
+
+        <label for="studyProgram">
+          Study Program
+        </label>
+
+        <input
+          id="studyProgram"
+          type="text"
+          placeholder="Example: Software Engineering"
+        >
+
+      </div>
+
+
+      <!-- UNIVERSITY -->
+
+      <div class="form-group">
+
+        <label for="university">
+          University
+        </label>
+
+        <input
+          id="university"
+          type="text"
+          placeholder="Enter your university"
+        >
+
+      </div>
+
+
+      <!-- SAVE -->
+
+      <button
+        class="save-btn"
+        type="button"
+        onclick="saveProfile()"
+      >
+        💾 Save Profile
+      </button>
+
+
+      <div
+        id="saveMessage"
+        class="message"
+      >
+        ✅ Profile saved successfully!
+
+      </div>
+
+
+    </section>
+
+
+    <!-- ================================
+         SETTINGS
+    ================================= -->
+
+    <section class="card">
+
+      <h3 class="settings-title">
+        ⚙️ Settings
+      </h3>
+
+
+      <!-- NOTIFICATIONS -->
+
+      <div class="setting-row">
+
+        <div class="setting-info">
+
+          <h4>
+            🔔 Notifications
+          </h4>
+
+          <p>
+            Enable study reminders and notifications.
+          </p>
+
+        </div>
+
+
+        <label class="toggle">
+
+          <input
+            type="checkbox"
+            id="notificationsToggle"
+          >
+
+          <span class="slider"></span>
+
+        </label>
+
+      </div>
+
+
+      <!-- STUDY REMINDERS -->
+
+      <div class="setting-row">
+
+        <div class="setting-info">
+
+          <h4>
+            ⏰ Study Reminders
+          </h4>
+
+          <p>
+            Get reminders to continue your study sessions.
+          </p>
+
+        </div>
+
+
+        <label class="toggle">
+
+          <input
+            type="checkbox"
+            id="remindersToggle"
+          >
+
+          <span class="slider"></span>
+
+        </label>
+
+      </div>
+
+
+      <!-- THEME -->
+
+      <div class="form-group" style="margin-top: 20px;">
+
+        <label for="themeSelect">
+          🌙 Theme
+        </label>
+
+        <select id="themeSelect">
+
+          <option value="dark">
+            Dark Mode
+          </option>
+
+          <option value="light">
+            Light Mode
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <button
+        class="save-btn"
+        type="button"
+        onclick="saveSettings()"
+      >
+        ⚙️ Save Settings
+      </button>
+
+
+      <div
+        id="settingsMessage"
+        class="message"
+      >
+        ✅ Settings saved successfully!
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================
+         LOGOUT
+    ================================= -->
+
+    <section class="card">
+
+      <button
+        class="logout-btn"
+        type="button"
+        onclick="logout()"
+      >
+        🚪 Logout
+      </button>
+
+    </section>
+
+
+  </main>
+
+
+  <!-- ================================
+       JAVASCRIPT
+  ================================= -->
+
+  <script>
+
+
+    // ==================================
+    // LOAD PROFILE
+    // ==================================
+
+    function loadProfile() {
+
+      const name =
+        localStorage.getItem(
+          "studentName"
+        ) || "";
+
+
+      const email =
+        localStorage.getItem(
+          "studentEmail"
+        ) || "";
+
+
+      const program =
+        localStorage.getItem(
+          "studyProgram"
+        ) || "";
+
+
+      const university =
+        localStorage.getItem(
+          "university"
+        ) || "";
+
+
+      document.getElementById(
+        "studentName"
+      ).value = name;
+
+
+      document.getElementById(
+        "studentEmail"
+      ).value = email;
+
+
+      document.getElementById(
+        "studyProgram"
+      ).value = program;
+
+
+      document.getElementById(
+        "university"
+      ).value = university;
+
+
+      document.getElementById(
+        "profileName"
+      ).textContent =
+        name || "Student";
+
+
+      document.getElementById(
+        "profileEmail"
+      ).textContent =
+        email || "Your email";
+
+    }
+
+
+    // ==================================
+    // SAVE PROFILE
+    // ==================================
+
+    function saveProfile() {
+
+      const name =
+        document.getElementById(
+          "studentName"
+        ).value.trim();
+
+
+      const email =
+        document.getElementById(
+          "studentEmail"
+        ).value.trim();
+
+
+      const program =
+        document.getElementById(
+          "studyProgram"
+        ).value.trim();
+
+
+      const university =
+        document.getElementById(
+          "university"
+        ).value.trim();
+
+
+      if (name === "") {
+
+        alert(
+          "Please enter your name."
+        );
+
+        return;
+
+      }
+
+
+      localStorage.setItem(
+        "studentName",
+        name
+      );
+
+
+      localStorage.setItem(
+        "studentEmail",
+        email
+      );
+
+
+      localStorage.setItem(
+        "studyProgram",
+        program
+      );
+
+
+      localStorage.setItem(
+        "university",
+        university
+      );
+
+
+      document.getElementById(
+        "profileName"
+      ).textContent =
+        name;
+
+
+      document.getElementById(
+        "profileEmail"
+      ).textContent =
+        email || "Your email";
+
+
+      const message =
+        document.getElementById(
+          "saveMessage"
+        );
+
+
+      message.style.display =
+        "block";
+
+
+      setTimeout(
+        function () {
+
+          message.style.display =
+            "none";
+
+        },
+        2500
+      );
+
+    }
+
+
+    // ==================================
+    // LOAD SETTINGS
+    // ==================================
+
+    function loadSettings() {
+
+      const notifications =
+        localStorage.getItem(
+          "notificationsEnabled"
+        );
+
+
+      const reminders =
+        localStorage.getItem(
+          "studyRemindersEnabled"
+        );
+
+
+      const theme =
+        localStorage.getItem(
+          "studyTheme"
+        ) || "dark";
+
+
+      document.getElementById(
+        "notificationsToggle"
+      ).checked =
+        notifications !== "false";
+
+
+      document.getElementById(
+        "remindersToggle"
+      ).checked =
+        reminders === "true";
+
+
+      document.getElementById(
+        "themeSelect"
+      ).value =
+        theme;
+
+
+      applyTheme(theme);
+
+    }
+
+
+    // ==================================
+    // SAVE SETTINGS
+    // ==================================
+
+    function saveSettings() {
+
+      const notifications =
+        document.getElementById(
+          "notificationsToggle"
+        ).checked;
+
+
+      const reminders =
+        document.getElementById(
+          "remindersToggle"
+        ).checked;
+
+
+      const theme =
+        document.getElementById(
+          "themeSelect"
+        ).value;
+
+
+      localStorage.setItem(
+        "notificationsEnabled",
+        notifications
+      );
+
+
+      localStorage.setItem(
+        "studyRemindersEnabled",
+        reminders
+      );
+
+
+      localStorage.setItem(
+        "studyTheme",
+        theme
+      );
+
+
+      applyTheme(theme);
+
+
+      const message =
+        document.getElementById(
+          "settingsMessage"
+        );
+
+
+      message.style.display =
+        "block";
+
+
+      setTimeout(
+        function () {
+
+          message.style.display =
+            "none";
+
+        },
+        2500
+      );
+
+    }
+
+
+    // ==================================
+    // APPLY THEME
+    // ==================================
+
+    function applyTheme(theme) {
+
+      if (theme === "light") {
+
+        document.body.style.background =
+          "#f4f6f8";
+
+        document.body.style.color =
+          "#111827";
+
+      }
+
+      else {
+
+        document.body.style.background =
+          "#0f1115";
+
+        document.body.style.color =
+          "white";
+
+      }
+
+    }
+
+
+    // ==================================
+    // LOGOUT
+    // ==================================
+
+    async function logout() {
+
+      try {
+
+        if (
+          window.supabase &&
+          window.supabaseClient
+        ) {
+
+          await window.supabaseClient
+            .auth
+            .signOut();
+
+        }
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Logout error:",
+          error
+        );
+
+      }
+
+
+      window.location.href =
+        "auth.html";
+
+    }
+
+
+    // ==================================
+    // INITIAL LOAD
+    // ==================================
+
+    loadProfile();
+
+    loadSettings();
+
+  </script>
+
+
+</body>
+
+</html>

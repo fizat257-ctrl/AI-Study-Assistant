@@ -121,6 +121,11 @@
       opacity: 0.9;
     }
 
+    .primary-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .answer-section {
       margin-top: 30px;
     }
@@ -262,10 +267,15 @@
 
 
   <!-- ==========================================
-       NOTE SUMMARIZER + PROGRESS
+       JAVASCRIPT
   =========================================== -->
 
   <script>
+
+
+    // ==========================================
+    // SUMMARIZE NOTES
+    // ==========================================
 
     function summarizeNotes() {
 
@@ -288,38 +298,59 @@
         notesInput.value.trim();
 
 
-      // Empty notes
+      // ==========================================
+      // CHECK EMPTY NOTES
+      // ==========================================
+
       if (notes === "") {
 
         summary.innerText =
           "Please paste your study notes first.";
 
         return;
+
       }
 
 
-      // Loading
+      // ==========================================
+      // LOADING
+      // ==========================================
+
       summary.innerText =
         "📝 Creating summary...";
 
+
       if (button) {
+
         button.disabled = true;
-        button.innerText = "Creating Summary...";
+
+        button.innerText =
+          "Creating Summary...";
+
       }
 
 
+      // ==========================================
+      // CREATE SUMMARY
+      // ==========================================
+
       setTimeout(function () {
+
 
         const words =
           notes.split(/\s+/);
 
 
         let shortSummary =
-          words.slice(0, 60).join(" ");
+          words
+            .slice(0, 60)
+            .join(" ");
 
 
         if (words.length > 60) {
+
           shortSummary += "...";
+
         }
 
 
@@ -332,9 +363,59 @@
 
 
         if (button) {
+
           button.disabled = false;
-          button.innerText = "Summarize Notes";
+
+          button.innerText =
+            "Summarize Notes";
+
         }
+
+
+        // ==========================================
+        // NOTE SUMMARIZER PROGRESS
+        // ==========================================
+
+        let summarizerProgress =
+          Number(
+            localStorage.getItem(
+              "summarizerProgress"
+            )
+          ) || 0;
+
+
+        summarizerProgress =
+          Math.min(
+            summarizerProgress + 20,
+            100
+          );
+
+
+        localStorage.setItem(
+          "summarizerProgress",
+          summarizerProgress
+        );
+
+
+        // ==========================================
+        // TOPICS STUDIED
+        // ==========================================
+
+        let topics =
+          Number(
+            localStorage.getItem(
+              "topicsStudied"
+            )
+          ) || 0;
+
+
+        topics += 1;
+
+
+        localStorage.setItem(
+          "topicsStudied",
+          topics
+        );
 
 
         // ==========================================
@@ -343,7 +424,9 @@
 
         let activities =
           JSON.parse(
-            localStorage.getItem("studyActivity") || "[]"
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
           );
 
 
@@ -353,13 +436,17 @@
 
           text: "Note Summary Created",
 
-          time: new Date().toLocaleString()
+          time:
+            new Date().toLocaleString()
 
         });
 
 
-        // Latest 20 activities
-        if (activities.length > 20) {
+        // Keep latest 20 activities
+
+        if (
+          activities.length > 20
+        ) {
 
           activities =
             activities.slice(-20);
@@ -374,39 +461,143 @@
 
 
         // ==========================================
-        // OVERALL LEARNING
+        // CALCULATE OVERALL LEARNING
         // ==========================================
 
-        const tutorProgress =
-          Number(
-            localStorage.getItem("tutorProgress")
-          ) || 0;
-
-
-        const flashcardProgress =
-          Number(
-            localStorage.getItem("flashcardProgress")
-          ) || 0;
-
-
-        const overall =
-          Math.round(
-            (
-              tutorProgress +
-              flashcardProgress
-            ) / 2
-          );
-
-
-        localStorage.setItem(
-          "overallProgress",
-          overall
-        );
+        updateOverallProgress();
 
 
       }, 600);
 
     }
+
+
+    // ==========================================
+    // UPDATE OVERALL PROGRESS
+    // ==========================================
+
+    function updateOverallProgress() {
+
+
+      const tutor =
+        Math.min(
+          Number(
+            localStorage.getItem(
+              "tutorProgress"
+            )
+          ) || 0,
+          100
+        );
+
+
+      const summarizer =
+        Math.min(
+          Number(
+            localStorage.getItem(
+              "summarizerProgress"
+            )
+          ) || 0,
+          100
+        );
+
+
+      const quiz =
+        Math.min(
+          Number(
+            localStorage.getItem(
+              "quizProgress"
+            )
+          ) || 0,
+          100
+        );
+
+
+      const planner =
+        Math.min(
+          Number(
+            localStorage.getItem(
+              "plannerProgress"
+            )
+          ) || 0,
+          100
+        );
+
+
+      const flashcards =
+        Math.min(
+          Number(
+            localStorage.getItem(
+              "flashcardProgress"
+            )
+          ) || 0,
+          100
+        );
+
+
+      const pdf =
+        Math.min(
+          Number(
+            localStorage.getItem(
+              "pdfProgress"
+            )
+          ) || 0,
+          100
+        );
+
+
+      // ==========================================
+      // STUDY LIBRARY
+      // ==========================================
+
+      const libraryResources =
+        JSON.parse(
+          localStorage.getItem(
+            "studyLibrary"
+          ) || "[]"
+        );
+
+
+      let libraryProgress = 0;
+
+
+      if (
+        libraryResources.length > 0
+      ) {
+
+        libraryProgress =
+          Math.min(
+            libraryResources.length * 20,
+            100
+          );
+
+      }
+
+
+      // ==========================================
+      // OVERALL
+      // ==========================================
+
+      const overall =
+        Math.round(
+          (
+            tutor +
+            summarizer +
+            quiz +
+            planner +
+            flashcards +
+            pdf +
+            libraryProgress
+          ) / 7
+        );
+
+
+      localStorage.setItem(
+        "overallProgress",
+        overall
+      );
+
+    }
+
 
   </script>
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <title>AI Study Assistant - Progress</title>
 
   <style>
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -40,6 +42,10 @@
       padding: 10px 16px;
       border-radius: 8px;
       cursor: pointer;
+    }
+
+    .back-btn:hover {
+      opacity: 0.9;
     }
 
     .container {
@@ -117,6 +123,7 @@
 
     .progress-info span:last-child {
       color: #8ea9ff;
+      font-weight: bold;
     }
 
     .progress-bar {
@@ -135,6 +142,12 @@
       transition: width 0.5s ease;
     }
 
+    .overall-box {
+      margin-top: 10px;
+      padding-top: 20px;
+      border-top: 1px solid #292d36;
+    }
+
     .activity {
       background: #181b21;
       border: 1px solid #292d36;
@@ -150,10 +163,7 @@
       padding: 15px 0;
       border-bottom: 1px solid #292d36;
       color: #c4c9d4;
-    }
-
-    .activity-item:last-child {
-      border-bottom: none;
+      line-height: 1.5;
     }
 
     .empty {
@@ -183,19 +193,27 @@
       .intro h2 {
         font-size: 26px;
       }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
   <header>
 
-    <h1>🎓 AI Study Assistant</h1>
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
 
     <button
       class="back-btn"
-      onclick="window.location.href='dashboard.html'">
+      type="button"
+      onclick="window.location.href='dashboard.html'"
+    >
       ← Dashboard
     </button>
 
@@ -206,7 +224,9 @@
 
     <section class="intro">
 
-      <h2>📊 Study Progress</h2>
+      <h2>
+        📊 Study Progress
+      </h2>
 
       <p>
         Track your learning activity and study progress.
@@ -215,113 +235,263 @@
     </section>
 
 
-    <!-- STATS -->
+    <!-- =========================
+         STATS
+    ========================== -->
 
     <section class="stats">
 
       <div class="stat-card">
 
-        <div class="icon">📚</div>
+        <div class="icon">
+          📚
+        </div>
 
-        <h3 id="topicsCount">0</h3>
+        <h3 id="topicsCount">
+          0
+        </h3>
 
-        <p>Topics Studied</p>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <div class="icon">🗂️</div>
-
-        <h3 id="flashcardsCount">0</h3>
-
-        <p>Flashcards Created</p>
+        <p>
+          Topics Studied
+        </p>
 
       </div>
 
 
       <div class="stat-card">
 
-        <div class="icon">🎯</div>
+        <div class="icon">
+          🗂️
+        </div>
 
-        <h3 id="studyScore">0%</h3>
+        <h3 id="flashcardsCount">
+          0
+        </h3>
 
-        <p>Study Progress</p>
+        <p>
+          Flashcards Created
+        </p>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="icon">
+          🎯
+        </div>
+
+        <h3 id="studyScore">
+          0%
+        </h3>
+
+        <p>
+          Overall Learning
+        </p>
 
       </div>
 
     </section>
 
 
-    <!-- PROGRESS -->
+    <!-- =========================
+         PROGRESS
+    ========================== -->
 
     <section class="progress-section">
 
-      <h3>Learning Progress</h3>
+      <h3>
+        📈 Learning Progress
+      </h3>
 
+
+      <!-- AI TUTOR -->
 
       <div class="progress-row">
 
         <div class="progress-info">
-
-          <span>AI Tutor</span>
-
+          <span>🤖 AI Tutor</span>
           <span id="tutorPercent">0%</span>
-
         </div>
 
         <div class="progress-bar">
-
-          <div
-            class="progress-fill"
-            id="tutorBar">
-          </div>
-
+          <div class="progress-fill" id="tutorBar"></div>
         </div>
 
       </div>
 
 
+      <!-- NOTE SUMMARIZER -->
+
       <div class="progress-row">
 
         <div class="progress-info">
+          <span>📝 Note Summarizer</span>
+          <span id="summarizerPercent">0%</span>
+        </div>
 
-          <span>Flashcards</span>
+        <div class="progress-bar">
+          <div class="progress-fill" id="summarizerBar"></div>
+        </div>
 
+      </div>
+
+
+      <!-- QUIZ -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>🧠 Quiz Generator</span>
+          <span id="quizPercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="quizBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- PLANNER -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>📅 Study Planner</span>
+          <span id="plannerPercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="plannerBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- FLASHCARDS -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>🗂️ AI Flashcards</span>
           <span id="flashcardPercent">0%</span>
-
         </div>
 
         <div class="progress-bar">
-
-          <div
-            class="progress-fill"
-            id="flashcardBar">
-          </div>
-
+          <div class="progress-fill" id="flashcardBar"></div>
         </div>
 
       </div>
 
 
+      <!-- PDF -->
+
       <div class="progress-row">
 
         <div class="progress-info">
-
-          <span>Overall Learning</span>
-
-          <span id="overallPercent">0%</span>
-
+          <span>📄 PDF Study</span>
+          <span id="pdfPercent">0%</span>
         </div>
 
         <div class="progress-bar">
+          <div class="progress-fill" id="pdfBar"></div>
+        </div>
 
-          <div
-            class="progress-fill"
-            id="overallBar">
-          </div>
+      </div>
 
+
+      <!-- LIBRARY -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>📚 Study Library</span>
+          <span id="libraryPercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="libraryBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- PRACTICE -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>🎯 Practice Mode</span>
+          <span id="practicePercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="practiceBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- VOICE -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>🎤 Voice Study Assistant</span>
+          <span id="voicePercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="voiceBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- PROFILE -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>👤 Profile & Settings</span>
+          <span id="profilePercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="profileBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- SUBJECTS -->
+
+      <div class="progress-row">
+
+        <div class="progress-info">
+          <span>📚 Subjects & Courses</span>
+          <span id="subjectPercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="subjectBar"></div>
+        </div>
+
+      </div>
+
+
+      <!-- OVERALL -->
+
+      <div class="progress-row overall-box">
+
+        <div class="progress-info">
+          <span>🎓 Overall Learning</span>
+          <span id="overallPercent">0%</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="overallBar"></div>
         </div>
 
       </div>
@@ -329,11 +499,15 @@
     </section>
 
 
-    <!-- ACTIVITY -->
+    <!-- =========================
+         ACTIVITY
+    ========================== -->
 
     <section class="activity">
 
-      <h3>Recent Activity</h3>
+      <h3>
+        🕒 Recent Activity
+      </h3>
 
       <div id="activityList">
 
@@ -350,91 +524,459 @@
 
   <script>
 
-    // ==================================================
-    // LOAD STUDY PROGRESS
-    // ==================================================
+    // ==========================================
+    // SAFE PROGRESS
+    // ==========================================
+
+    function getProgress(key) {
+
+      const value =
+        Number(
+          localStorage.getItem(key)
+        ) || 0;
+
+      return Math.min(
+        Math.max(value, 0),
+        100
+      );
+
+    }
+
+
+    // ==========================================
+    // SET PROGRESS
+    // ==========================================
+
+    function setProgress(
+      textId,
+      barId,
+      value
+    ) {
+
+      const text =
+        document.getElementById(textId);
+
+      const bar =
+        document.getElementById(barId);
+
+
+      if (text) {
+
+        text.textContent =
+          value + "%";
+
+      }
+
+
+      if (bar) {
+
+        bar.style.width =
+          value + "%";
+
+      }
+
+    }
+
+
+    // ==========================================
+    // GET LIBRARY PROGRESS
+    // ==========================================
+
+    function getLibraryProgress() {
+
+      try {
+
+        const data =
+          localStorage.getItem(
+            "studyLibrary"
+          );
+
+
+        if (!data) {
+
+          return 0;
+
+        }
+
+
+        const resources =
+          JSON.parse(data);
+
+
+        if (
+          !Array.isArray(resources)
+        ) {
+
+          return 0;
+
+        }
+
+
+        return Math.min(
+          resources.length * 20,
+          100
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Library progress error:",
+          error
+        );
+
+        return 0;
+
+      }
+
+    }
+
+
+    // ==========================================
+    // GET SUBJECT PROGRESS
+    // ==========================================
+
+    function getSubjectProgress() {
+
+      try {
+
+        /*
+          IMPORTANT:
+          subjects.html saves data in
+          "studySubjects"
+        */
+
+        const data =
+          localStorage.getItem(
+            "studySubjects"
+          );
+
+
+        if (!data) {
+
+          return 0;
+
+        }
+
+
+        const subjects =
+          JSON.parse(data);
+
+
+        if (
+          !Array.isArray(subjects)
+        ) {
+
+          return 0;
+
+        }
+
+
+        /*
+          1 subject = 20%
+          2 subjects = 40%
+          3 subjects = 60%
+          4 subjects = 80%
+          5+ subjects = 100%
+        */
+
+        return Math.min(
+          subjects.length * 20,
+          100
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Subject progress error:",
+          error
+        );
+
+        return 0;
+
+      }
+
+    }
+
+
+    // ==========================================
+    // TOPICS
+    // ==========================================
+
+    function getTopicsCount() {
+
+      return Number(
+        localStorage.getItem(
+          "topicsStudied"
+        )
+      ) || 0;
+
+    }
+
+
+    // ==========================================
+    // FLASHCARDS
+    // ==========================================
+
+    function getFlashcardsCount() {
+
+      return Number(
+        localStorage.getItem(
+          "flashcardsCreated"
+        )
+      ) || 0;
+
+    }
+
+
+    // ==========================================
+    // LOAD PROGRESS
+    // ==========================================
 
     function loadProgress() {
 
       const topics =
-        Number(
-          localStorage.getItem("topicsStudied")
-        ) || 0;
+        getTopicsCount();
 
 
       const flashcards =
-        Number(
-          localStorage.getItem("flashcardsCreated")
-        ) || 0;
+        getFlashcardsCount();
 
 
       const tutor =
-        Math.min(
-          Number(
-            localStorage.getItem("tutorProgress")
-          ) || 0,
-          100
+        getProgress(
+          "tutorProgress"
         );
 
 
-      const flashcardProgress =
-        Math.min(
-          Number(
-            localStorage.getItem("flashcardProgress")
-          ) || 0,
-          100
+      const summarizer =
+        getProgress(
+          "summarizerProgress"
+        );
+
+
+      const quiz =
+        getProgress(
+          "quizProgress"
+        );
+
+
+      const planner =
+        getProgress(
+          "plannerProgress"
+        );
+
+
+      const flashcard =
+        getProgress(
+          "flashcardProgress"
+        );
+
+
+      const pdf =
+        getProgress(
+          "pdfProgress"
+        );
+
+
+      const library =
+        getLibraryProgress();
+
+
+      const practice =
+        getProgress(
+          "practiceProgress"
+        );
+
+
+      const voice =
+        getProgress(
+          "voiceProgress"
+        );
+
+
+      const profile =
+        getProgress(
+          "profileProgress"
+        );
+
+
+      const subject =
+        getSubjectProgress();
+
+
+      // ==========================================
+      // ALL PROGRESS
+      // ==========================================
+
+      const allProgress = [
+
+        tutor,
+        summarizer,
+        quiz,
+        planner,
+        flashcard,
+        pdf,
+        library,
+        practice,
+        voice,
+        profile,
+        subject
+
+      ];
+
+
+      const total =
+        allProgress.reduce(
+          function(sum, value) {
+
+            return sum + value;
+
+          },
+          0
         );
 
 
       const overall =
         Math.round(
-          (tutor + flashcardProgress) / 2
+          total /
+          allProgress.length
         );
 
 
+      // ==========================================
+      // SAVE
+      // ==========================================
+
+      localStorage.setItem(
+        "libraryProgress",
+        library
+      );
+
+
+      localStorage.setItem(
+        "subjectProgress",
+        subject
+      );
+
+
+      localStorage.setItem(
+        "overallProgress",
+        overall
+      );
+
+
+      // ==========================================
+      // STATS
+      // ==========================================
+
       document.getElementById(
         "topicsCount"
-      ).textContent = topics;
+      ).textContent =
+        topics;
 
 
       document.getElementById(
         "flashcardsCount"
-      ).textContent = flashcards;
+      ).textContent =
+        flashcards;
 
 
       document.getElementById(
         "studyScore"
-      ).textContent = `${overall}%`;
+      ).textContent =
+        overall + "%";
 
 
-      document.getElementById(
-        "tutorPercent"
-      ).textContent = `${tutor}%`;
+      // ==========================================
+      // UPDATE BARS
+      // ==========================================
+
+      setProgress(
+        "tutorPercent",
+        "tutorBar",
+        tutor
+      );
 
 
-      document.getElementById(
-        "flashcardPercent"
-      ).textContent = `${flashcardProgress}%`;
+      setProgress(
+        "summarizerPercent",
+        "summarizerBar",
+        summarizer
+      );
 
 
-      document.getElementById(
-        "overallPercent"
-      ).textContent = `${overall}%`;
+      setProgress(
+        "quizPercent",
+        "quizBar",
+        quiz
+      );
 
 
-      document.getElementById(
-        "tutorBar"
-      ).style.width = `${tutor}%`;
+      setProgress(
+        "plannerPercent",
+        "plannerBar",
+        planner
+      );
 
 
-      document.getElementById(
-        "flashcardBar"
-      ).style.width = `${flashcardProgress}%`;
+      setProgress(
+        "flashcardPercent",
+        "flashcardBar",
+        flashcard
+      );
 
 
-      document.getElementById(
-        "overallBar"
-      ).style.width = `${overall}%`;
+      setProgress(
+        "pdfPercent",
+        "pdfBar",
+        pdf
+      );
+
+
+      setProgress(
+        "libraryPercent",
+        "libraryBar",
+        library
+      );
+
+
+      setProgress(
+        "practicePercent",
+        "practiceBar",
+        practice
+      );
+
+
+      setProgress(
+        "voicePercent",
+        "voiceBar",
+        voice
+      );
+
+
+      setProgress(
+        "profilePercent",
+        "profileBar",
+        profile
+      );
+
+
+      setProgress(
+        "subjectPercent",
+        "subjectBar",
+        subject
+      );
+
+
+      setProgress(
+        "overallPercent",
+        "overallBar",
+        overall
+      );
 
 
       loadActivity();
@@ -442,16 +984,31 @@
     }
 
 
-    // ==================================================
-    // ACTIVITY
-    // ==================================================
+    // ==========================================
+    // LOAD ACTIVITY
+    // ==========================================
 
     function loadActivity() {
 
-      const activities =
-        JSON.parse(
-          localStorage.getItem("studyActivity") || "[]"
-        );
+      let activities = [];
+
+
+      try {
+
+        activities =
+          JSON.parse(
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
+          );
+
+      }
+
+      catch (error) {
+
+        activities = [];
+
+      }
 
 
       const list =
@@ -460,12 +1017,24 @@
         );
 
 
-      if (activities.length === 0) {
+      if (!list) {
+
+        return;
+
+      }
+
+
+      if (
+        !Array.isArray(activities) ||
+        activities.length === 0
+      ) {
 
         list.innerHTML = `
+
           <div class="empty">
             Start studying to see your activity here.
           </div>
+
         `;
 
         return;
@@ -479,31 +1048,65 @@
       activities
         .slice(-10)
         .reverse()
-        .forEach(activity => {
+        .forEach(
+          function(activity) {
 
-          const item =
-            document.createElement("div");
+            const item =
+              document.createElement(
+                "div"
+              );
 
-          item.className =
-            "activity-item";
 
-          item.textContent =
-            `${activity.icon || "📖"} ${activity.text}`;
+            item.className =
+              "activity-item";
 
-          list.appendChild(item);
 
-        });
+            item.textContent =
+              `${activity.icon || "📖"} ${activity.text || "Study activity"}`;
+
+
+            if (activity.time) {
+
+              item.textContent +=
+                ` — ${activity.time}`;
+
+            }
+
+
+            list.appendChild(
+              item
+            );
+
+          }
+        );
 
     }
 
 
-    // ==================================================
-    // START
-    // ==================================================
+    // ==========================================
+    // INITIAL LOAD
+    // ==========================================
 
     loadProgress();
+
+
+    // ==========================================
+    // AUTO UPDATE
+    // ==========================================
+
+    window.addEventListener(
+      "storage",
+      loadProgress
+    );
+
+
+    setInterval(
+      loadProgress,
+      2000
+    );
 
   </script>
 
 </body>
+
 </html>

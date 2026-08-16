@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Practice Mode</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 45px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .practice-card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+
+      background: #101217;
+      color: white;
+
+      border: 1px solid #363b46;
+      border-radius: 9px;
+
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #2563eb;
+    }
+
+    .primary-btn {
+      width: 100%;
+      margin-top: 15px;
+
+      padding: 13px;
+
+      border: none;
+      border-radius: 9px;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .primary-btn:hover {
+      opacity: 0.9;
+    }
+
+    .secondary-btn {
+      width: 100%;
+      margin-top: 10px;
+
+      padding: 13px;
+
+      border: 1px solid #363b46;
+      border-radius: 9px;
+
+      background: #181b21;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .secondary-btn:hover {
+      border-color: #2563eb;
+    }
+
+    .question-box {
+      margin-top: 30px;
+
+      padding: 25px;
+
+      background: #101217;
+      border: 1px solid #292d36;
+      border-radius: 12px;
+    }
+
+    .question {
+      margin-bottom: 20px;
+    }
+
+    .question h3 {
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    .question-text {
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .option {
+      display: block;
+
+      width: 100%;
+
+      margin-top: 10px;
+      padding: 12px;
+
+      background: #181b21;
+      color: white;
+
+      border: 1px solid #363b46;
+      border-radius: 8px;
+
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option:hover {
+      border-color: #2563eb;
+    }
+
+    .option.selected {
+      border-color: #2563eb;
+      background: #1d2740;
+    }
+
+    .result {
+      margin-top: 25px;
+
+      padding: 25px;
+
+      background: #101217;
+      border: 1px solid #292d36;
+
+      border-radius: 10px;
+
+      text-align: center;
+
+      line-height: 1.8;
+    }
+
+    .score {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    .result-message {
+      color: #a8afbf;
+      margin-bottom: 15px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 30px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .practice-card {
+        padding: 20px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- HEADER -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      type="button"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- MAIN -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        🎯 Practice Mode
+      </h2>
+
+      <p>
+        Practice a topic with questions and check your knowledge.
+      </p>
+
+    </section>
+
+
+    <section class="practice-card">
+
+
+      <!-- TOPIC -->
+
+      <label for="practiceTopic">
+        Enter Topic
+      </label>
+
+      <input
+        id="practiceTopic"
+        type="text"
+        placeholder="Example: C++ Loops"
+      >
+
+
+      <!-- START -->
+
+      <button
+        class="primary-btn"
+        type="button"
+        onclick="startPractice()"
+      >
+        Start Practice
+      </button>
+
+
+      <!-- QUESTIONS -->
+
+      <div
+        id="questionBox"
+        class="question-box hidden"
+      ></div>
+
+
+      <!-- RESULT -->
+
+      <div
+        id="resultBox"
+        class="result hidden"
+      ></div>
+
+
+    </section>
+
+  </main>
+
+
+  <script>
+
+    // ==========================================
+    // PRACTICE QUESTIONS
+    // ==========================================
+
+    const questions = [
+
+      {
+        question:
+          "Which loop is commonly used when the number of iterations is known?",
+
+        options: [
+          "for loop",
+          "while loop",
+          "switch",
+          "if statement"
+        ],
+
+        answer: 0
+      },
+
+
+      {
+        question:
+          "Which keyword is used to exit a loop?",
+
+        options: [
+          "skip",
+          "break",
+          "exitloop",
+          "stop"
+        ],
+
+        answer: 1
+      },
+
+
+      {
+        question:
+          "Which loop checks its condition before executing?",
+
+        options: [
+          "while loop",
+          "do-while loop",
+          "switch",
+          "function"
+        ],
+
+        answer: 0
+      },
+
+
+      {
+        question:
+          "Which statement skips the current iteration?",
+
+        options: [
+          "break",
+          "continue",
+          "return",
+          "skip"
+        ],
+
+        answer: 1
+      },
+
+
+      {
+        question:
+          "Which symbol is commonly used to increment a variable by one?",
+
+        options: [
+          "--",
+          "++",
+          "**",
+          "=="
+        ],
+
+        answer: 1
+      }
+
+    ];
+
+
+    // ==========================================
+    // VARIABLES
+    // ==========================================
+
+    let currentQuestion = 0;
+
+    let score = 0;
+
+    let selectedAnswer = null;
+
+
+    // ==========================================
+    // START PRACTICE
+    // ==========================================
+
+    function startPractice() {
+
+      const topic =
+        document
+          .getElementById("practiceTopic")
+          .value
+          .trim();
+
+
+      if (!topic) {
+
+        alert(
+          "Please enter a topic."
+        );
+
+        return;
+
+      }
+
+
+      currentQuestion = 0;
+
+      score = 0;
+
+      selectedAnswer = null;
+
+
+      document
+        .getElementById("resultBox")
+        .classList.add("hidden");
+
+
+      document
+        .getElementById("questionBox")
+        .classList.remove("hidden");
+
+
+      showQuestion();
+
+    }
+
+
+    // ==========================================
+    // SHOW QUESTION
+    // ==========================================
+
+    function showQuestion() {
+
+      const box =
+        document.getElementById(
+          "questionBox"
+        );
+
+
+      const q =
+        questions[currentQuestion];
+
+
+      if (!q) {
+
+        finishPractice();
+
+        return;
+
+      }
+
+
+      selectedAnswer = null;
+
+
+      let html = `
+
+        <div class="question">
+
+          <h3>
+            Question ${currentQuestion + 1}
+            of ${questions.length}
+          </h3>
+
+          <p class="question-text">
+            ${q.question}
+          </p>
+
+      `;
+
+
+      q.options.forEach(
+        function(option, index) {
+
+          html += `
+
+            <button
+              class="option"
+              type="button"
+              onclick="selectAnswer(${index})"
+            >
+              ${option}
+            </button>
+
+          `;
+
+        }
+      );
+
+
+      html += `
+
+          <button
+            class="primary-btn"
+            type="button"
+            onclick="submitAnswer()"
+          >
+            Submit Answer
+          </button>
+
+        </div>
+
+      `;
+
+
+      box.innerHTML = html;
+
+    }
+
+
+    // ==========================================
+    // SELECT ANSWER
+    // ==========================================
+
+    function selectAnswer(index) {
+
+      selectedAnswer = index;
+
+
+      const options =
+        document.querySelectorAll(
+          ".option"
+        );
+
+
+      options.forEach(
+        function(option, i) {
+
+          option.classList.toggle(
+            "selected",
+            i === index
+          );
+
+        }
+      );
+
+    }
+
+
+    // ==========================================
+    // SUBMIT ANSWER
+    // ==========================================
+
+    function submitAnswer() {
+
+      if (
+        selectedAnswer === null
+      ) {
+
+        alert(
+          "Please select an answer."
+        );
+
+        return;
+
+      }
+
+
+      if (
+        selectedAnswer ===
+        questions[currentQuestion].answer
+      ) {
+
+        score++;
+
+      }
+
+
+      currentQuestion++;
+
+      showQuestion();
+
+    }
+
+
+    // ==========================================
+    // FINISH PRACTICE
+    // ==========================================
+
+    function finishPractice() {
+
+      const percentage =
+        Math.round(
+          (score / questions.length) * 100
+        );
+
+
+      const questionBox =
+        document.getElementById(
+          "questionBox"
+        );
+
+
+      const resultBox =
+        document.getElementById(
+          "resultBox"
+        );
+
+
+      questionBox.classList.add(
+        "hidden"
+      );
+
+
+      resultBox.classList.remove(
+        "hidden"
+      );
+
+
+      const topic =
+        document
+          .getElementById(
+            "practiceTopic"
+          )
+          .value
+          .trim();
+
+
+      // ==========================================
+      // SAVE PRACTICE PROGRESS
+      // ==========================================
+
+      localStorage.setItem(
+        "practiceProgress",
+        percentage
+      );
+
+
+      // ==========================================
+      // SAVE ACTIVITY
+      // ==========================================
+
+      let activities =
+        JSON.parse(
+          localStorage.getItem(
+            "studyActivity"
+          ) || "[]"
+        );
+
+
+      activities.push({
+
+        icon: "🎯",
+
+        text:
+          "Practice completed: " +
+          topic +
+          " - " +
+          score +
+          "/" +
+          questions.length,
+
+        time:
+          new Date().toLocaleString()
+
+      });
+
+
+      if (
+        activities.length > 20
+      ) {
+
+        activities =
+          activities.slice(-20);
+
+      }
+
+
+      localStorage.setItem(
+        "studyActivity",
+        JSON.stringify(
+          activities
+        )
+      );
+
+
+      // ==========================================
+      // SHOW RESULT
+      // ==========================================
+
+      resultBox.innerHTML = `
+
+        <h2>
+          🎉 Practice Complete!
+        </h2>
+
+        <div class="score">
+          ${percentage}%
+        </div>
+
+        <p>
+          Correct Answers:
+          <strong>${score}</strong>
+          / ${questions.length}
+        </p>
+
+        <p>
+          Wrong Answers:
+          <strong>
+            ${questions.length - score}
+          </strong>
+        </p>
+
+        <p class="result-message">
+          Topic: ${topic}
+        </p>
+
+
+        <button
+          class="primary-btn"
+          type="button"
+          onclick="startPractice()"
+        >
+          Practice Again
+        </button>
+
+
+        <button
+          class="secondary-btn"
+          type="button"
+          onclick="viewProgress()"
+        >
+          📊 View Progress
+        </button>
+
+      `;
+
+    }
+
+
+    // ==========================================
+    // VIEW PROGRESS
+    // ==========================================
+
+    function viewProgress() {
+
+      window.location.href =
+        "progress.html";
+
+    }
+
+
+  </script>
+
+
+</body>
+
+</html>

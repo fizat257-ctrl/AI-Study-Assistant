@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Voice Study Assistant</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 45px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .voice-card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    .voice-button {
+      display: block;
+
+      margin: 10px auto 20px;
+
+      width: 90px;
+      height: 90px;
+
+      border: none;
+      border-radius: 50%;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 35px;
+
+      cursor: pointer;
+    }
+
+    .voice-button:hover {
+      opacity: 0.9;
+    }
+
+    .voice-button.listening {
+      background: #dc2626;
+    }
+
+    .voice-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      text-align: center;
+      color: #a8afbf;
+      margin-bottom: 20px;
+    }
+
+    .box {
+      margin-top: 20px;
+      padding: 20px;
+
+      background: #101217;
+
+      border: 1px solid #292d36;
+
+      border-radius: 10px;
+
+      line-height: 1.7;
+
+      min-height: 100px;
+
+      white-space: pre-wrap;
+    }
+
+    .box h3 {
+      margin-bottom: 10px;
+    }
+
+    .clear-btn {
+      width: 100%;
+
+      margin-top: 15px;
+
+      padding: 12px;
+
+      border: 1px solid #363b46;
+
+      border-radius: 9px;
+
+      background: #181b21;
+
+      color: white;
+
+      cursor: pointer;
+    }
+
+    /* Hidden AI Tutor fields */
+
+    #question,
+    #answer {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 30px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .voice-card {
+        padding: 20px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- HEADER -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      type="button"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- MAIN -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        🎤 Voice Study Assistant
+      </h2>
+
+      <p>
+        Ask your study question using your voice.
+      </p>
+
+    </section>
+
+
+    <section class="voice-card">
+
+
+      <!-- MICROPHONE -->
+
+      <button
+        id="voiceButton"
+        class="voice-button"
+        type="button"
+        onclick="startVoice()"
+      >
+        🎤
+      </button>
+
+
+      <!-- STATUS -->
+
+      <div
+        id="voiceStatus"
+        class="status"
+      >
+        Click the microphone and start speaking.
+      </div>
+
+
+      <!-- QUESTION -->
+
+      <div class="box">
+
+        <h3>
+          🗣️ Your Question
+        </h3>
+
+        <div id="questionText">
+          Your voice question will appear here.
+        </div>
+
+      </div>
+
+
+      <!-- ANSWER -->
+
+      <div class="box">
+
+        <h3>
+          🤖 AI Answer
+        </h3>
+
+        <div id="answerText">
+          Your answer will appear here.
+        </div>
+
+      </div>
+
+
+      <!-- HIDDEN AI TUTOR ELEMENTS -->
+
+      <textarea id="question"></textarea>
+
+      <div id="answer"></div>
+
+
+      <!-- CLEAR -->
+
+      <button
+        class="clear-btn"
+        type="button"
+        onclick="clearVoice()"
+      >
+        Clear
+      </button>
+
+
+    </section>
+
+  </main>
+
+
+  <!-- EXISTING AI LOGIC -->
+
+  <script src="script.js"></script>
+
+
+  <script>
+
+    // ==========================================
+    // SPEECH RECOGNITION
+    // ==========================================
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+
+    let recognition = null;
+
+
+    if (SpeechRecognition) {
+
+      recognition =
+        new SpeechRecognition();
+
+      recognition.continuous = false;
+
+      recognition.interimResults = false;
+
+      recognition.lang = "en-US";
+
+
+      recognition.onstart =
+        function () {
+
+          document
+            .getElementById("voiceButton")
+            .classList.add("listening");
+
+          document
+            .getElementById("voiceButton")
+            .disabled = true;
+
+          document
+            .getElementById("voiceStatus")
+            .textContent =
+            "🎤 Listening... Speak now.";
+
+        };
+
+
+      recognition.onresult =
+        function (event) {
+
+          const transcript =
+            event
+              .results[0][0]
+              .transcript
+              .trim();
+
+
+          document
+            .getElementById("questionText")
+            .textContent =
+            transcript;
+
+
+          document
+            .getElementById("voiceStatus")
+            .textContent =
+            "✅ Question captured. AI is preparing your answer...";
+
+
+          getVoiceAnswer(transcript);
+
+        };
+
+
+      recognition.onerror =
+        function (event) {
+
+          console.error(
+            "Speech recognition error:",
+            event.error
+          );
+
+
+          document
+            .getElementById("voiceStatus")
+            .textContent =
+            "❌ Could not hear your question. Please try again.";
+
+        };
+
+
+      recognition.onend =
+        function () {
+
+          document
+            .getElementById("voiceButton")
+            .classList.remove("listening");
+
+          document
+            .getElementById("voiceButton")
+            .disabled = false;
+
+        };
+
+    }
+
+
+    // ==========================================
+    // START VOICE
+    // ==========================================
+
+    function startVoice() {
+
+      if (!recognition) {
+
+        document
+          .getElementById("voiceStatus")
+          .textContent =
+          "❌ Voice recognition is not supported in this browser.";
+
+        return;
+
+      }
+
+
+      document
+        .getElementById("answerText")
+        .textContent =
+        "Waiting for your question...";
+
+
+      try {
+
+        recognition.start();
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "Voice start error:",
+          error
+        );
+
+      }
+
+    }
+
+
+    // ==========================================
+    // SEND VOICE QUESTION TO EXISTING AI TUTOR
+    // ==========================================
+
+    function getVoiceAnswer(question) {
+
+      const hiddenQuestion =
+        document.getElementById("question");
+
+      const hiddenAnswer =
+        document.getElementById("answer");
+
+      const visibleAnswer =
+        document.getElementById("answerText");
+
+
+      if (
+        !hiddenQuestion ||
+        !hiddenAnswer
+      ) {
+
+        visibleAnswer.textContent =
+          "❌ AI Tutor connection is not available.";
+
+        return;
+
+      }
+
+
+      // Put voice question into existing AI Tutor input
+
+      hiddenQuestion.value =
+        question;
+
+
+      // Clear previous answer
+
+      hiddenAnswer.innerText =
+        "";
+
+
+      // ==========================================
+      // USE EXISTING askAssistant()
+      // ==========================================
+
+      if (
+        typeof askAssistant === "function"
+      ) {
+
+        askAssistant();
+
+      }
+
+      else {
+
+        visibleAnswer.textContent =
+          "❌ AI Tutor function was not found.";
+
+        return;
+
+      }
+
+
+      // ==========================================
+      // WAIT FOR EXISTING AI TUTOR RESPONSE
+      // ==========================================
+
+      setTimeout(
+        function () {
+
+          const result =
+            hiddenAnswer.innerText.trim();
+
+
+          if (result) {
+
+            visibleAnswer.textContent =
+              result;
+
+            document
+              .getElementById("voiceStatus")
+              .textContent =
+              "✅ AI answer generated.";
+
+          }
+
+          else {
+
+            visibleAnswer.textContent =
+              "❌ Could not generate an AI answer.";
+
+          }
+
+
+          // ========================================
+          // VOICE PROGRESS
+          // ========================================
+
+          localStorage.setItem(
+            "voiceProgress",
+            "100"
+          );
+
+
+          // ========================================
+          // ACTIVITY
+          // ========================================
+
+          let activities =
+            JSON.parse(
+              localStorage.getItem(
+                "studyActivity"
+              ) || "[]"
+            );
+
+
+          activities.push({
+
+            icon: "🎤",
+
+            text:
+              "Voice Study Question: " +
+              question,
+
+            time:
+              new Date().toLocaleString()
+
+          });
+
+
+          if (
+            activities.length > 20
+          ) {
+
+            activities =
+              activities.slice(-20);
+
+          }
+
+
+          localStorage.setItem(
+            "studyActivity",
+            JSON.stringify(
+              activities
+            )
+          );
+
+
+        },
+        800
+      );
+
+    }
+
+
+    // ==========================================
+    // CLEAR
+    // ==========================================
+
+    function clearVoice() {
+
+      document
+        .getElementById("questionText")
+        .textContent =
+        "Your voice question will appear here.";
+
+
+      document
+        .getElementById("answerText")
+        .textContent =
+        "Your answer will appear here.";
+
+
+      document
+        .getElementById("voiceStatus")
+        .textContent =
+        "Click the microphone and start speaking.";
+
+
+      document
+        .getElementById("question")
+        .value = "";
+
+
+      document
+        .getElementById("answer")
+        .innerText = "";
+
+    }
+
+  </script>
+
+
+</body>
+
+</html>

@@ -49,6 +49,10 @@
       cursor: pointer;
     }
 
+    .back-btn:hover {
+      opacity: 0.9;
+    }
+
     .container {
       max-width: 900px;
       margin: auto;
@@ -122,6 +126,11 @@
 
     .primary-btn:hover {
       opacity: 0.9;
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .plan-section {
@@ -251,6 +260,7 @@
       <!-- BUTTON -->
 
       <button
+        id="planButton"
         class="primary-btn"
         type="button"
         onclick="createStudyPlan()"
@@ -282,9 +292,342 @@
   </main>
 
 
-  <!-- SCRIPT -->
+  <!-- ==========================================
+       JAVASCRIPT
+  =========================================== -->
 
-  <script src="script.js"></script>
+  <script>
+
+
+    // ==========================================
+    // CREATE STUDY PLAN
+    // ==========================================
+
+    function createStudyPlan() {
+
+      const subjectInput =
+        document.getElementById("subject");
+
+      const timeInput =
+        document.getElementById("studyTime");
+
+      const studyPlan =
+        document.getElementById("studyPlan");
+
+      const planButton =
+        document.getElementById("planButton");
+
+
+      const subject =
+        subjectInput.value.trim();
+
+
+      const minutes =
+        Number(
+          timeInput.value
+        );
+
+
+      // ==========================================
+      // VALIDATION
+      // ==========================================
+
+      if (!subject) {
+
+        studyPlan.innerText =
+          "Please enter a subject.";
+
+        return;
+
+      }
+
+
+      if (!minutes || minutes < 1) {
+
+        studyPlan.innerText =
+          "Please enter a valid study time.";
+
+        return;
+
+      }
+
+
+      // ==========================================
+      // LOADING
+      // ==========================================
+
+      studyPlan.innerText =
+        "📅 Creating your study plan...";
+
+
+      planButton.disabled = true;
+
+      planButton.innerText =
+        "Creating Plan...";
+
+
+      // ==========================================
+      // CREATE PLAN
+      // ==========================================
+
+      setTimeout(function() {
+
+
+        let firstPart =
+          Math.round(
+            minutes * 0.4
+          );
+
+
+        let secondPart =
+          Math.round(
+            minutes * 0.35
+          );
+
+
+        let thirdPart =
+          minutes -
+          firstPart -
+          secondPart;
+
+
+        studyPlan.innerText =
+
+          `📚 Study Plan: ${subject}\n\n` +
+
+          `1️⃣ Learn Concepts — ${firstPart} minutes\n` +
+          `Review the main concepts and important definitions.\n\n` +
+
+          `2️⃣ Practice — ${secondPart} minutes\n` +
+          `Solve examples, questions, or practical exercises.\n\n` +
+
+          `3️⃣ Revision — ${thirdPart} minutes\n` +
+          `Review what you learned and test your understanding.\n\n` +
+
+          `💡 Study Tip:\n` +
+          `Take short breaks and focus on one topic at a time.`;
+
+
+        planButton.disabled = false;
+
+        planButton.innerText =
+          "Create Study Plan";
+
+
+        // ==========================================
+        // PLANNER PROGRESS
+        // ==========================================
+
+        let plannerProgress =
+          Number(
+            localStorage.getItem(
+              "plannerProgress"
+            )
+          ) || 0;
+
+
+        plannerProgress =
+          Math.min(
+            plannerProgress + 20,
+            100
+          );
+
+
+        localStorage.setItem(
+          "plannerProgress",
+          plannerProgress
+        );
+
+
+        // ==========================================
+        // TOPICS STUDIED
+        // ==========================================
+
+        let topics =
+          Number(
+            localStorage.getItem(
+              "topicsStudied"
+            )
+          ) || 0;
+
+
+        topics += 1;
+
+
+        localStorage.setItem(
+          "topicsStudied",
+          topics
+        );
+
+
+        // ==========================================
+        // RECENT ACTIVITY
+        // ==========================================
+
+        let activities =
+          JSON.parse(
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
+          );
+
+
+        activities.push({
+
+          icon: "📅",
+
+          text:
+            `Study Plan Created: ${subject}`,
+
+          time:
+            new Date().toLocaleString()
+
+        });
+
+
+        if (
+          activities.length > 20
+        ) {
+
+          activities =
+            activities.slice(-20);
+
+        }
+
+
+        localStorage.setItem(
+          "studyActivity",
+          JSON.stringify(activities)
+        );
+
+
+        // ==========================================
+        // UPDATE OVERALL
+        // ==========================================
+
+        updateOverallProgress();
+
+
+      }, 600);
+
+    }
+
+
+    // ==========================================
+    // UPDATE OVERALL PROGRESS
+    // ==========================================
+
+    function updateOverallProgress() {
+
+
+      const tutor =
+        getProgress(
+          "tutorProgress"
+        );
+
+
+      const summarizer =
+        getProgress(
+          "summarizerProgress"
+        );
+
+
+      const quiz =
+        getProgress(
+          "quizProgress"
+        );
+
+
+      const planner =
+        getProgress(
+          "plannerProgress"
+        );
+
+
+      const flashcards =
+        getProgress(
+          "flashcardProgress"
+        );
+
+
+      const pdf =
+        getProgress(
+          "pdfProgress"
+        );
+
+
+      // ==========================================
+      // STUDY LIBRARY
+      // ==========================================
+
+      const libraryResources =
+        JSON.parse(
+          localStorage.getItem(
+            "studyLibrary"
+          ) || "[]"
+        );
+
+
+      let libraryProgress = 0;
+
+
+      if (
+        libraryResources.length > 0
+      ) {
+
+        libraryProgress =
+          Math.min(
+            libraryResources.length * 20,
+            100
+          );
+
+      }
+
+
+      // ==========================================
+      // OVERALL
+      // ==========================================
+
+      const overall =
+        Math.round(
+          (
+            tutor +
+            summarizer +
+            quiz +
+            planner +
+            flashcards +
+            pdf +
+            libraryProgress
+          ) / 7
+        );
+
+
+      localStorage.setItem(
+        "overallProgress",
+        overall
+      );
+
+    }
+
+
+    // ==========================================
+    // GET PROGRESS
+    // ==========================================
+
+    function getProgress(key) {
+
+      return Math.min(
+        Number(
+          localStorage.getItem(key)
+        ) || 0,
+        100
+      );
+
+    }
+
+
+  </script>
+
 
 </body>
 

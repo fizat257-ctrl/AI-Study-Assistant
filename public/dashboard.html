@@ -165,7 +165,9 @@
 <body>
 
 
+  <!-- ============================== -->
   <!-- HEADER -->
+  <!-- ============================== -->
 
   <header>
 
@@ -175,6 +177,7 @@
 
     <button
       class="logout-btn"
+      type="button"
       onclick="logout()"
     >
       Logout
@@ -183,7 +186,9 @@
   </header>
 
 
+  <!-- ============================== -->
   <!-- DASHBOARD -->
+  <!-- ============================== -->
 
   <main class="container">
 
@@ -212,17 +217,15 @@
 
         <div>
 
-          <div class="icon">
-            🤖
-          </div>
+          <div class="icon">🤖</div>
 
           <h3>
             AI Tutor
           </h3>
 
           <p>
-            Ask questions and get
-            simple AI-powered explanations.
+            Ask questions and get simple
+            AI-powered explanations.
           </p>
 
         </div>
@@ -243,9 +246,7 @@
 
         <div>
 
-          <div class="icon">
-            📝
-          </div>
+          <div class="icon">📝</div>
 
           <h3>
             Note Summarizer
@@ -265,7 +266,7 @@
       </div>
 
 
-      <!-- QUIZ -->
+      <!-- QUIZ GENERATOR -->
 
       <div
         class="tool-card"
@@ -274,9 +275,7 @@
 
         <div>
 
-          <div class="icon">
-            🧠
-          </div>
+          <div class="icon">🧠</div>
 
           <h3>
             Quiz Generator
@@ -305,9 +304,7 @@
 
         <div>
 
-          <div class="icon">
-            📅
-          </div>
+          <div class="icon">📅</div>
 
           <h3>
             Study Planner
@@ -327,7 +324,7 @@
       </div>
 
 
-      <!-- FLASHCARDS -->
+      <!-- AI FLASHCARDS -->
 
       <div
         class="tool-card"
@@ -336,9 +333,7 @@
 
         <div>
 
-          <div class="icon">
-            🗂️
-          </div>
+          <div class="icon">🗂️</div>
 
           <h3>
             AI Flashcards
@@ -358,7 +353,7 @@
       </div>
 
 
-      <!-- PROGRESS -->
+      <!-- STUDY PROGRESS -->
 
       <div
         class="tool-card"
@@ -367,9 +362,7 @@
 
         <div>
 
-          <div class="icon">
-            📊
-          </div>
+          <div class="icon">📊</div>
 
           <h3>
             Study Progress
@@ -389,19 +382,198 @@
       </div>
 
 
+      <!-- PDF STUDY -->
+
+      <div
+        class="tool-card"
+        onclick="openPDFStudy()"
+      >
+
+        <div>
+
+          <div class="icon">📄</div>
+
+          <h3>
+            PDF Study
+          </h3>
+
+          <p>
+            Upload your study PDF,
+            read it and generate an
+            AI-powered study summary.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open PDF Study →
+        </div>
+
+      </div>
+
+
+      <!-- STUDY LIBRARY -->
+
+      <div
+        class="tool-card"
+        onclick="openLibrary()"
+      >
+
+        <div>
+
+          <div class="icon">📚</div>
+
+          <h3>
+            Study Library
+          </h3>
+
+          <p>
+            Store and open your PDF,
+            Notes and Study Material
+            in one place.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Study Library →
+        </div>
+
+      </div>
+
+
+      <!-- PRACTICE MODE -->
+
+      <div
+        class="tool-card"
+        onclick="openPractice()"
+      >
+
+        <div>
+
+          <div class="icon">🎯</div>
+
+          <h3>
+            Practice Mode
+          </h3>
+
+          <p>
+            Practice your knowledge with
+            questions and check your score.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Practice Mode →
+        </div>
+
+      </div>
+
+
+      <!-- VOICE STUDY ASSISTANT -->
+
+      <div
+        class="tool-card"
+        onclick="openVoiceStudy()"
+      >
+
+        <div>
+
+          <div class="icon">🎤</div>
+
+          <h3>
+            Voice Study Assistant
+          </h3>
+
+          <p>
+            Ask study questions using your
+            voice and get AI-powered answers.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Voice Assistant →
+        </div>
+
+      </div>
+
+
+      <!-- PROFILE & SETTINGS -->
+
+      <div
+        class="tool-card"
+        onclick="openProfile()"
+      >
+
+        <div>
+
+          <div class="icon">👤</div>
+
+          <h3>
+            Profile & Settings
+          </h3>
+
+          <p>
+            Manage your profile, study
+            information, notifications,
+            reminders and preferences.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Profile & Settings →
+        </div>
+
+      </div>
+
+
+      <!-- ============================== -->
+      <!-- SUBJECT & COURSES MANAGER -->
+      <!-- ============================== -->
+
+      <div
+        class="tool-card"
+        onclick="openSubjects()"
+      >
+
+        <div>
+
+          <div class="icon">
+            📚
+          </div>
+
+          <h3>
+            Subject & Courses Manager
+          </h3>
+
+          <p>
+            Add, manage and organize your
+            subjects, courses and study topics.
+          </p>
+
+        </div>
+
+        <div class="open-text">
+          Open Subject Manager →
+        </div>
+
+      </div>
+
+
     </section>
 
   </main>
 
 
+  <!-- ============================== -->
   <!-- JAVASCRIPT -->
+  <!-- ============================== -->
 
   <script>
 
-
-    // ==================================
-    // AI TUTOR
-    // ==================================
 
     function openTutor() {
 
@@ -411,10 +583,6 @@
     }
 
 
-    // ==================================
-    // NOTE SUMMARIZER
-    // ==================================
-
     function openSummarizer() {
 
       window.location.href =
@@ -422,10 +590,6 @@
 
     }
 
-
-    // ==================================
-    // QUIZ
-    // ==================================
 
     function openQuiz() {
 
@@ -435,10 +599,6 @@
     }
 
 
-    // ==================================
-    // STUDY PLANNER
-    // ==================================
-
     function openPlanner() {
 
       window.location.href =
@@ -446,10 +606,6 @@
 
     }
 
-
-    // ==================================
-    // FLASHCARDS
-    // ==================================
 
     function openFlashcards() {
 
@@ -459,14 +615,62 @@
     }
 
 
-    // ==================================
-    // PROGRESS
-    // ==================================
-
     function openProgress() {
 
       window.location.href =
         "progress.html";
+
+    }
+
+
+    function openPDFStudy() {
+
+      window.location.href =
+        "pdf.html";
+
+    }
+
+
+    function openLibrary() {
+
+      window.location.href =
+        "library.html";
+
+    }
+
+
+    function openPractice() {
+
+      window.location.href =
+        "practice.html";
+
+    }
+
+
+    function openVoiceStudy() {
+
+      window.location.href =
+        "voice.html";
+
+    }
+
+
+    function openProfile() {
+
+      window.location.href =
+        "profile.html";
+
+    }
+
+
+    // ==================================
+    // SUBJECT & COURSES
+    // ==================================
+
+    function openSubjects() {
+
+      window.location.href =
+        "subjects.html";
 
     }
 
@@ -490,7 +694,9 @@
 
         }
 
-      } catch (error) {
+      }
+
+      catch (error) {
 
         console.error(
           "Logout error:",
@@ -503,6 +709,7 @@
         "auth.html";
 
     }
+
 
   </script>
 

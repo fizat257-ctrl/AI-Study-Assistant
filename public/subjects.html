@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI Study Assistant - Subjects & Courses</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #0f1115;
+      color: white;
+    }
+
+    header {
+      padding: 20px 30px;
+      border-bottom: 1px solid #292d36;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    .back-btn {
+      border: none;
+      background: #2563eb;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .back-btn:hover {
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .intro {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .intro h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .intro p {
+      color: #a8afbf;
+    }
+
+    .card {
+      background: #181b21;
+      border: 1px solid #292d36;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    .card h3 {
+      margin-bottom: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+
+      background: #101217;
+      color: white;
+
+      border: 1px solid #363b46;
+      border-radius: 8px;
+
+      outline: none;
+      font-size: 15px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #2563eb;
+    }
+
+    .add-btn {
+      width: 100%;
+      margin-top: 15px;
+      padding: 13px;
+
+      border: none;
+      border-radius: 8px;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .add-btn:hover {
+      opacity: 0.9;
+    }
+
+    .course-count {
+      color: #9299a8;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .subjects {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .subject {
+      background: #101217;
+      border: 1px solid #292d36;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .subject-icon {
+      font-size: 30px;
+      margin-bottom: 10px;
+    }
+
+    .subject h4 {
+      font-size: 19px;
+      margin-bottom: 8px;
+    }
+
+    .subject p {
+      color: #9299a8;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 9px;
+
+      border: none;
+      border-radius: 7px;
+
+      background: #2563eb;
+      color: white;
+
+      cursor: pointer;
+    }
+
+    .delete-btn {
+      background: #dc2626;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+
+      text-align: center;
+      color: #9299a8;
+      padding: 30px;
+
+      background: #101217;
+      border-radius: 10px;
+      border: 1px solid #292d36;
+    }
+
+    /* ================================
+       SUBJECT PROGRESS
+    ================================= */
+
+    .progress-info {
+      margin-top: 25px;
+      padding: 18px;
+
+      background: #101217;
+      border: 1px solid #292d36;
+      border-radius: 10px;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .progress-top span:last-child {
+      color: #8ea9ff;
+      font-weight: bold;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 9px;
+
+      background: #292d36;
+
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+
+      background: #2563eb;
+
+      border-radius: 10px;
+
+      transition: width 0.4s ease;
+    }
+
+    .progress-note {
+      color: #9299a8;
+      font-size: 13px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 650px) {
+
+      header {
+        padding: 17px;
+      }
+
+      header h1 {
+        font-size: 18px;
+      }
+
+      .container {
+        padding: 25px 15px;
+      }
+
+      .intro h2 {
+        font-size: 26px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .subjects {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- ================================
+       HEADER
+  ================================= -->
+
+  <header>
+
+    <h1>
+      🎓 AI Study Assistant
+    </h1>
+
+    <button
+      class="back-btn"
+      type="button"
+      onclick="window.location.href='dashboard.html'"
+    >
+      ← Dashboard
+    </button>
+
+  </header>
+
+
+  <!-- ================================
+       MAIN
+  ================================= -->
+
+  <main class="container">
+
+
+    <section class="intro">
+
+      <h2>
+        📚 Subjects & Courses
+      </h2>
+
+      <p>
+        Manage your subjects and courses in one place.
+      </p>
+
+    </section>
+
+
+    <!-- ================================
+         ADD SUBJECT
+    ================================= -->
+
+    <section class="card">
+
+      <h3>
+        ➕ Add Subject / Course
+      </h3>
+
+      <div class="form-grid">
+
+        <input
+          type="text"
+          id="subjectName"
+          placeholder="Subject name e.g. Programming Fundamentals"
+        >
+
+        <input
+          type="text"
+          id="courseCode"
+          placeholder="Course code e.g. CS-101"
+        >
+
+        <input
+          type="text"
+          id="instructor"
+          placeholder="Instructor name"
+        >
+
+        <select id="semester">
+
+          <option value="">
+            Select Semester
+          </option>
+
+          <option value="1st Semester">
+            1st Semester
+          </option>
+
+          <option value="2nd Semester">
+            2nd Semester
+          </option>
+
+          <option value="3rd Semester">
+            3rd Semester
+          </option>
+
+          <option value="4th Semester">
+            4th Semester
+          </option>
+
+          <option value="5th Semester">
+            5th Semester
+          </option>
+
+          <option value="6th Semester">
+            6th Semester
+          </option>
+
+          <option value="7th Semester">
+            7th Semester
+          </option>
+
+          <option value="8th Semester">
+            8th Semester
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <button
+        class="add-btn"
+        type="button"
+        onclick="addSubject()"
+      >
+        Add Subject
+      </button>
+
+    </section>
+
+
+    <!-- ================================
+         SUBJECT LIST
+    ================================= -->
+
+    <section class="card">
+
+      <h3>
+        📖 My Subjects
+      </h3>
+
+      <div
+        class="course-count"
+        id="courseCount"
+      >
+        0 subjects
+      </div>
+
+
+      <div
+        id="subjects"
+        class="subjects"
+      ></div>
+
+
+      <!-- ================================
+           PROGRESS
+      ================================= -->
+
+      <div class="progress-info">
+
+        <div class="progress-top">
+
+          <span>
+            📊 Subjects & Courses Progress
+          </span>
+
+          <span id="subjectProgressText">
+            0%
+          </span>
+
+        </div>
+
+
+        <div class="progress-bar">
+
+          <div
+            class="progress-fill"
+            id="subjectProgressBar"
+          ></div>
+
+        </div>
+
+
+        <p class="progress-note">
+          Add subjects to build your study course list.
+          Your subject count is also synchronized with Study Progress.
+        </p>
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+  <!-- ================================
+       JAVASCRIPT
+  ================================= -->
+
+  <script>
+
+
+    // ==================================
+    // LOAD SUBJECTS SAFELY
+    // ==================================
+
+    let subjects = [];
+
+    try {
+
+      subjects =
+        JSON.parse(
+          localStorage.getItem(
+            "studySubjects"
+          ) || "[]"
+        );
+
+    }
+
+    catch (error) {
+
+      subjects = [];
+
+    }
+
+
+    if (!Array.isArray(subjects)) {
+
+      subjects = [];
+
+    }
+
+
+    // ==================================
+    // ADD ACTIVITY
+    // ==================================
+
+    function addActivity(icon, text) {
+
+      let activities = [];
+
+      try {
+
+        activities =
+          JSON.parse(
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
+          );
+
+      }
+
+      catch (error) {
+
+        activities = [];
+
+      }
+
+
+      if (!Array.isArray(activities)) {
+
+        activities = [];
+
+      }
+
+
+      activities.push({
+
+        icon: icon,
+
+        text: text,
+
+        time:
+          new Date().toLocaleString()
+
+      });
+
+
+      // Keep only latest 30 activities
+
+      if (activities.length > 30) {
+
+        activities =
+          activities.slice(-30);
+
+      }
+
+
+      localStorage.setItem(
+        "studyActivity",
+        JSON.stringify(activities)
+      );
+
+    }
+
+
+    // ==================================
+    // UPDATE SUBJECT PROGRESS
+    // ==================================
+
+    function updateSubjectProgress() {
+
+      const count =
+        subjects.length;
+
+
+      /*
+        Progress is based on number of subjects.
+
+        0 subjects  = 0%
+        1 subject   = 20%
+        2 subjects  = 40%
+        3 subjects  = 60%
+        4 subjects  = 80%
+        5+ subjects = 100%
+      */
+
+      const progress =
+        Math.min(
+          count * 20,
+          100
+        );
+
+
+      // Save subject count
+
+      localStorage.setItem(
+        "subjectsCount",
+        count
+      );
+
+
+      // Save both keys for compatibility
+
+      localStorage.setItem(
+        "subjectProgress",
+        progress
+      );
+
+
+      localStorage.setItem(
+        "subjectsProgress",
+        progress
+      );
+
+
+      // Update screen
+
+      const text =
+        document.getElementById(
+          "subjectProgressText"
+        );
+
+
+      const bar =
+        document.getElementById(
+          "subjectProgressBar"
+        );
+
+
+      if (text) {
+
+        text.textContent =
+          progress + "%";
+
+      }
+
+
+      if (bar) {
+
+        bar.style.width =
+          progress + "%";
+
+      }
+
+    }
+
+
+    // ==================================
+    // ADD SUBJECT
+    // ==================================
+
+    function addSubject() {
+
+      const nameInput =
+        document.getElementById(
+          "subjectName"
+        );
+
+
+      const codeInput =
+        document.getElementById(
+          "courseCode"
+        );
+
+
+      const instructorInput =
+        document.getElementById(
+          "instructor"
+        );
+
+
+      const semesterInput =
+        document.getElementById(
+          "semester"
+        );
+
+
+      const name =
+        nameInput.value.trim();
+
+
+      const code =
+        codeInput.value.trim();
+
+
+      const instructor =
+        instructorInput.value.trim();
+
+
+      const semester =
+        semesterInput.value;
+
+
+      if (!name) {
+
+        alert(
+          "Please enter subject name."
+        );
+
+        nameInput.focus();
+
+        return;
+
+      }
+
+
+      const subject = {
+
+        id:
+          Date.now(),
+
+        name:
+          name,
+
+        code:
+          code || "No course code",
+
+        instructor:
+          instructor || "Not specified",
+
+        semester:
+          semester || "Not specified",
+
+        createdAt:
+          new Date().toISOString()
+
+      };
+
+
+      subjects.push(
+        subject
+      );
+
+
+      // Save
+
+      saveSubjects();
+
+
+      // Activity
+
+      addActivity(
+        "📚",
+        `Added subject: ${name}`
+      );
+
+
+      // Clear form
+
+      nameInput.value = "";
+
+      codeInput.value = "";
+
+      instructorInput.value = "";
+
+      semesterInput.value = "";
+
+
+      // Refresh
+
+      displaySubjects();
+
+      updateSubjectProgress();
+
+
+      alert(
+        "✅ Subject added successfully!"
+      );
+
+    }
+
+
+    // ==================================
+    // SAVE SUBJECTS
+    // ==================================
+
+    function saveSubjects() {
+
+      localStorage.setItem(
+        "studySubjects",
+        JSON.stringify(subjects)
+      );
+
+
+      localStorage.setItem(
+        "subjectsCount",
+        subjects.length
+      );
+
+    }
+
+
+    // ==================================
+    // DISPLAY SUBJECTS
+    // ==================================
+
+    function displaySubjects() {
+
+      const container =
+        document.getElementById(
+          "subjects"
+        );
+
+
+      const count =
+        document.getElementById(
+          "courseCount"
+        );
+
+
+      if (!container || !count) {
+
+        return;
+
+      }
+
+
+      container.innerHTML = "";
+
+
+      count.textContent =
+        subjects.length +
+        (
+          subjects.length === 1
+            ? " subject"
+            : " subjects"
+        );
+
+
+      if (subjects.length === 0) {
+
+        container.innerHTML = `
+
+          <div class="empty">
+
+            📚 No subjects added yet.
+
+            <br><br>
+
+            Add your first subject above.
+
+          </div>
+
+        `;
+
+        updateSubjectProgress();
+
+        return;
+
+      }
+
+
+      subjects.forEach(
+        function(subject, index) {
+
+          const card =
+            document.createElement(
+              "div"
+            );
+
+
+          card.className =
+            "subject";
+
+
+          card.innerHTML = `
+
+            <div class="subject-icon">
+              📘
+            </div>
+
+            <h4>
+              ${escapeHTML(subject.name)}
+            </h4>
+
+            <p>
+              Course Code:
+              ${escapeHTML(subject.code)}
+            </p>
+
+            <p>
+              Instructor:
+              ${escapeHTML(subject.instructor)}
+            </p>
+
+            <p>
+              Semester:
+              ${escapeHTML(subject.semester)}
+            </p>
+
+            <div class="actions">
+
+              <button
+                class="action-btn"
+                type="button"
+                onclick="editSubject(${index})"
+              >
+                Edit
+              </button>
+
+              <button
+                class="action-btn delete-btn"
+                type="button"
+                onclick="deleteSubject(${index})"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          `;
+
+
+          container.appendChild(
+            card
+          );
+
+        }
+      );
+
+
+      updateSubjectProgress();
+
+    }
+
+
+    // ==================================
+    // EDIT SUBJECT
+    // ==================================
+
+    function editSubject(index) {
+
+      const subject =
+        subjects[index];
+
+
+      if (!subject) {
+
+        return;
+
+      }
+
+
+      const newName =
+        prompt(
+          "Enter subject name:",
+          subject.name
+        );
+
+
+      if (
+        newName === null ||
+        !newName.trim()
+      ) {
+
+        return;
+
+      }
+
+
+      subject.name =
+        newName.trim();
+
+
+      const newCode =
+        prompt(
+          "Enter course code:",
+          subject.code
+        );
+
+
+      if (newCode !== null) {
+
+        subject.code =
+          newCode.trim() ||
+          "No course code";
+
+      }
+
+
+      const newInstructor =
+        prompt(
+          "Enter instructor:",
+          subject.instructor
+        );
+
+
+      if (newInstructor !== null) {
+
+        subject.instructor =
+          newInstructor.trim() ||
+          "Not specified";
+
+      }
+
+
+      const newSemester =
+        prompt(
+          "Enter semester:",
+          subject.semester
+        );
+
+
+      if (newSemester !== null) {
+
+        subject.semester =
+          newSemester.trim() ||
+          "Not specified";
+
+      }
+
+
+      saveSubjects();
+
+
+      addActivity(
+        "✏️",
+        `Updated subject: ${subject.name}`
+      );
+
+
+      displaySubjects();
+
+    }
+
+
+    // ==================================
+    // DELETE SUBJECT
+    // ==================================
+
+    function deleteSubject(index) {
+
+      const subject =
+        subjects[index];
+
+
+      if (!subject) {
+
+        return;
+
+      }
+
+
+      const confirmed =
+        confirm(
+          `Delete "${subject.name}"?`
+        );
+
+
+      if (!confirmed) {
+
+        return;
+
+      }
+
+
+      const deletedName =
+        subject.name;
+
+
+      subjects.splice(
+        index,
+        1
+      );
+
+
+      saveSubjects();
+
+
+      addActivity(
+        "🗑️",
+        `Deleted subject: ${deletedName}`
+      );
+
+
+      displaySubjects();
+
+      updateSubjectProgress();
+
+    }
+
+
+    // ==================================
+    // ESCAPE HTML
+    // ==================================
+
+    function escapeHTML(text) {
+
+      return String(text)
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+    // ==================================
+    // INITIAL LOAD
+    // ==================================
+
+    displaySubjects();
+
+    updateSubjectProgress();
+
+
+  </script>
+
+
+</body>
+
+</html>

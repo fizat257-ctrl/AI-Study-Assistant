@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>AI Study Assistant - PDF Study</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0f1115;
+            color: white;
+        }
+
+        header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #292d36;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 22px;
+        }
+
+        .back-btn {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 45px 20px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .intro h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .intro p {
+            color: #a8afbf;
+        }
+
+        .pdf-card {
+            background: #181b21;
+            border: 1px solid #292d36;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed #363b46;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .upload-box .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .upload-box p {
+            color: #a8afbf;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            background: #101217;
+            color: white;
+            border: 1px solid #363b46;
+            border-radius: 8px;
+        }
+
+        .primary-btn {
+            width: 100%;
+            margin-top: 20px;
+            padding: 13px;
+
+            border: none;
+            border-radius: 9px;
+
+            background: #2563eb;
+            color: white;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+        }
+
+        .primary-btn:hover {
+            opacity: 0.9;
+        }
+
+        .primary-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+
+            background: #101217;
+            border: 1px solid #292d36;
+
+            border-radius: 10px;
+
+            color: #c4c9d4;
+            text-align: center;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+
+        .section h3 {
+            margin-bottom: 12px;
+        }
+
+        .text-box,
+        .summary-box {
+            width: 100%;
+            min-height: 200px;
+
+            padding: 20px;
+
+            background: #101217;
+
+            border: 1px solid #292d36;
+
+            border-radius: 10px;
+
+            color: #d7dbe4;
+
+            line-height: 1.7;
+
+            white-space: pre-wrap;
+
+            overflow-y: auto;
+        }
+
+        .summary-box {
+            min-height: 180px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 17px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+
+            .container {
+                padding: 30px 15px;
+            }
+
+            .intro h2 {
+                font-size: 26px;
+            }
+
+            .pdf-card {
+                padding: 20px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- HEADER -->
+
+    <header>
+
+        <h1>
+            🎓 AI Study Assistant
+        </h1>
+
+        <button
+            class="back-btn"
+            type="button"
+            onclick="window.location.href='dashboard.html'"
+        >
+            ← Dashboard
+        </button>
+
+    </header>
+
+
+    <!-- MAIN -->
+
+    <main class="container">
+
+
+        <section class="intro">
+
+            <h2>
+                📄 PDF Study Assistant
+            </h2>
+
+            <p>
+                Upload your study PDF and generate an AI-powered summary.
+            </p>
+
+        </section>
+
+
+        <section class="pdf-card">
+
+
+            <!-- PDF UPLOAD -->
+
+            <div class="upload-box">
+
+                <div class="icon">
+                    📄
+                </div>
+
+                <p>
+                    Select your study PDF.
+                </p>
+
+                <input
+                    type="file"
+                    id="pdfFile"
+                    accept=".pdf,application/pdf"
+                >
+
+            </div>
+
+
+            <!-- READ PDF -->
+
+            <button
+                class="primary-btn"
+                id="readPDFButton"
+                type="button"
+                onclick="extractPDFText()"
+            >
+                📖 Upload & Read PDF
+            </button>
+
+
+            <!-- STATUS -->
+
+            <div
+                id="pdfStatus"
+                class="status"
+            >
+                No PDF selected.
+            </div>
+
+
+            <!-- EXTRACTED TEXT -->
+
+            <div
+                id="textSection"
+                class="section hidden"
+            >
+
+                <h3>
+                    📖 Extracted PDF Text
+                </h3>
+
+                <div
+                    id="extractedText"
+                    class="text-box"
+                ></div>
+
+
+                <!-- AI SUMMARY BUTTON -->
+
+                <button
+                    class="primary-btn"
+                    id="summaryButton"
+                    type="button"
+                    onclick="generateSummary()"
+                >
+                    🤖 Generate AI Summary
+                </button>
+
+            </div>
+
+
+            <!-- AI SUMMARY -->
+
+            <div
+                id="summarySection"
+                class="section hidden"
+            >
+
+                <h3>
+                    📝 AI Study Summary
+                </h3>
+
+                <div
+                    id="summaryBox"
+                    class="summary-box"
+                ></div>
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+
+    <!-- PDF.JS -->
+
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+    </script>
+
+
+    <script>
+
+        // ==========================================
+        // PDF.JS WORKER
+        // ==========================================
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+
+        // ==========================================
+        // API URL
+        // ==========================================
+
+        const API_URL =
+            "http://localhost:5000";
+
+
+        // ==========================================
+        // PDF TEXT
+        // ==========================================
+
+        let extractedPDFText = "";
+
+
+        // ==========================================
+        // ADD ACTIVITY
+        // ==========================================
+
+        function addActivity(icon, text) {
+
+            let activities =
+                JSON.parse(
+                    localStorage.getItem(
+                        "studyActivity"
+                    ) || "[]"
+                );
+
+
+            activities.push({
+
+                icon: icon,
+
+                text: text,
+
+                time:
+                    new Date().toLocaleString()
+
+            });
+
+
+            if (activities.length > 20) {
+
+                activities =
+                    activities.slice(-20);
+
+            }
+
+
+            localStorage.setItem(
+                "studyActivity",
+                JSON.stringify(activities)
+            );
+
+        }
+
+
+        // ==========================================
+        // UPDATE PDF PROGRESS
+        // ==========================================
+
+        function updatePDFProgress(value) {
+
+            let current =
+                Number(
+                    localStorage.getItem(
+                        "pdfProgress"
+                    )
+                ) || 0;
+
+
+            current =
+                Math.max(
+                    current,
+                    value
+                );
+
+
+            current =
+                Math.min(
+                    current,
+                    100
+                );
+
+
+            localStorage.setItem(
+                "pdfProgress",
+                current
+            );
+
+
+            updateOverallProgress();
+
+        }
+
+
+        // ==========================================
+        // UPDATE OVERALL PROGRESS
+        // ==========================================
+
+        function updateOverallProgress() {
+
+            const tutor =
+                getProgress(
+                    "tutorProgress"
+                );
+
+
+            const flashcards =
+                getProgress(
+                    "flashcardProgress"
+                );
+
+
+            const summarizer =
+                getProgress(
+                    "summarizerProgress"
+                );
+
+
+            const quiz =
+                getProgress(
+                    "quizProgress"
+                );
+
+
+            const planner =
+                getProgress(
+                    "plannerProgress"
+                );
+
+
+            const pdf =
+                getProgress(
+                    "pdfProgress"
+                );
+
+
+            // STUDY LIBRARY
+
+            const library =
+                JSON.parse(
+                    localStorage.getItem(
+                        "studyLibrary"
+                    ) || "[]"
+                );
+
+
+            let libraryProgress = 0;
+
+
+            if (library.length > 0) {
+
+                libraryProgress =
+                    Math.min(
+                        library.length * 20,
+                        100
+                    );
+
+            }
+
+
+            // OVERALL
+
+            const overall =
+                Math.round(
+                    (
+                        tutor +
+                        flashcards +
+                        summarizer +
+                        quiz +
+                        planner +
+                        pdf +
+                        libraryProgress
+                    ) / 7
+                );
+
+
+            localStorage.setItem(
+                "overallProgress",
+                overall
+            );
+
+        }
+
+
+        // ==========================================
+        // GET PROGRESS
+        // ==========================================
+
+        function getProgress(key) {
+
+            return Math.min(
+                Number(
+                    localStorage.getItem(key)
+                ) || 0,
+                100
+            );
+
+        }
+
+
+        // ==========================================
+        // EXTRACT PDF TEXT
+        // ==========================================
+
+        async function extractPDFText() {
+
+            const fileInput =
+                document.getElementById(
+                    "pdfFile"
+                );
+
+
+            const status =
+                document.getElementById(
+                    "pdfStatus"
+                );
+
+
+            const textSection =
+                document.getElementById(
+                    "textSection"
+                );
+
+
+            const extractedText =
+                document.getElementById(
+                    "extractedText"
+                );
+
+
+            const summarySection =
+                document.getElementById(
+                    "summarySection"
+                );
+
+
+            const readButton =
+                document.getElementById(
+                    "readPDFButton"
+                );
+
+
+            if (!fileInput.files.length) {
+
+                status.textContent =
+                    "⚠️ Please select a PDF first.";
+
+                return;
+
+            }
+
+
+            const file =
+                fileInput.files[0];
+
+
+            if (
+                file.type !== "application/pdf" &&
+                !file.name
+                    .toLowerCase()
+                    .endsWith(".pdf")
+            ) {
+
+                status.textContent =
+                    "⚠️ Please select a valid PDF file.";
+
+                return;
+
+            }
+
+
+            try {
+
+                readButton.disabled =
+                    true;
+
+
+                readButton.textContent =
+                    "⏳ Reading PDF...";
+
+
+                status.textContent =
+                    "⏳ Reading your PDF...";
+
+
+                textSection.classList.add(
+                    "hidden"
+                );
+
+
+                summarySection.classList.add(
+                    "hidden"
+                );
+
+
+                extractedText.textContent =
+                    "";
+
+
+                extractedPDFText =
+                    "";
+
+
+                const arrayBuffer =
+                    await file.arrayBuffer();
+
+
+                const pdf =
+                    await pdfjsLib
+                        .getDocument({
+                            data: arrayBuffer
+                        })
+                        .promise;
+
+
+                let fullText = "";
+
+
+                for (
+                    let pageNumber = 1;
+                    pageNumber <= pdf.numPages;
+                    pageNumber++
+                ) {
+
+                    const page =
+                        await pdf.getPage(
+                            pageNumber
+                        );
+
+
+                    const textContent =
+                        await page.getTextContent();
+
+
+                    const pageText =
+                        textContent.items
+                            .map(
+                                item =>
+                                    item.str
+                            )
+                            .join(" ");
+
+
+                    fullText +=
+                        "\n\n--- Page " +
+                        pageNumber +
+                        " ---\n\n" +
+                        pageText;
+
+                }
+
+
+                if (!fullText.trim()) {
+
+                    status.textContent =
+                        "⚠️ No readable text was found in this PDF.";
+
+                    return;
+
+                }
+
+
+                extractedPDFText =
+                    fullText.trim();
+
+
+                extractedText.textContent =
+                    extractedPDFText;
+
+
+                textSection.classList.remove(
+                    "hidden"
+                );
+
+
+                status.textContent =
+                    "✅ PDF successfully read: " +
+                    file.name;
+
+
+                // ==================================
+                // PROGRESS: PDF READ
+                // ==================================
+
+                updatePDFProgress(50);
+
+
+                addActivity(
+                    "📄",
+                    "PDF Read: " + file.name
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "PDF READING ERROR:",
+                    error
+                );
+
+
+                status.textContent =
+                    "❌ Could not read this PDF.";
+
+            }
+
+            finally {
+
+                readButton.disabled =
+                    false;
+
+
+                readButton.textContent =
+                    "📖 Upload & Read PDF";
+
+            }
+
+        }
+
+
+        // ==========================================
+        // GENERATE AI SUMMARY
+        // ==========================================
+
+        async function generateSummary() {
+
+            const summarySection =
+                document.getElementById(
+                    "summarySection"
+                );
+
+
+            const summaryBox =
+                document.getElementById(
+                    "summaryBox"
+                );
+
+
+            const summaryButton =
+                document.getElementById(
+                    "summaryButton"
+                );
+
+
+            if (!extractedPDFText) {
+
+                summarySection.classList.remove(
+                    "hidden"
+                );
+
+
+                summaryBox.textContent =
+                    "⚠️ Please upload and read a PDF first.";
+
+                return;
+
+            }
+
+
+            summarySection.classList.remove(
+                "hidden"
+            );
+
+
+            summaryBox.textContent =
+                "⏳ AI is creating your study summary...";
+
+
+            summaryButton.disabled =
+                true;
+
+
+            summaryButton.textContent =
+                "⏳ Generating Summary...";
+
+
+            try {
+
+                console.log(
+                    "Sending PDF text to:",
+                    API_URL +
+                    "/api/pdf-summary"
+                );
+
+
+                const response =
+                    await fetch(
+                        API_URL +
+                        "/api/pdf-summary",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/json"
+
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    text:
+                                        extractedPDFText
+
+                                })
+
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Server response:",
+                    data
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Failed to generate AI summary."
+                    );
+
+                }
+
+
+                if (!data.summary) {
+
+                    throw new Error(
+                        "AI returned an empty summary."
+                    );
+
+                }
+
+
+                summaryBox.textContent =
+                    data.summary;
+
+
+                // ==================================
+                // PROGRESS: AI SUMMARY COMPLETE
+                // ==================================
+
+                updatePDFProgress(100);
+
+
+                addActivity(
+                    "🤖",
+                    "AI PDF Summary Created"
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "PDF SUMMARY ERROR:",
+                    error
+                );
+
+
+                summaryBox.textContent =
+                    "❌ Could not generate AI summary.\n\n" +
+                    error.message;
+
+            }
+
+
+            summaryButton.disabled =
+                false;
+
+
+            summaryButton.textContent =
+                "🤖 Generate AI Summary";
+
+        }
+
+
+        // ==========================================
+        // FILE CHANGE
+        // ==========================================
+
+        document
+            .getElementById("pdfFile")
+            .addEventListener(
+                "change",
+                function () {
+
+                    const status =
+                        document.getElementById(
+                            "pdfStatus"
+                        );
+
+
+                    if (this.files.length) {
+
+                        status.textContent =
+                            "📄 Selected: " +
+                            this.files[0].name;
+
+                    }
+                    else {
+
+                        status.textContent =
+                            "No PDF selected.";
+
+                    }
+
+                }
+            );
+
+
+    </script>
+
+</body>
+
+</html>
