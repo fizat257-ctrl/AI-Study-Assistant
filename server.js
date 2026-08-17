@@ -8,11 +8,13 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+
 // ==================================================
 // GEMINI MODEL
 // ==================================================
 
 const MODEL = "gemini-3.5-flash";
+
 
 // ==================================================
 // GEMINI AI
@@ -21,6 +23,76 @@ const MODEL = "gemini-3.5-flash";
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
+
+
+// ==================================================
+// HELPER FUNCTIONS
+// ==================================================
+
+function getErrorMessage(error) {
+
+    if (!error) {
+        return "Unknown error.";
+    }
+
+    if (typeof error === "string") {
+        return error;
+    }
+
+    if (error.message) {
+        return String(error.message);
+    }
+
+    if (error.error?.message) {
+        return String(error.error.message);
+    }
+
+    if (error.details) {
+
+        if (typeof error.details === "string") {
+            return error.details;
+        }
+
+        try {
+            return JSON.stringify(error.details);
+        } catch (e) {
+            return "An unexpected error occurred.";
+        }
+    }
+
+    try {
+
+        return JSON.stringify(error);
+
+    } catch (e) {
+
+        return "An unexpected error occurred.";
+
+    }
+
+}
+
+
+function sendAPIError(
+    res,
+    statusCode,
+    errorMessage
+) {
+
+    return res.status(statusCode).json({
+
+        success: false,
+
+        error:
+            String(
+                errorMessage ||
+                "An unexpected error occurred."
+            )
+
+    });
+
+}
+
 
 // ==================================================
 // MIDDLEWARE
@@ -45,6 +117,7 @@ app.use(
     )
 );
 
+
 // ==================================================
 // HOME / AUTH
 // ==================================================
@@ -61,6 +134,7 @@ app.get("/", (req, res) => {
 
 });
 
+
 app.get("/auth.html", (req, res) => {
 
     res.sendFile(
@@ -72,6 +146,7 @@ app.get("/auth.html", (req, res) => {
     );
 
 });
+
 
 // ==================================================
 // DASHBOARD
@@ -88,6 +163,7 @@ app.get("/dashboard.html", (req, res) => {
     );
 
 });
+
 
 // ==================================================
 // AI TUTOR
@@ -108,20 +184,19 @@ app.post(
                 !question.trim()
             ) {
 
-                return res.status(400).json({
-
-                    success: false,
-
-                    error:
-                        "Please enter a study question."
-
-                });
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a study question."
+                );
 
             }
+
 
             console.log(
                 "AI Tutor question received."
             );
+
 
             const response =
                 await ai.models.generateContent({
@@ -144,21 +219,21 @@ Use simple examples when useful.
 `
                 });
 
+
             const answer =
                 response.text || "";
 
+
             if (!answer.trim()) {
 
-                return res.status(500).json({
-
-                    success: false,
-
-                    error:
-                        "AI returned an empty answer."
-
-                });
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty answer."
+                );
 
             }
+
 
             return res.json({
 
@@ -169,6 +244,7 @@ Use simple examples when useful.
 
             });
 
+
         } catch (error) {
 
             console.error(
@@ -176,19 +252,18 @@ Use simple examples when useful.
                 error
             );
 
-            return res.status(500).json({
 
-                success: false,
-
-                error:
-                    "Sorry, I could not connect to the AI. Please try again."
-
-            });
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
 
         }
 
     }
 );
+
 
 // ==================================================
 // AI FLASHCARDS
@@ -203,27 +278,27 @@ app.post(
             const topic =
                 req.body.topic;
 
+
             if (
                 !topic ||
                 typeof topic !== "string" ||
                 !topic.trim()
             ) {
 
-                return res.status(400).json({
-
-                    success: false,
-
-                    error:
-                        "Please enter a study topic."
-
-                });
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a study topic."
+                );
 
             }
+
 
             console.log(
                 "Generating flashcards for:",
                 topic.trim()
             );
+
 
             const response =
                 await ai.models.generateContent({
@@ -277,8 +352,10 @@ Rules:
 `
                 });
 
+
             let text =
                 response.text || "";
+
 
             text =
                 text
@@ -292,27 +369,28 @@ Rules:
                     )
                     .trim();
 
+
             const start =
                 text.indexOf("[");
 
+
             const end =
                 text.lastIndexOf("]");
+
 
             if (
                 start === -1 ||
                 end === -1
             ) {
 
-                return res.status(500).json({
-
-                    success: false,
-
-                    error:
-                        "AI did not return valid flashcards."
-
-                });
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI did not return valid flashcards."
+                );
 
             }
+
 
             const jsonText =
                 text.substring(
@@ -320,7 +398,9 @@ Rules:
                     end + 1
                 );
 
+
             let flashcards;
+
 
             try {
 
@@ -334,16 +414,15 @@ Rules:
                     jsonError
                 );
 
-                return res.status(500).json({
 
-                    success: false,
-
-                    error:
-                        "AI returned invalid flashcard data."
-
-                });
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned invalid flashcard data."
+                );
 
             }
+
 
             if (
                 !Array.isArray(
@@ -351,16 +430,14 @@ Rules:
                 )
             ) {
 
-                return res.status(500).json({
-
-                    success: false,
-
-                    error:
-                        "Invalid flashcard format."
-
-                });
+                return sendAPIError(
+                    res,
+                    500,
+                    "Invalid flashcard format."
+                );
 
             }
+
 
             return res.json({
 
@@ -371,6 +448,7 @@ Rules:
 
             });
 
+
         } catch (error) {
 
             console.error(
@@ -378,20 +456,17 @@ Rules:
                 error
             );
 
-            return res.status(500).json({
 
-                success: false,
-
-                error:
-                    "Sorry, I could not generate flashcards. Please try again."
-
-            });
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
 
         }
 
     }
 );
-
 // ==================================================
 // PDF → AI SUMMARY
 // ==================================================
@@ -405,22 +480,29 @@ app.post(
             let text =
                 req.body.text;
 
+
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
+
             if (
                 !text ||
                 typeof text !== "string" ||
                 !text.trim()
             ) {
 
-                return res.status(400).json({
-
-                    success: false,
-
-                    error:
-                        "PDF text is required."
-
-                });
+                return sendAPIError(
+                    res,
+                    400,
+                    "PDF text is required."
+                );
 
             }
+
+
+            // ------------------------------------------
+            // CLEAN PDF TEXT
+            // ------------------------------------------
 
             text =
                 text
@@ -430,8 +512,14 @@ app.post(
                     )
                     .trim();
 
+
+            // ------------------------------------------
+            // LIMIT TEXT
+            // ------------------------------------------
+
             const MAX_TEXT_LENGTH =
                 120000;
+
 
             if (
                 text.length >
@@ -444,20 +532,35 @@ app.post(
                         MAX_TEXT_LENGTH
                     );
 
+
                 console.log(
                     "PDF text was shortened because it was very large."
                 );
 
             }
 
+
             console.log(
-                "Generating AI summary from PDF..."
+                "================================"
+            );
+
+            console.log(
+                "PDF SUMMARY REQUEST RECEIVED"
             );
 
             console.log(
                 "PDF text length:",
                 text.length
             );
+
+            console.log(
+                "================================"
+            );
+
+
+            // ------------------------------------------
+            // PROMPT
+            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
@@ -500,6 +603,11 @@ PDF STUDY MATERIAL:
 ${text}
 `;
 
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
+
             const response =
                 await ai.models.generateContent({
 
@@ -509,30 +617,44 @@ ${text}
 
                 });
 
+
             const summary =
                 response.text || "";
+
+
+            // ------------------------------------------
+            // CHECK RESPONSE
+            // ------------------------------------------
 
             if (
                 !summary ||
                 !summary.trim()
             ) {
 
-                return res.status(500).json({
+                console.error(
+                    "Gemini returned an empty PDF summary."
+                );
 
-                    success: false,
 
-                    error:
-                        "AI returned an empty summary."
-
-                });
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty summary."
+                );
 
             }
+
 
             console.log(
                 "PDF AI summary generated successfully."
             );
 
-            return res.json({
+
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            return res.status(200).json({
 
                 success: true,
 
@@ -540,6 +662,7 @@ ${text}
                     summary.trim()
 
             });
+
 
         } catch (error) {
 
@@ -557,7 +680,7 @@ ${text}
 
             console.error(
                 "Message:",
-                error?.message
+                getErrorMessage(error)
             );
 
             console.error(
@@ -570,19 +693,23 @@ ${text}
                 error?.name
             );
 
-            return res.status(500).json({
+            console.error(
+                "Full error:",
+                error
+            );
 
-                success: false,
 
-                error:
-                    "Could not generate AI summary. Please try again."
-
-            });
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
 
         }
 
     }
 );
+
 
 // ==================================================
 // PDF → ASK AI QUESTION
@@ -611,18 +738,11 @@ app.post(
                 !text.trim()
             ) {
 
-                console.log(
-                    "PDF QUESTION ERROR: PDF text missing."
+                return sendAPIError(
+                    res,
+                    400,
+                    "PDF text is required. Please upload and read the PDF first."
                 );
-
-                return res.status(400).json({
-
-                    success: false,
-
-                    error:
-                        "PDF text is required. Please upload and read the PDF first."
-
-                });
 
             }
 
@@ -637,14 +757,11 @@ app.post(
                 !question.trim()
             ) {
 
-                return res.status(400).json({
-
-                    success: false,
-
-                    error:
-                        "Please enter a question about the PDF."
-
-                });
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a question about the PDF."
+                );
 
             }
 
@@ -660,6 +777,7 @@ app.post(
                         ""
                     )
                     .trim();
+
 
             question =
                 question
@@ -677,6 +795,7 @@ app.post(
             const MAX_TEXT_LENGTH =
                 120000;
 
+
             if (
                 text.length >
                 MAX_TEXT_LENGTH
@@ -688,16 +807,13 @@ app.post(
                         MAX_TEXT_LENGTH
                     );
 
+
                 console.log(
                     "PDF question text was shortened because it was very large."
                 );
 
             }
 
-
-            // ------------------------------------------
-            // LOG REQUEST
-            // ------------------------------------------
 
             console.log(
                 "================================"
@@ -813,14 +929,12 @@ in the provided PDF."
                     "AI returned an empty PDF answer."
                 );
 
-                return res.status(500).json({
 
-                    success: false,
-
-                    error:
-                        "AI returned an empty answer."
-
-                });
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty answer."
+                );
 
             }
 
@@ -834,7 +948,7 @@ in the provided PDF."
             );
 
 
-            return res.json({
+            return res.status(200).json({
 
                 success: true,
 
@@ -860,7 +974,7 @@ in the provided PDF."
 
             console.error(
                 "Message:",
-                error?.message
+                getErrorMessage(error)
             );
 
             console.error(
@@ -879,122 +993,549 @@ in the provided PDF."
             );
 
 
-            return res.status(500).json({
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
 
-                success: false,
+        }
 
-                error:
-                    "Could not answer the PDF question. Please try again."
+    }
+);
+// ==================================================
+// PDF → AI SUMMARY
+// ==================================================
+
+app.post(
+    "/api/pdf-summary",
+    async (req, res) => {
+
+        try {
+
+            let text =
+                req.body.text;
+
+
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
+
+            if (
+                !text ||
+                typeof text !== "string" ||
+                !text.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "PDF text is required."
+                );
+
+            }
+
+
+            // ------------------------------------------
+            // CLEAN PDF TEXT
+            // ------------------------------------------
+
+            text =
+                text
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
+            // ------------------------------------------
+            // LIMIT TEXT
+            // ------------------------------------------
+
+            const MAX_TEXT_LENGTH =
+                120000;
+
+
+            if (
+                text.length >
+                MAX_TEXT_LENGTH
+            ) {
+
+                text =
+                    text.substring(
+                        0,
+                        MAX_TEXT_LENGTH
+                    );
+
+
+                console.log(
+                    "PDF text was shortened because it was very large."
+                );
+
+            }
+
+
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "PDF SUMMARY REQUEST RECEIVED"
+            );
+
+            console.log(
+                "PDF text length:",
+                text.length
+            );
+
+            console.log(
+                "================================"
+            );
+
+
+            // ------------------------------------------
+            // PROMPT
+            // ------------------------------------------
+
+            const prompt = `
+You are an AI Study Assistant.
+
+Read the following study material
+extracted from a PDF.
+
+Create a clear,
+accurate and student-friendly study summary.
+
+Use exactly these sections:
+
+SHORT SUMMARY:
+Give a concise overview.
+
+MAIN CONCEPTS:
+List the most important concepts.
+
+IMPORTANT POINTS:
+List the key points a student should remember.
+
+KEY TERMS:
+List important terms and explain them simply.
+
+STUDY TIPS:
+Give a few useful revision tips based only
+on the provided study material.
+
+Rules:
+
+- Use simple English.
+- Keep the information accurate.
+- Do not invent information.
+- Do not discuss information that is not present.
+- Use headings and bullet points where helpful.
+- Make the result easy to study.
+
+PDF STUDY MATERIAL:
+
+${text}
+`;
+
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
+
+            const response =
+                await ai.models.generateContent({
+
+                    model: MODEL,
+
+                    contents: prompt
+
+                });
+
+
+            const summary =
+                response.text || "";
+
+
+            // ------------------------------------------
+            // CHECK RESPONSE
+            // ------------------------------------------
+
+            if (
+                !summary ||
+                !summary.trim()
+            ) {
+
+                console.error(
+                    "Gemini returned an empty PDF summary."
+                );
+
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty summary."
+                );
+
+            }
+
+
+            console.log(
+                "PDF AI summary generated successfully."
+            );
+
+
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            return res.status(200).json({
+
+                success: true,
+
+                summary:
+                    summary.trim()
 
             });
+
+
+        } catch (error) {
+
+            console.error(
+                "================================"
+            );
+
+            console.error(
+                "PDF SUMMARY AI ERROR"
+            );
+
+            console.error(
+                "================================"
+            );
+
+            console.error(
+                "Message:",
+                getErrorMessage(error)
+            );
+
+            console.error(
+                "Status:",
+                error?.status
+            );
+
+            console.error(
+                "Name:",
+                error?.name
+            );
+
+            console.error(
+                "Full error:",
+                error
+            );
+
+
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
 
         }
 
     }
 );
 
+
 // ==================================================
-// HEALTH CHECK
+// PDF → ASK AI QUESTION
 // ==================================================
 
-app.get(
-    "/api/test",
-    (req, res) => {
+app.post(
+    "/api/pdf-question",
+    async (req, res) => {
 
-        res.json({
+        try {
 
-            success: true,
+            let text =
+                req.body.text;
 
-            message:
-                "AI Study Assistant server is working.",
+            let question =
+                req.body.question;
 
-            model:
-                MODEL,
 
-            features: {
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
 
-                aiTutor: true,
+            if (
+                !text ||
+                typeof text !== "string" ||
+                !text.trim()
+            ) {
 
-                flashcards: true,
-
-                pdfSummary: true,
-
-                pdfQuestions: true
+                return sendAPIError(
+                    res,
+                    400,
+                    "PDF text is required. Please upload and read the PDF first."
+                );
 
             }
 
-        });
 
-    }
-);
+            // ------------------------------------------
+            // CHECK QUESTION
+            // ------------------------------------------
 
-// ==================================================
-// 404 API HANDLER
-// ==================================================
+            if (
+                !question ||
+                typeof question !== "string" ||
+                !question.trim()
+            ) {
 
-app.use(
-    "/api",
-    (req, res) => {
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a question about the PDF."
+                );
 
-        res.status(404).json({
+            }
 
-            success: false,
 
-            error:
-                "API endpoint not found."
+            // ------------------------------------------
+            // CLEAN DATA
+            // ------------------------------------------
 
-        });
+            text =
+                text
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
 
-    }
-);
 
-// ==================================================
-// START SERVER
-// ==================================================
+            question =
+                question
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
 
-app.listen(
-    PORT,
-    () => {
 
-        console.log(
-            "======================================"
-        );
+            // ------------------------------------------
+            // LIMIT PDF TEXT
+            // ------------------------------------------
 
-        console.log(
-            "AI STUDY ASSISTANT SERVER"
-        );
+            const MAX_TEXT_LENGTH =
+                120000;
 
-        console.log(
-            "======================================"
-        );
 
-        console.log(
-            `Server running at: http://localhost:${PORT}`
-        );
+            if (
+                text.length >
+                MAX_TEXT_LENGTH
+            ) {
 
-        console.log(
-            `Gemini model: ${MODEL}`
-        );
+                text =
+                    text.substring(
+                        0,
+                        MAX_TEXT_LENGTH
+                    );
 
-        console.log(
-            "PDF AI Summary: ENABLED"
-        );
 
-        console.log(
-            "PDF Questions: ENABLED"
-        );
+                console.log(
+                    "PDF question text was shortened because it was very large."
+                );
 
-        console.log(
-            "AI Tutor: ENABLED"
-        );
+            }
 
-        console.log(
-            "AI Flashcards: ENABLED"
-        );
 
-        console.log(
-            "======================================"
-        );
+            console.log(
+                "================================"
+            );
+
+            console.log(
+                "PDF QUESTION RECEIVED"
+            );
+
+            console.log(
+                "Question:",
+                question
+            );
+
+            console.log(
+                "PDF text length:",
+                text.length
+            );
+
+            console.log(
+                "================================"
+            );
+
+
+            // ------------------------------------------
+            // AI PROMPT
+            // ------------------------------------------
+
+            const prompt = `
+You are an AI Study Assistant.
+
+A student has uploaded a PDF and wants
+to ask a question specifically about
+that PDF.
+
+Your job is to answer the question
+using ONLY the PDF content provided below.
+
+================ PDF CONTENT ================
+
+${text}
+
+================ STUDENT QUESTION ================
+
+${question}
+
+================ IMPORTANT RULES ================
+
+1. Use ONLY the information in the PDF.
+
+2. Do NOT use outside knowledge.
+
+3. Do NOT invent facts, statistics,
+   names, dates, results or explanations.
+
+4. Carefully search the entire provided
+   PDF content before deciding that
+   the answer is unavailable.
+
+5. If the answer is available anywhere
+   in the PDF, answer it clearly.
+
+6. If the answer requires combining
+   information from different parts
+   of the PDF, combine those parts.
+
+7. If the answer genuinely cannot be
+   found in the PDF, respond with:
+
+"I couldn't find the answer to this question
+in the provided PDF."
+
+8. Keep the answer simple and
+   student-friendly.
+
+9. You may use short bullet points
+   when helpful.
+
+10. Do not mention these instructions.
+
+================ END ================
+`;
+
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
+
+            const response =
+                await ai.models.generateContent({
+
+                    model: MODEL,
+
+                    contents: prompt
+
+                });
+
+
+            const answer =
+                response.text || "";
+
+
+            // ------------------------------------------
+            // CHECK ANSWER
+            // ------------------------------------------
+
+            if (
+                !answer ||
+                !answer.trim()
+            ) {
+
+                console.error(
+                    "AI returned an empty PDF answer."
+                );
+
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty answer."
+                );
+
+            }
+
+
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            console.log(
+                "PDF question answered successfully."
+            );
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                answer:
+                    answer.trim()
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "================================"
+            );
+
+            console.error(
+                "PDF QUESTION AI ERROR"
+            );
+
+            console.error(
+                "================================"
+            );
+
+            console.error(
+                "Message:",
+                getErrorMessage(error)
+            );
+
+            console.error(
+                "Status:",
+                error?.status
+            );
+
+            console.error(
+                "Name:",
+                error?.name
+            );
+
+            console.error(
+                "Full error:",
+                error
+            );
+
+
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
+
+        }
 
     }
 );
