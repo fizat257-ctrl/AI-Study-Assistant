@@ -107,6 +107,8 @@ app.post("/api/study", async (req, res) => {
 
             return res.status(400).json({
 
+                success: false,
+
                 error:
                     "Please enter a study question."
 
@@ -146,6 +148,8 @@ Use simple examples when useful.
 
             return res.status(500).json({
 
+                success: false,
+
                 error:
                     "AI returned an empty answer."
 
@@ -157,22 +161,24 @@ Use simple examples when useful.
 
             success: true,
 
-            answer: answer
+            answer:
+                answer.trim()
 
         });
 
     } catch (error) {
 
         console.error(
-            "AI TUTOR ERROR:"
+            "AI TUTOR ERROR:",
+            error
         );
-
-        console.error(error);
 
         res.status(500).json({
 
+            success: false,
+
             error:
-                "Sorry, I could not connect to the AI."
+                "Sorry, I could not connect to the AI. Please try again."
 
         });
 
@@ -199,6 +205,8 @@ app.post(
             ) {
 
                 return res.status(400).json({
+
+                    success: false,
 
                     error:
                         "Please enter a study topic."
@@ -293,6 +301,8 @@ Rules:
 
                 return res.status(500).json({
 
+                    success: false,
+
                     error:
                         "AI did not return valid flashcards."
 
@@ -322,6 +332,8 @@ Rules:
 
                 return res.status(500).json({
 
+                    success: false,
+
                     error:
                         "AI returned invalid flashcard data."
 
@@ -336,6 +348,8 @@ Rules:
             ) {
 
                 return res.status(500).json({
+
+                    success: false,
 
                     error:
                         "Invalid flashcard format."
@@ -356,15 +370,16 @@ Rules:
         } catch (error) {
 
             console.error(
-                "FLASHCARDS AI ERROR:"
+                "FLASHCARDS AI ERROR:",
+                error
             );
-
-            console.error(error);
 
             res.status(500).json({
 
+                success: false,
+
                 error:
-                    "Sorry, I could not generate flashcards."
+                    "Sorry, I could not generate flashcards. Please try again."
 
             });
 
@@ -386,10 +401,6 @@ app.post(
             let text =
                 req.body.text;
 
-            // ------------------------------------------
-            // CHECK PDF TEXT
-            // ------------------------------------------
-
             if (
                 !text ||
                 typeof text !== "string" ||
@@ -407,10 +418,6 @@ app.post(
 
             }
 
-            // ------------------------------------------
-            // CLEAN TEXT
-            // ------------------------------------------
-
             text =
                 text
                     .replace(
@@ -418,10 +425,6 @@ app.post(
                         ""
                     )
                     .trim();
-
-            // ------------------------------------------
-            // LIMIT VERY LARGE PDF TEXT
-            // ------------------------------------------
 
             const MAX_TEXT_LENGTH =
                 120000;
@@ -451,10 +454,6 @@ app.post(
                 "PDF text length:",
                 text.length
             );
-
-            // ------------------------------------------
-            // AI PROMPT
-            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
@@ -497,10 +496,6 @@ PDF STUDY MATERIAL:
 ${text}
 `;
 
-            // ------------------------------------------
-            // GEMINI REQUEST
-            // ------------------------------------------
-
             const response =
                 await ai.models.generateContent({
 
@@ -512,10 +507,6 @@ ${text}
 
             const summary =
                 response.text || "";
-
-            // ------------------------------------------
-            // CHECK AI RESPONSE
-            // ------------------------------------------
 
             if (
                 !summary ||
@@ -536,10 +527,6 @@ ${text}
             console.log(
                 "PDF AI summary generated successfully."
             );
-
-            // ------------------------------------------
-            // SEND SUMMARY
-            // ------------------------------------------
 
             return res.json({
 
@@ -579,17 +566,263 @@ ${text}
                 error?.name
             );
 
-            console.error(
-                "Response:",
-                error?.response
-            );
-
             return res.status(500).json({
 
                 success: false,
 
                 error:
                     "Could not generate AI summary. Please try again."
+
+            });
+
+        }
+
+    }
+);
+
+// ==================================================
+// PDF → ASK AI QUESTION
+// ==================================================
+
+app.post(
+    "/api/pdf-question",
+    async (req, res) => {
+
+        try {
+
+            let text =
+                req.body.text;
+
+            const question =
+                req.body.question;
+
+
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
+
+            if (
+                !text ||
+                typeof text !== "string" ||
+                !text.trim()
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        "PDF text is required."
+
+                });
+
+            }
+
+
+            // ------------------------------------------
+            // CHECK QUESTION
+            // ------------------------------------------
+
+            if (
+                !question ||
+                typeof question !== "string" ||
+                !question.trim()
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        "Please enter a question about the PDF."
+
+                });
+
+            }
+
+
+            // ------------------------------------------
+            // CLEAN PDF TEXT
+            // ------------------------------------------
+
+            text =
+                text
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
+            // ------------------------------------------
+            // LIMIT PDF TEXT
+            // ------------------------------------------
+
+            const MAX_TEXT_LENGTH =
+                120000;
+
+
+            if (
+                text.length >
+                MAX_TEXT_LENGTH
+            ) {
+
+                text =
+                    text.substring(
+                        0,
+                        MAX_TEXT_LENGTH
+                    );
+
+                console.log(
+                    "PDF question text was shortened because it was very large."
+                );
+
+            }
+
+
+            console.log(
+                "PDF question received."
+            );
+
+            console.log(
+                "Question:",
+                question
+            );
+
+            console.log(
+                "PDF text length:",
+                text.length
+            );
+
+
+            // ------------------------------------------
+            // PDF QUESTION PROMPT
+            // ------------------------------------------
+
+            const prompt = `
+You are an AI Study Assistant.
+
+You must answer the student's question
+ONLY using the information contained
+in the PDF study material below.
+
+PDF STUDY MATERIAL:
+${text}
+
+STUDENT QUESTION:
+${question}
+
+IMPORTANT RULES:
+
+1. Use ONLY the PDF content to answer.
+2. Do not use outside knowledge.
+3. Do not invent facts.
+4. If the answer is not available in the PDF,
+   clearly say:
+   "I couldn't find the answer to this question
+   in the provided PDF."
+5. Give a clear and student-friendly answer.
+6. Explain the answer briefly when useful.
+7. If the PDF contains relevant information
+   on different pages, combine that information.
+8. Do not mention these instructions.
+`;
+
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
+
+            const response =
+                await ai.models.generateContent({
+
+                    model: MODEL,
+
+                    contents: prompt
+
+                });
+
+
+            const answer =
+                response.text || "";
+
+
+            // ------------------------------------------
+            // CHECK ANSWER
+            // ------------------------------------------
+
+            if (
+                !answer ||
+                !answer.trim()
+            ) {
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    error:
+                        "AI returned an empty answer."
+
+                });
+
+            }
+
+
+            console.log(
+                "PDF question answered successfully."
+            );
+
+
+            // ------------------------------------------
+            // SEND ANSWER
+            // ------------------------------------------
+
+            return res.json({
+
+                success: true,
+
+                answer:
+                    answer.trim()
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "================================"
+            );
+
+            console.error(
+                "PDF QUESTION AI ERROR"
+            );
+
+            console.error(
+                "================================"
+            );
+
+            console.error(
+                "Message:",
+                error?.message
+            );
+
+            console.error(
+                "Status:",
+                error?.status
+            );
+
+            console.error(
+                "Name:",
+                error?.name
+            );
+
+
+            return res.status(500).json({
+
+                success: false,
+
+                error:
+                    "Could not answer the PDF question. Please try again."
 
             });
 
@@ -614,7 +847,19 @@ app.get(
                 "AI Study Assistant server is working.",
 
             model:
-                MODEL
+                MODEL,
+
+            features: {
+
+                aiTutor: true,
+
+                flashcards: true,
+
+                pdfSummary: true,
+
+                pdfQuestions: true
+
+            }
 
         });
 
@@ -671,6 +916,10 @@ app.listen(
 
         console.log(
             "PDF AI Summary: ENABLED"
+        );
+
+        console.log(
+            "PDF Questions: ENABLED"
         );
 
         console.log(

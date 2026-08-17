@@ -49,6 +49,10 @@
             cursor: pointer;
         }
 
+        .back-btn:hover {
+            opacity: 0.9;
+        }
+
         .container {
             max-width: 900px;
             margin: auto;
@@ -67,6 +71,7 @@
 
         .intro p {
             color: #a8afbf;
+            line-height: 1.5;
         }
 
         .pdf-card {
@@ -149,6 +154,12 @@
             margin-bottom: 12px;
         }
 
+        .section-description {
+            color: #a8afbf;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
         .text-box,
         .summary-box {
             width: 100%;
@@ -175,8 +186,43 @@
             min-height: 180px;
         }
 
+        textarea {
+            width: 100%;
+            min-height: 120px;
+
+            padding: 15px;
+
+            background: #101217;
+            color: white;
+
+            border: 1px solid #292d36;
+            border-radius: 10px;
+
+            resize: vertical;
+            outline: none;
+
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            border-color: #2563eb;
+        }
+
         .hidden {
             display: none;
+        }
+
+        .error {
+            color: #fca5a5;
+        }
+
+        .success {
+            color: #86efac;
+        }
+
+        .thinking {
+            color: #93c5fd;
         }
 
         @media (max-width: 600px) {
@@ -234,7 +280,6 @@
 
     <main class="container">
 
-
         <section class="intro">
 
             <h2>
@@ -242,7 +287,8 @@
             </h2>
 
             <p>
-                Upload your study PDF and generate an AI-powered summary.
+                Upload your study PDF, generate an AI summary,
+                and ask questions specifically from the PDF.
             </p>
 
         </section>
@@ -272,7 +318,7 @@
             </div>
 
 
-            <!-- READ PDF -->
+            <!-- READ PDF BUTTON -->
 
             <button
                 class="primary-btn"
@@ -344,6 +390,56 @@
             </div>
 
 
+            <!-- ASK QUESTIONS FROM PDF -->
+
+            <div
+                id="questionSection"
+                class="section hidden"
+            >
+
+                <h3>
+                    ❓ Ask Questions from this PDF
+                </h3>
+
+                <p class="section-description">
+                    Ask questions specifically about the content
+                    of your uploaded PDF.
+                </p>
+
+
+                <textarea
+                    id="pdfQuestion"
+                    placeholder="Example: What are the main concepts explained in this PDF?"
+                ></textarea>
+
+
+                <button
+                    class="primary-btn"
+                    id="askPDFButton"
+                    type="button"
+                    onclick="askQuestionFromPDF()"
+                >
+                    🤖 Ask AI
+                </button>
+
+
+                <div
+                    id="questionStatus"
+                    class="status hidden"
+                ></div>
+
+
+                <div
+                    id="pdfAnswer"
+                    class="summary-box"
+                    style="margin-top:20px;"
+                >
+                    Your PDF-specific answer will appear here.
+                </div>
+
+            </div>
+
+
         </section>
 
     </main>
@@ -375,7 +471,7 @@
 
 
         // ==========================================
-        // PDF TEXT
+        // GLOBAL PDF TEXT
         // ==========================================
 
         let extractedPDFText = "";
@@ -387,12 +483,31 @@
 
         function addActivity(icon, text) {
 
-            let activities =
-                JSON.parse(
-                    localStorage.getItem(
-                        "studyActivity"
-                    ) || "[]"
-                );
+            let activities = [];
+
+            try {
+
+                activities =
+                    JSON.parse(
+                        localStorage.getItem(
+                            "studyActivity"
+                        ) || "[]"
+                    );
+
+            }
+
+            catch (error) {
+
+                activities = [];
+
+            }
+
+
+            if (!Array.isArray(activities)) {
+
+                activities = [];
+
+            }
 
 
             activities.push({
@@ -407,10 +522,10 @@
             });
 
 
-            if (activities.length > 20) {
+            if (activities.length > 30) {
 
                 activities =
-                    activities.slice(-20);
+                    activities.slice(-30);
 
             }
 
@@ -419,6 +534,520 @@
                 "studyActivity",
                 JSON.stringify(activities)
             );
+
+        }
+        // ==========================================
+        // EXTRACT PDF TEXT
+        // ==========================================
+
+        async function extractPDFText() {
+
+            const fileInput =
+                document.getElementById("pdfFile");
+
+            const status =
+                document.getElementById("pdfStatus");
+
+            const textSection =
+                document.getElementById("textSection");
+
+            const extractedText =
+                document.getElementById("extractedText");
+
+            const summarySection =
+                document.getElementById("summarySection");
+
+            const readButton =
+                document.getElementById("readPDFButton");
+
+
+            if (!fileInput.files.length) {
+
+                status.textContent =
+                    "⚠️ Please select a PDF first.";
+
+                return;
+            }
+
+
+            const file =
+                fileInput.files[0];
+
+
+            if (
+                file.type !== "application/pdf" &&
+                !file.name.toLowerCase().endsWith(".pdf")
+            ) {
+
+                status.textContent =
+                    "⚠️ Please select a valid PDF file.";
+
+                return;
+            }
+
+
+            try {
+
+                readButton.disabled = true;
+
+                readButton.textContent =
+                    "⏳ Reading PDF...";
+
+                status.textContent =
+                    "⏳ Reading your PDF...";
+
+                textSection.classList.add("hidden");
+
+                summarySection.classList.add("hidden");
+
+                extractedText.textContent = "";
+
+                extractedPDFText = "";
+
+
+                const arrayBuffer =
+                    await file.arrayBuffer();
+
+
+                const pdf =
+                    await pdfjsLib
+                        .getDocument({
+                            data: arrayBuffer
+                        })
+                        .promise;
+
+
+                let fullText = "";
+
+
+                for (
+                    let pageNumber = 1;
+                    pageNumber <= pdf.numPages;
+                    pageNumber++
+                ) {
+
+                    const page =
+                        await pdf.getPage(pageNumber);
+
+
+                    const textContent =
+                        await page.getTextContent();
+
+
+                    const pageText =
+                        textContent.items
+                            .map(
+                                item => item.str
+                            )
+                            .join(" ");
+
+
+                    fullText +=
+                        "\n\n--- Page " +
+                        pageNumber +
+                        " ---\n\n" +
+                        pageText;
+                }
+
+
+                if (!fullText.trim()) {
+
+                    status.textContent =
+                        "⚠️ No readable text was found in this PDF.";
+
+                    return;
+                }
+
+
+                extractedPDFText =
+                    fullText.trim();
+
+
+                extractedText.textContent =
+                    extractedPDFText;
+
+
+                textSection.classList.remove("hidden");
+
+
+                status.textContent =
+                    "✅ PDF successfully read: " +
+                    file.name;
+
+
+                updatePDFProgress(50);
+
+
+                addActivity(
+                    "📄",
+                    "PDF Read: " + file.name
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "PDF READING ERROR:",
+                    error
+                );
+
+
+                status.textContent =
+                    "❌ Something went wrong while reading the PDF. Please try again.";
+
+            }
+
+            finally {
+
+                readButton.disabled = false;
+
+                readButton.textContent =
+                    "📖 Upload & Read PDF";
+            }
+        }
+
+
+        // ==========================================
+        // GENERATE AI SUMMARY
+        // ==========================================
+
+        async function generateSummary() {
+
+            const summarySection =
+                document.getElementById(
+                    "summarySection"
+                );
+
+            const summaryBox =
+                document.getElementById(
+                    "summaryBox"
+                );
+
+            const summaryButton =
+                document.getElementById(
+                    "summaryButton"
+                );
+
+
+            if (!extractedPDFText) {
+
+                summarySection.classList.remove(
+                    "hidden"
+                );
+
+                summaryBox.textContent =
+                    "⚠️ Please upload and read a PDF first.";
+
+                return;
+            }
+
+
+            summarySection.classList.remove(
+                "hidden"
+            );
+
+
+            summaryBox.textContent =
+                "🤖 AI is thinking...\n\nCreating your study summary from the PDF.";
+
+
+            summaryButton.disabled = true;
+
+            summaryButton.textContent =
+                "⏳ Generating Summary...";
+
+
+            try {
+
+                console.log(
+                    "Sending PDF text to:",
+                    API_URL + "/api/pdf-summary"
+                );
+
+
+                const response =
+                    await fetch(
+                        API_URL + "/api/pdf-summary",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    text:
+                                        extractedPDFText
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "Server response:",
+                    data
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Failed to generate AI summary."
+                    );
+                }
+
+
+                if (!data.summary) {
+
+                    throw new Error(
+                        "AI returned an empty summary."
+                    );
+                }
+
+
+                summaryBox.textContent =
+                    data.summary;
+
+
+                updatePDFProgress(100);
+
+
+                addActivity(
+                    "🤖",
+                    "AI PDF Summary Created"
+                );
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "PDF SUMMARY ERROR:",
+                    error
+                );
+
+
+                summaryBox.textContent =
+                    "❌ Something went wrong. Please try again.\n\n" +
+                    (
+                        error.message ||
+                        "Unable to generate summary."
+                    );
+            }
+
+
+            summaryButton.disabled = false;
+
+            summaryButton.textContent =
+                "🤖 Generate AI Summary";
+        }
+        // ==========================================
+        // ASK QUESTION FROM PDF
+        // ==========================================
+
+        async function askQuestionFromPDF() {
+
+            const questionInput =
+                document.getElementById("pdfQuestion");
+
+            const askButton =
+                document.getElementById("askPDFButton");
+
+            const answerBox =
+                document.getElementById("pdfAnswer");
+
+            const questionStatus =
+                document.getElementById("questionStatus");
+
+
+            const question =
+                questionInput.value.trim();
+
+
+            // Check PDF
+
+            if (!extractedPDFText) {
+
+                questionStatus.classList.remove(
+                    "hidden"
+                );
+
+                questionStatus.textContent =
+                    "⚠️ Please upload and read a PDF first.";
+
+                answerBox.textContent =
+                    "No PDF is currently loaded.";
+
+                return;
+            }
+
+
+            // Check question
+
+            if (!question) {
+
+                questionStatus.classList.remove(
+                    "hidden"
+                );
+
+                questionStatus.textContent =
+                    "⚠️ Please enter a question.";
+
+                answerBox.textContent =
+                    "Please type your question about the PDF.";
+
+                return;
+            }
+
+
+            try {
+
+                askButton.disabled = true;
+
+                askButton.textContent =
+                    "⏳ AI is thinking...";
+
+
+                questionStatus.classList.remove(
+                    "hidden"
+                );
+
+                questionStatus.className =
+                    "status thinking";
+
+                questionStatus.textContent =
+                    "🤖 AI is thinking...";
+
+
+                answerBox.textContent =
+                    "AI is analyzing your PDF content and preparing an answer...";
+
+
+                console.log(
+                    "Sending PDF question to:",
+                    API_URL + "/api/pdf-question"
+                );
+
+
+                const response =
+                    await fetch(
+                        API_URL + "/api/pdf-question",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    text:
+                                        extractedPDFText,
+
+                                    question:
+                                        question
+
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                console.log(
+                    "PDF question response:",
+                    data
+                );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "Failed to answer the question."
+                    );
+                }
+
+
+                if (!data.answer) {
+
+                    throw new Error(
+                        "AI returned an empty answer."
+                    );
+                }
+
+
+                // Show answer
+
+                answerBox.textContent =
+                    data.answer;
+
+
+                questionStatus.className =
+                    "status success";
+
+                questionStatus.textContent =
+                    "✅ Answer generated from your PDF.";
+
+
+                // Save activity
+
+                addActivity(
+                    "❓",
+                    "Asked a question from PDF"
+                );
+
+
+                // PDF feature progress
+
+                updatePDFProgress(100);
+
+
+            }
+
+            catch (error) {
+
+                console.error(
+                    "PDF QUESTION ERROR:",
+                    error
+                );
+
+
+                questionStatus.className =
+                    "status error";
+
+                questionStatus.textContent =
+                    "❌ Something went wrong. Please try again.";
+
+
+                answerBox.textContent =
+                    "❌ Something went wrong. Please try again.";
+            }
+
+
+            finally {
+
+                askButton.disabled = false;
+
+                askButton.textContent =
+                    "🤖 Ask AI";
+            }
 
         }
 
@@ -458,7 +1087,6 @@
 
 
             updateOverallProgress();
-
         }
 
 
@@ -468,79 +1096,123 @@
 
         function updateOverallProgress() {
 
-            const tutor =
-                getProgress(
-                    "tutorProgress"
-                );
+            const keys = [
+
+                "tutorProgress",
+
+                "summarizerProgress",
+
+                "quizProgress",
+
+                "plannerProgress",
+
+                "flashcardProgress",
+
+                "pdfProgress",
+
+                "practiceProgress",
+
+                "voiceProgress",
+
+                "profileProgress"
+
+            ];
 
 
-            const flashcards =
-                getProgress(
-                    "flashcardProgress"
-                );
+            let total = 0;
+
+            let count = 0;
 
 
-            const summarizer =
-                getProgress(
-                    "summarizerProgress"
-                );
+            keys.forEach(
+                function(key) {
+
+                    total +=
+                        getProgress(key);
+
+                    count++;
+
+                }
+            );
 
 
-            const quiz =
-                getProgress(
-                    "quizProgress"
-                );
-
-
-            const planner =
-                getProgress(
-                    "plannerProgress"
-                );
-
-
-            const pdf =
-                getProgress(
-                    "pdfProgress"
-                );
-
-
-            // STUDY LIBRARY
-
-            const library =
-                JSON.parse(
-                    localStorage.getItem(
-                        "studyLibrary"
-                    ) || "[]"
-                );
-
+            // Library progress
 
             let libraryProgress = 0;
 
 
-            if (library.length > 0) {
+            try {
 
-                libraryProgress =
-                    Math.min(
-                        library.length * 20,
-                        100
+                const library =
+                    JSON.parse(
+                        localStorage.getItem(
+                            "studyLibrary"
+                        ) || "[]"
                     );
+
+
+                if (Array.isArray(library)) {
+
+                    libraryProgress =
+                        Math.min(
+                            library.length * 20,
+                            100
+                        );
+
+                }
+
+            }
+
+            catch (error) {
+
+                libraryProgress = 0;
 
             }
 
 
-            // OVERALL
+            // Subjects progress
+
+            let subjectProgress = 0;
+
+
+            try {
+
+                const subjects =
+                    JSON.parse(
+                        localStorage.getItem(
+                            "studySubjects"
+                        ) || "[]"
+                    );
+
+
+                if (Array.isArray(subjects)) {
+
+                    subjectProgress =
+                        subjects.length > 0
+                            ? 100
+                            : 0;
+
+                }
+
+            }
+
+            catch (error) {
+
+                subjectProgress = 0;
+
+            }
+
+
+            total += libraryProgress;
+
+            total += subjectProgress;
+
+            count += 2;
+
 
             const overall =
                 Math.round(
-                    (
-                        tutor +
-                        flashcards +
-                        summarizer +
-                        quiz +
-                        planner +
-                        pdf +
-                        libraryProgress
-                    ) / 7
+                    total / count
                 );
 
 
@@ -548,7 +1220,6 @@
                 "overallProgress",
                 overall
             );
-
         }
 
 
@@ -558,412 +1229,28 @@
 
         function getProgress(key) {
 
-            return Math.min(
+            const value =
                 Number(
                     localStorage.getItem(key)
-                ) || 0,
+                ) || 0;
+
+
+            return Math.min(
+                Math.max(value, 0),
                 100
             );
-
         }
 
 
         // ==========================================
-        // EXTRACT PDF TEXT
-        // ==========================================
-
-        async function extractPDFText() {
-
-            const fileInput =
-                document.getElementById(
-                    "pdfFile"
-                );
-
-
-            const status =
-                document.getElementById(
-                    "pdfStatus"
-                );
-
-
-            const textSection =
-                document.getElementById(
-                    "textSection"
-                );
-
-
-            const extractedText =
-                document.getElementById(
-                    "extractedText"
-                );
-
-
-            const summarySection =
-                document.getElementById(
-                    "summarySection"
-                );
-
-
-            const readButton =
-                document.getElementById(
-                    "readPDFButton"
-                );
-
-
-            if (!fileInput.files.length) {
-
-                status.textContent =
-                    "⚠️ Please select a PDF first.";
-
-                return;
-
-            }
-
-
-            const file =
-                fileInput.files[0];
-
-
-            if (
-                file.type !== "application/pdf" &&
-                !file.name
-                    .toLowerCase()
-                    .endsWith(".pdf")
-            ) {
-
-                status.textContent =
-                    "⚠️ Please select a valid PDF file.";
-
-                return;
-
-            }
-
-
-            try {
-
-                readButton.disabled =
-                    true;
-
-
-                readButton.textContent =
-                    "⏳ Reading PDF...";
-
-
-                status.textContent =
-                    "⏳ Reading your PDF...";
-
-
-                textSection.classList.add(
-                    "hidden"
-                );
-
-
-                summarySection.classList.add(
-                    "hidden"
-                );
-
-
-                extractedText.textContent =
-                    "";
-
-
-                extractedPDFText =
-                    "";
-
-
-                const arrayBuffer =
-                    await file.arrayBuffer();
-
-
-                const pdf =
-                    await pdfjsLib
-                        .getDocument({
-                            data: arrayBuffer
-                        })
-                        .promise;
-
-
-                let fullText = "";
-
-
-                for (
-                    let pageNumber = 1;
-                    pageNumber <= pdf.numPages;
-                    pageNumber++
-                ) {
-
-                    const page =
-                        await pdf.getPage(
-                            pageNumber
-                        );
-
-
-                    const textContent =
-                        await page.getTextContent();
-
-
-                    const pageText =
-                        textContent.items
-                            .map(
-                                item =>
-                                    item.str
-                            )
-                            .join(" ");
-
-
-                    fullText +=
-                        "\n\n--- Page " +
-                        pageNumber +
-                        " ---\n\n" +
-                        pageText;
-
-                }
-
-
-                if (!fullText.trim()) {
-
-                    status.textContent =
-                        "⚠️ No readable text was found in this PDF.";
-
-                    return;
-
-                }
-
-
-                extractedPDFText =
-                    fullText.trim();
-
-
-                extractedText.textContent =
-                    extractedPDFText;
-
-
-                textSection.classList.remove(
-                    "hidden"
-                );
-
-
-                status.textContent =
-                    "✅ PDF successfully read: " +
-                    file.name;
-
-
-                // ==================================
-                // PROGRESS: PDF READ
-                // ==================================
-
-                updatePDFProgress(50);
-
-
-                addActivity(
-                    "📄",
-                    "PDF Read: " + file.name
-                );
-
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    "PDF READING ERROR:",
-                    error
-                );
-
-
-                status.textContent =
-                    "❌ Could not read this PDF.";
-
-            }
-
-            finally {
-
-                readButton.disabled =
-                    false;
-
-
-                readButton.textContent =
-                    "📖 Upload & Read PDF";
-
-            }
-
-        }
-
-
-        // ==========================================
-        // GENERATE AI SUMMARY
-        // ==========================================
-
-        async function generateSummary() {
-
-            const summarySection =
-                document.getElementById(
-                    "summarySection"
-                );
-
-
-            const summaryBox =
-                document.getElementById(
-                    "summaryBox"
-                );
-
-
-            const summaryButton =
-                document.getElementById(
-                    "summaryButton"
-                );
-
-
-            if (!extractedPDFText) {
-
-                summarySection.classList.remove(
-                    "hidden"
-                );
-
-
-                summaryBox.textContent =
-                    "⚠️ Please upload and read a PDF first.";
-
-                return;
-
-            }
-
-
-            summarySection.classList.remove(
-                "hidden"
-            );
-
-
-            summaryBox.textContent =
-                "⏳ AI is creating your study summary...";
-
-
-            summaryButton.disabled =
-                true;
-
-
-            summaryButton.textContent =
-                "⏳ Generating Summary...";
-
-
-            try {
-
-                console.log(
-                    "Sending PDF text to:",
-                    API_URL +
-                    "/api/pdf-summary"
-                );
-
-
-                const response =
-                    await fetch(
-                        API_URL +
-                        "/api/pdf-summary",
-                        {
-
-                            method: "POST",
-
-                            headers: {
-
-                                "Content-Type":
-                                    "application/json"
-
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    text:
-                                        extractedPDFText
-
-                                })
-
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                console.log(
-                    "Server response:",
-                    data
-                );
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.error ||
-                        "Failed to generate AI summary."
-                    );
-
-                }
-
-
-                if (!data.summary) {
-
-                    throw new Error(
-                        "AI returned an empty summary."
-                    );
-
-                }
-
-
-                summaryBox.textContent =
-                    data.summary;
-
-
-                // ==================================
-                // PROGRESS: AI SUMMARY COMPLETE
-                // ==================================
-
-                updatePDFProgress(100);
-
-
-                addActivity(
-                    "🤖",
-                    "AI PDF Summary Created"
-                );
-
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    "PDF SUMMARY ERROR:",
-                    error
-                );
-
-
-                summaryBox.textContent =
-                    "❌ Could not generate AI summary.\n\n" +
-                    error.message;
-
-            }
-
-
-            summaryButton.disabled =
-                false;
-
-
-            summaryButton.textContent =
-                "🤖 Generate AI Summary";
-
-        }
-
-
-        // ==========================================
-        // FILE CHANGE
+        // FILE SELECTION
         // ==========================================
 
         document
             .getElementById("pdfFile")
             .addEventListener(
                 "change",
-                function () {
+                function() {
 
                     const status =
                         document.getElementById(
@@ -971,11 +1258,68 @@
                         );
 
 
+                    const textSection =
+                        document.getElementById(
+                            "textSection"
+                        );
+
+
+                    const questionSection =
+                        document.getElementById(
+                            "questionSection"
+                        );
+
+
+                    const summarySection =
+                        document.getElementById(
+                            "summarySection"
+                        );
+
+
                     if (this.files.length) {
 
-                        status.textContent =
-                            "📄 Selected: " +
-                            this.files[0].name;
+                        const file =
+                            this.files[0];
+
+
+                        if (
+                            file.type === "application/pdf" ||
+                            file.name
+                                .toLowerCase()
+                                .endsWith(".pdf")
+                        ) {
+
+                            status.textContent =
+                                "📄 Selected: " +
+                                file.name;
+
+                            status.className =
+                                "status";
+
+                        }
+                        else {
+
+                            status.textContent =
+                                "⚠️ Please select a valid PDF file.";
+
+                            status.className =
+                                "status error";
+
+                            this.value = "";
+
+                            textSection.classList.add(
+                                "hidden"
+                            );
+
+                            questionSection.classList.add(
+                                "hidden"
+                            );
+
+                            summarySection.classList.add(
+                                "hidden"
+                            );
+
+                        }
 
                     }
                     else {
@@ -988,6 +1332,41 @@
                 }
             );
 
+
+        // ==========================================
+        // SHOW QUESTION SECTION AFTER PDF LOAD
+        // ==========================================
+
+        const originalExtractPDFText =
+            extractPDFText;
+
+
+        extractPDFText =
+            async function() {
+
+                await originalExtractPDFText();
+
+
+                if (extractedPDFText) {
+
+                    document
+                        .getElementById(
+                            "questionSection"
+                        )
+                        .classList.remove(
+                            "hidden"
+                        );
+
+                }
+
+            };
+
+
+        // ==========================================
+        // INITIALIZE
+        // ==========================================
+
+        updateOverallProgress();
 
     </script>
 
