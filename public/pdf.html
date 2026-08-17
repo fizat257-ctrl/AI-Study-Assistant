@@ -397,17 +397,26 @@
 
         try {
 
-            activities = JSON.parse(
-                localStorage.getItem("studyActivity") || "[]"
-            );
+            const savedActivity =
+                localStorage.getItem("studyActivity");
+
+            if (savedActivity) {
+
+                const parsed =
+                    JSON.parse(savedActivity);
+
+                if (Array.isArray(parsed)) {
+                    activities = parsed;
+                }
+
+            }
 
         } catch (error) {
 
-            activities = [];
-
-        }
-
-        if (!Array.isArray(activities)) {
+            console.warn(
+                "Could not read study activity:",
+                error
+            );
 
             activities = [];
 
@@ -425,14 +434,26 @@
 
         if (activities.length > 30) {
 
-            activities = activities.slice(-30);
+            activities =
+                activities.slice(-30);
 
         }
 
-        localStorage.setItem(
-            "studyActivity",
-            JSON.stringify(activities)
-        );
+        try {
+
+            localStorage.setItem(
+                "studyActivity",
+                JSON.stringify(activities)
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Could not save study activity:",
+                error
+            );
+
+        }
 
     }
 
@@ -448,14 +469,104 @@
                 localStorage.getItem("pdfProgress")
             ) || 0;
 
-        current = Math.max(current, value);
+        current =
+            Math.max(current, value);
 
-        current = Math.min(current, 100);
+        current =
+            Math.min(current, 100);
 
         localStorage.setItem(
             "pdfProgress",
             String(current)
         );
+
+    }
+
+
+    // ==========================================
+    // SAFE API RESPONSE READER
+    // ==========================================
+
+    async function readAPIResponse(response) {
+
+        const contentType =
+            response.headers.get("content-type") || "";
+
+        const rawText =
+            await response.text();
+
+        console.log(
+            "API status:",
+            response.status
+        );
+
+        console.log(
+            "API content-type:",
+            contentType
+        );
+
+        console.log(
+            "API raw response:",
+            rawText
+        );
+
+        if (
+            contentType.toLowerCase().includes(
+                "application/json"
+            )
+        ) {
+
+            try {
+
+                return {
+
+                    isJSON: true,
+
+                    data: JSON.parse(rawText),
+
+                    rawText: rawText
+
+                };
+
+            } catch (error) {
+
+                console.warn(
+                    "Response was marked JSON but could not be parsed:",
+                    error
+                );
+
+            }
+
+        }
+
+        try {
+
+            const parsed =
+                JSON.parse(rawText);
+
+            return {
+
+                isJSON: true,
+
+                data: parsed,
+
+                rawText: rawText
+
+            };
+
+        } catch (error) {
+
+            return {
+
+                isJSON: false,
+
+                data: null,
+
+                rawText: rawText
+
+            };
+
+        }
 
     }
 
@@ -732,7 +843,10 @@
                         headers: {
 
                             "Content-Type":
-                                "application/json"
+                                "application/json",
+
+                            "Accept":
+                                "application/json, text/plain, */*"
 
                         },
 
@@ -748,37 +862,91 @@
                 );
 
 
-            const data =
-                await response.json();
+            const result =
+                await readAPIResponse(response);
 
 
             console.log(
-                "Summary server response:",
-                data
+                "Summary parsed response:",
+                result
             );
+
+
+            if (result.isJSON) {
+
+                const data =
+                    result.data || {};
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        data.message ||
+                        "Failed to generate AI summary."
+                    );
+
+                }
+
+
+                const summary =
+                    data.summary ||
+                    data.text ||
+                    data.result;
+
+
+                if (!summary) {
+
+                    throw new Error(
+                        "AI returned an empty summary."
+                    );
+
+                }
+
+
+                summaryBox.textContent =
+                    summary;
+
+
+                updatePDFProgress(100);
+
+
+                addActivity(
+                    "🤖",
+                    "AI PDF Summary Created"
+                );
+
+
+                return;
+
+            }
+
+
+            const plainText =
+                result.rawText.trim();
 
 
             if (!response.ok) {
 
                 throw new Error(
-                    data.error ||
-                    "Failed to generate AI summary."
+                    plainText ||
+                    "The server returned an error."
                 );
 
             }
 
 
-            if (!data.summary) {
+            if (!plainText) {
 
                 throw new Error(
-                    "AI returned an empty summary."
+                    "The server returned an empty response."
                 );
 
             }
 
 
             summaryBox.textContent =
-                data.summary;
+                plainText;
 
 
             updatePDFProgress(100);
@@ -822,16 +990,24 @@
     async function askQuestionFromPDF() {
 
         const questionInput =
-            document.getElementById("pdfQuestion");
+            document.getElementById(
+                "pdfQuestion"
+            );
 
         const askButton =
-            document.getElementById("askPDFButton");
+            document.getElementById(
+                "askPDFButton"
+            );
 
         const answerBox =
-            document.getElementById("pdfAnswer");
+            document.getElementById(
+                "pdfAnswer"
+            );
 
         const questionStatus =
-            document.getElementById("questionStatus");
+            document.getElementById(
+                "questionStatus"
+            );
 
 
         const question =
@@ -888,8 +1064,10 @@
                 "hidden"
             );
 
+
             questionStatus.className =
                 "status thinking";
+
 
             questionStatus.textContent =
                 "🤖 AI is analyzing your PDF...";
@@ -915,7 +1093,10 @@
                         headers: {
 
                             "Content-Type":
-                                "application/json"
+                                "application/json",
+
+                            "Accept":
+                                "application/json, text/plain, */*"
 
                         },
 
@@ -934,37 +1115,92 @@
                 );
 
 
-            const data =
-                await response.json();
+            const result =
+                await readAPIResponse(response);
 
 
             console.log(
-                "Question server response:",
-                data
+                "Question parsed response:",
+                result
             );
+
+
+            if (result.isJSON) {
+
+                const data =
+                    result.data || {};
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        data.message ||
+                        "Failed to answer the question."
+                    );
+
+                }
+
+
+                const answer =
+                    data.answer ||
+                    data.text ||
+                    data.result;
+
+
+                if (!answer) {
+
+                    throw new Error(
+                        "AI returned an empty answer."
+                    );
+
+                }
+
+
+                answerBox.textContent =
+                    answer;
+
+
+                questionStatus.textContent =
+                    "✅ Answer generated successfully.";
+
+
+                addActivity(
+                    "❓",
+                    "Asked a question from PDF"
+                );
+
+
+                return;
+
+            }
+
+
+            const plainText =
+                result.rawText.trim();
 
 
             if (!response.ok) {
 
                 throw new Error(
-                    data.error ||
-                    "Failed to answer the question."
+                    plainText ||
+                    "The server returned an error."
                 );
 
             }
 
 
-            if (!data.answer) {
+            if (!plainText) {
 
                 throw new Error(
-                    "AI returned an empty answer."
+                    "The server returned an empty response."
                 );
 
             }
 
 
             answerBox.textContent =
-                data.answer;
+                plainText;
 
 
             questionStatus.textContent =
@@ -990,8 +1226,10 @@
 
 
             answerBox.textContent =
-                error.message ||
-                "Unable to answer the PDF question.";
+                (
+                    error.message ||
+                    "Unable to answer the question."
+                );
 
         } finally {
 
@@ -1003,65 +1241,6 @@
         }
 
     }
-
-
-    // ==========================================
-    // ENTER KEY
-    // ==========================================
-
-    document
-        .getElementById("pdfQuestion")
-        .addEventListener(
-            "keydown",
-            function(event) {
-
-                if (
-                    event.key === "Enter" &&
-                    !event.shiftKey
-                ) {
-
-                    event.preventDefault();
-
-                    askQuestionFromPDF();
-
-                }
-
-            }
-        );
-
-
-    // ==========================================
-    // FILE SELECTED
-    // ==========================================
-
-    document
-        .getElementById("pdfFile")
-        .addEventListener(
-            "change",
-            function() {
-
-                const status =
-                    document.getElementById(
-                        "pdfStatus"
-                    );
-
-
-                if (this.files.length) {
-
-                    status.textContent =
-                        "📄 Selected: " +
-                        this.files[0].name;
-
-                } else {
-
-                    status.textContent =
-                        "No PDF selected.";
-
-                }
-
-            }
-        );
-
 
 </script>
 
