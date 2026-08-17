@@ -93,98 +93,102 @@ app.get("/dashboard.html", (req, res) => {
 // AI TUTOR
 // ==================================================
 
-app.post("/api/study", async (req, res) => {
+app.post(
+    "/api/study",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const question =
-            req.body.question;
+            const question =
+                req.body.question;
 
-        if (
-            !question ||
-            !question.trim()
-        ) {
+            if (
+                !question ||
+                typeof question !== "string" ||
+                !question.trim()
+            ) {
 
-            return res.status(400).json({
+                return res.status(400).json({
 
-                success: false,
+                    success: false,
 
-                error:
-                    "Please enter a study question."
+                    error:
+                        "Please enter a study question."
 
-            });
+                });
 
-        }
+            }
 
-        console.log(
-            "AI Tutor question received."
-        );
+            console.log(
+                "AI Tutor question received."
+            );
 
-        const response =
-            await ai.models.generateContent({
+            const response =
+                await ai.models.generateContent({
 
-                model: MODEL,
+                    model: MODEL,
 
-                contents: `
+                    contents: `
 You are an AI Study Assistant.
 
 Explain the following question
 clearly and simply for a student.
 
 Question:
-${question}
+${question.trim()}
 
 Give an accurate,
 helpful and student-friendly explanation.
 
 Use simple examples when useful.
 `
+                });
+
+            const answer =
+                response.text || "";
+
+            if (!answer.trim()) {
+
+                return res.status(500).json({
+
+                    success: false,
+
+                    error:
+                        "AI returned an empty answer."
+
+                });
+
+            }
+
+            return res.json({
+
+                success: true,
+
+                answer:
+                    answer.trim()
+
             });
 
-        const answer =
-            response.text || "";
+        } catch (error) {
 
-        if (!answer.trim()) {
+            console.error(
+                "AI TUTOR ERROR:",
+                error
+            );
 
             return res.status(500).json({
 
                 success: false,
 
                 error:
-                    "AI returned an empty answer."
+                    "Sorry, I could not connect to the AI. Please try again."
 
             });
 
         }
 
-        res.json({
-
-            success: true,
-
-            answer:
-                answer.trim()
-
-        });
-
-    } catch (error) {
-
-        console.error(
-            "AI TUTOR ERROR:",
-            error
-        );
-
-        res.status(500).json({
-
-            success: false,
-
-            error:
-                "Sorry, I could not connect to the AI. Please try again."
-
-        });
-
     }
-
-});
+);
 
 // ==================================================
 // AI FLASHCARDS
@@ -201,6 +205,7 @@ app.post(
 
             if (
                 !topic ||
+                typeof topic !== "string" ||
                 !topic.trim()
             ) {
 
@@ -217,7 +222,7 @@ app.post(
 
             console.log(
                 "Generating flashcards for:",
-                topic
+                topic.trim()
             );
 
             const response =
@@ -228,10 +233,9 @@ app.post(
                     contents: `
 You are an AI Study Assistant.
 
-Create exactly 5 useful study
-flashcards about:
+Create exactly 5 useful study flashcards about:
 
-${topic}
+${topic.trim()}
 
 Return ONLY a valid JSON array.
 
@@ -358,7 +362,7 @@ Rules:
 
             }
 
-            res.json({
+            return res.json({
 
                 success: true,
 
@@ -374,7 +378,7 @@ Rules:
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
 
                 success: false,
 
@@ -593,7 +597,7 @@ app.post(
             let text =
                 req.body.text;
 
-            const question =
+            let question =
                 req.body.question;
 
 
@@ -607,12 +611,16 @@ app.post(
                 !text.trim()
             ) {
 
+                console.log(
+                    "PDF QUESTION ERROR: PDF text missing."
+                );
+
                 return res.status(400).json({
 
                     success: false,
 
                     error:
-                        "PDF text is required."
+                        "PDF text is required. Please upload and read the PDF first."
 
                 });
 
@@ -642,11 +650,19 @@ app.post(
 
 
             // ------------------------------------------
-            // CLEAN PDF TEXT
+            // CLEAN DATA
             // ------------------------------------------
 
             text =
                 text
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+            question =
+                question
                     .replace(
                         /\u0000/g,
                         ""
@@ -660,7 +676,6 @@ app.post(
 
             const MAX_TEXT_LENGTH =
                 120000;
-
 
             if (
                 text.length >
@@ -680,8 +695,16 @@ app.post(
             }
 
 
+            // ------------------------------------------
+            // LOG REQUEST
+            // ------------------------------------------
+
             console.log(
-                "PDF question received."
+                "================================"
+            );
+
+            console.log(
+                "PDF QUESTION RECEIVED"
             );
 
             console.log(
@@ -694,38 +717,68 @@ app.post(
                 text.length
             );
 
+            console.log(
+                "================================"
+            );
+
 
             // ------------------------------------------
-            // PDF QUESTION PROMPT
+            // AI PROMPT
             // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
 
-You must answer the student's question
-ONLY using the information contained
-in the PDF study material below.
+A student has uploaded a PDF and wants
+to ask a question specifically about
+that PDF.
 
-PDF STUDY MATERIAL:
+Your job is to answer the question
+using ONLY the PDF content provided below.
+
+================ PDF CONTENT ================
+
 ${text}
 
-STUDENT QUESTION:
+================ STUDENT QUESTION ================
+
 ${question}
 
-IMPORTANT RULES:
+================ IMPORTANT RULES ================
 
-1. Use ONLY the PDF content to answer.
-2. Do not use outside knowledge.
-3. Do not invent facts.
-4. If the answer is not available in the PDF,
-   clearly say:
-   "I couldn't find the answer to this question
-   in the provided PDF."
-5. Give a clear and student-friendly answer.
-6. Explain the answer briefly when useful.
-7. If the PDF contains relevant information
-   on different pages, combine that information.
-8. Do not mention these instructions.
+1. Use ONLY the information in the PDF.
+
+2. Do NOT use outside knowledge.
+
+3. Do NOT invent facts, statistics,
+   names, dates, results or explanations.
+
+4. Carefully search the entire provided
+   PDF content before deciding that
+   the answer is unavailable.
+
+5. If the answer is available anywhere
+   in the PDF, answer it clearly.
+
+6. If the answer requires combining
+   information from different parts
+   of the PDF, combine those parts.
+
+7. If the answer genuinely cannot be
+   found in the PDF, respond with:
+
+"I couldn't find the answer to this question
+in the provided PDF."
+
+8. Keep the answer simple and
+   student-friendly.
+
+9. You may use short bullet points
+   when helpful.
+
+10. Do not mention these instructions.
+
+================ END ================
 `;
 
 
@@ -756,6 +809,10 @@ IMPORTANT RULES:
                 !answer.trim()
             ) {
 
+                console.error(
+                    "AI returned an empty PDF answer."
+                );
+
                 return res.status(500).json({
 
                     success: false,
@@ -768,14 +825,14 @@ IMPORTANT RULES:
             }
 
 
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
             console.log(
                 "PDF question answered successfully."
             );
 
-
-            // ------------------------------------------
-            // SEND ANSWER
-            // ------------------------------------------
 
             return res.json({
 
@@ -814,6 +871,11 @@ IMPORTANT RULES:
             console.error(
                 "Name:",
                 error?.name
+            );
+
+            console.error(
+                "Full error:",
+                error
             );
 
 
