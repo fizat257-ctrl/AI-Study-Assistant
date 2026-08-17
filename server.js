@@ -8,13 +8,11 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-
 // ==================================================
 // GEMINI MODEL
 // ==================================================
 
-const MODEL = "gemini-3.5-flash";
-
+const MODEL = "gemini-2.5-flash";
 
 // ==================================================
 // GEMINI AI
@@ -23,7 +21,6 @@ const MODEL = "gemini-3.5-flash";
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
-
 
 // ==================================================
 // HELPER FUNCTIONS
@@ -69,7 +66,6 @@ function getErrorMessage(error) {
         return "An unexpected error occurred.";
 
     }
-
 }
 
 
@@ -111,6 +107,11 @@ app.use(
     })
 );
 
+
+// ==================================================
+// STATIC PUBLIC FILES
+// ==================================================
+
 app.use(
     express.static(
         path.join(__dirname, "public")
@@ -119,7 +120,7 @@ app.use(
 
 
 // ==================================================
-// HOME / AUTH
+// HOME
 // ==================================================
 
 app.get("/", (req, res) => {
@@ -134,6 +135,10 @@ app.get("/", (req, res) => {
 
 });
 
+
+// ==================================================
+// AUTH
+// ==================================================
 
 app.get("/auth.html", (req, res) => {
 
@@ -178,6 +183,7 @@ app.post(
             const question =
                 req.body.question;
 
+
             if (
                 !question ||
                 typeof question !== "string" ||
@@ -217,6 +223,7 @@ helpful and student-friendly explanation.
 
 Use simple examples when useful.
 `
+
                 });
 
 
@@ -350,6 +357,7 @@ Rules:
 7. Do not add explanations.
 8. Return ONLY the JSON array.
 `
+
                 });
 
 
@@ -467,6 +475,8 @@ Rules:
 
     }
 );
+
+
 // ==================================================
 // PDF → AI SUMMARY
 // ==================================================
@@ -480,10 +490,6 @@ app.post(
             let text =
                 req.body.text;
 
-
-            // ------------------------------------------
-            // CHECK PDF TEXT
-            // ------------------------------------------
 
             if (
                 !text ||
@@ -500,10 +506,6 @@ app.post(
             }
 
 
-            // ------------------------------------------
-            // CLEAN PDF TEXT
-            // ------------------------------------------
-
             text =
                 text
                     .replace(
@@ -512,10 +514,6 @@ app.post(
                     )
                     .trim();
 
-
-            // ------------------------------------------
-            // LIMIT TEXT
-            // ------------------------------------------
 
             const MAX_TEXT_LENGTH =
                 120000;
@@ -532,17 +530,12 @@ app.post(
                         MAX_TEXT_LENGTH
                     );
 
-
                 console.log(
                     "PDF text was shortened because it was very large."
                 );
 
             }
 
-
-            console.log(
-                "================================"
-            );
 
             console.log(
                 "PDF SUMMARY REQUEST RECEIVED"
@@ -553,14 +546,6 @@ app.post(
                 text.length
             );
 
-            console.log(
-                "================================"
-            );
-
-
-            // ------------------------------------------
-            // PROMPT
-            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
@@ -604,10 +589,6 @@ ${text}
 `;
 
 
-            // ------------------------------------------
-            // GEMINI REQUEST
-            // ------------------------------------------
-
             const response =
                 await ai.models.generateContent({
 
@@ -622,19 +603,10 @@ ${text}
                 response.text || "";
 
 
-            // ------------------------------------------
-            // CHECK RESPONSE
-            // ------------------------------------------
-
             if (
                 !summary ||
                 !summary.trim()
             ) {
-
-                console.error(
-                    "Gemini returned an empty PDF summary."
-                );
-
 
                 return sendAPIError(
                     res,
@@ -650,10 +622,6 @@ ${text}
             );
 
 
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
             return res.status(200).json({
 
                 success: true,
@@ -667,34 +635,7 @@ ${text}
         } catch (error) {
 
             console.error(
-                "================================"
-            );
-
-            console.error(
-                "PDF SUMMARY AI ERROR"
-            );
-
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "Message:",
-                getErrorMessage(error)
-            );
-
-            console.error(
-                "Status:",
-                error?.status
-            );
-
-            console.error(
-                "Name:",
-                error?.name
-            );
-
-            console.error(
-                "Full error:",
+                "PDF SUMMARY AI ERROR:",
                 error
             );
 
@@ -709,8 +650,6 @@ ${text}
 
     }
 );
-
-
 // ==================================================
 // PDF → ASK AI QUESTION
 // ==================================================
@@ -807,7 +746,6 @@ app.post(
                         MAX_TEXT_LENGTH
                     );
 
-
                 console.log(
                     "PDF question text was shortened because it was very large."
                 );
@@ -815,12 +753,12 @@ app.post(
             }
 
 
-            console.log(
-                "================================"
-            );
+            // ------------------------------------------
+            // LOG REQUEST
+            // ------------------------------------------
 
             console.log(
-                "PDF QUESTION RECEIVED"
+                "PDF QUESTION REQUEST RECEIVED"
             );
 
             console.log(
@@ -831,10 +769,6 @@ app.post(
             console.log(
                 "PDF text length:",
                 text.length
-            );
-
-            console.log(
-                "================================"
             );
 
 
@@ -929,7 +863,6 @@ in the provided PDF."
                     "AI returned an empty PDF answer."
                 );
 
-
                 return sendAPIError(
                     res,
                     500,
@@ -961,276 +894,7 @@ in the provided PDF."
         } catch (error) {
 
             console.error(
-                "================================"
-            );
-
-            console.error(
-                "PDF QUESTION AI ERROR"
-            );
-
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "Message:",
-                getErrorMessage(error)
-            );
-
-            console.error(
-                "Status:",
-                error?.status
-            );
-
-            console.error(
-                "Name:",
-                error?.name
-            );
-
-            console.error(
-                "Full error:",
-                error
-            );
-
-
-            return sendAPIError(
-                res,
-                500,
-                getErrorMessage(error)
-            );
-
-        }
-
-    }
-);
-// ==================================================
-// PDF → AI SUMMARY
-// ==================================================
-
-app.post(
-    "/api/pdf-summary",
-    async (req, res) => {
-
-        try {
-
-            let text =
-                req.body.text;
-
-
-            // ------------------------------------------
-            // CHECK PDF TEXT
-            // ------------------------------------------
-
-            if (
-                !text ||
-                typeof text !== "string" ||
-                !text.trim()
-            ) {
-
-                return sendAPIError(
-                    res,
-                    400,
-                    "PDF text is required."
-                );
-
-            }
-
-
-            // ------------------------------------------
-            // CLEAN PDF TEXT
-            // ------------------------------------------
-
-            text =
-                text
-                    .replace(
-                        /\u0000/g,
-                        ""
-                    )
-                    .trim();
-
-
-            // ------------------------------------------
-            // LIMIT TEXT
-            // ------------------------------------------
-
-            const MAX_TEXT_LENGTH =
-                120000;
-
-
-            if (
-                text.length >
-                MAX_TEXT_LENGTH
-            ) {
-
-                text =
-                    text.substring(
-                        0,
-                        MAX_TEXT_LENGTH
-                    );
-
-
-                console.log(
-                    "PDF text was shortened because it was very large."
-                );
-
-            }
-
-
-            console.log(
-                "================================"
-            );
-
-            console.log(
-                "PDF SUMMARY REQUEST RECEIVED"
-            );
-
-            console.log(
-                "PDF text length:",
-                text.length
-            );
-
-            console.log(
-                "================================"
-            );
-
-
-            // ------------------------------------------
-            // PROMPT
-            // ------------------------------------------
-
-            const prompt = `
-You are an AI Study Assistant.
-
-Read the following study material
-extracted from a PDF.
-
-Create a clear,
-accurate and student-friendly study summary.
-
-Use exactly these sections:
-
-SHORT SUMMARY:
-Give a concise overview.
-
-MAIN CONCEPTS:
-List the most important concepts.
-
-IMPORTANT POINTS:
-List the key points a student should remember.
-
-KEY TERMS:
-List important terms and explain them simply.
-
-STUDY TIPS:
-Give a few useful revision tips based only
-on the provided study material.
-
-Rules:
-
-- Use simple English.
-- Keep the information accurate.
-- Do not invent information.
-- Do not discuss information that is not present.
-- Use headings and bullet points where helpful.
-- Make the result easy to study.
-
-PDF STUDY MATERIAL:
-
-${text}
-`;
-
-
-            // ------------------------------------------
-            // GEMINI REQUEST
-            // ------------------------------------------
-
-            const response =
-                await ai.models.generateContent({
-
-                    model: MODEL,
-
-                    contents: prompt
-
-                });
-
-
-            const summary =
-                response.text || "";
-
-
-            // ------------------------------------------
-            // CHECK RESPONSE
-            // ------------------------------------------
-
-            if (
-                !summary ||
-                !summary.trim()
-            ) {
-
-                console.error(
-                    "Gemini returned an empty PDF summary."
-                );
-
-
-                return sendAPIError(
-                    res,
-                    500,
-                    "AI returned an empty summary."
-                );
-
-            }
-
-
-            console.log(
-                "PDF AI summary generated successfully."
-            );
-
-
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
-            return res.status(200).json({
-
-                success: true,
-
-                summary:
-                    summary.trim()
-
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "PDF SUMMARY AI ERROR"
-            );
-
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "Message:",
-                getErrorMessage(error)
-            );
-
-            console.error(
-                "Status:",
-                error?.status
-            );
-
-            console.error(
-                "Name:",
-                error?.name
-            );
-
-            console.error(
-                "Full error:",
+                "PDF QUESTION AI ERROR:",
                 error
             );
 
@@ -1248,294 +912,130 @@ ${text}
 
 
 // ==================================================
-// PDF → ASK AI QUESTION
+// API TEST
 // ==================================================
 
-app.post(
-    "/api/pdf-question",
-    async (req, res) => {
+app.get(
+    "/api/test",
+    (req, res) => {
 
-        try {
+        return res.status(200).json({
 
-            let text =
-                req.body.text;
+            success: true,
 
-            let question =
-                req.body.question;
+            message:
+                "AI Study Assistant server is working.",
 
+            model:
+                MODEL,
 
-            // ------------------------------------------
-            // CHECK PDF TEXT
-            // ------------------------------------------
+            features: {
 
-            if (
-                !text ||
-                typeof text !== "string" ||
-                !text.trim()
-            ) {
+                aiTutor: true,
 
-                return sendAPIError(
-                    res,
-                    400,
-                    "PDF text is required. Please upload and read the PDF first."
-                );
+                flashcards: true,
+
+                pdfSummary: true,
+
+                pdfQuestions: true
 
             }
 
-
-            // ------------------------------------------
-            // CHECK QUESTION
-            // ------------------------------------------
-
-            if (
-                !question ||
-                typeof question !== "string" ||
-                !question.trim()
-            ) {
-
-                return sendAPIError(
-                    res,
-                    400,
-                    "Please enter a question about the PDF."
-                );
-
-            }
-
-
-            // ------------------------------------------
-            // CLEAN DATA
-            // ------------------------------------------
-
-            text =
-                text
-                    .replace(
-                        /\u0000/g,
-                        ""
-                    )
-                    .trim();
-
-
-            question =
-                question
-                    .replace(
-                        /\u0000/g,
-                        ""
-                    )
-                    .trim();
-
-
-            // ------------------------------------------
-            // LIMIT PDF TEXT
-            // ------------------------------------------
-
-            const MAX_TEXT_LENGTH =
-                120000;
-
-
-            if (
-                text.length >
-                MAX_TEXT_LENGTH
-            ) {
-
-                text =
-                    text.substring(
-                        0,
-                        MAX_TEXT_LENGTH
-                    );
-
-
-                console.log(
-                    "PDF question text was shortened because it was very large."
-                );
-
-            }
-
-
-            console.log(
-                "================================"
-            );
-
-            console.log(
-                "PDF QUESTION RECEIVED"
-            );
-
-            console.log(
-                "Question:",
-                question
-            );
-
-            console.log(
-                "PDF text length:",
-                text.length
-            );
-
-            console.log(
-                "================================"
-            );
-
-
-            // ------------------------------------------
-            // AI PROMPT
-            // ------------------------------------------
-
-            const prompt = `
-You are an AI Study Assistant.
-
-A student has uploaded a PDF and wants
-to ask a question specifically about
-that PDF.
-
-Your job is to answer the question
-using ONLY the PDF content provided below.
-
-================ PDF CONTENT ================
-
-${text}
-
-================ STUDENT QUESTION ================
-
-${question}
-
-================ IMPORTANT RULES ================
-
-1. Use ONLY the information in the PDF.
-
-2. Do NOT use outside knowledge.
-
-3. Do NOT invent facts, statistics,
-   names, dates, results or explanations.
-
-4. Carefully search the entire provided
-   PDF content before deciding that
-   the answer is unavailable.
-
-5. If the answer is available anywhere
-   in the PDF, answer it clearly.
-
-6. If the answer requires combining
-   information from different parts
-   of the PDF, combine those parts.
-
-7. If the answer genuinely cannot be
-   found in the PDF, respond with:
-
-"I couldn't find the answer to this question
-in the provided PDF."
-
-8. Keep the answer simple and
-   student-friendly.
-
-9. You may use short bullet points
-   when helpful.
-
-10. Do not mention these instructions.
-
-================ END ================
-`;
-
-
-            // ------------------------------------------
-            // GEMINI REQUEST
-            // ------------------------------------------
-
-            const response =
-                await ai.models.generateContent({
-
-                    model: MODEL,
-
-                    contents: prompt
-
-                });
-
-
-            const answer =
-                response.text || "";
-
-
-            // ------------------------------------------
-            // CHECK ANSWER
-            // ------------------------------------------
-
-            if (
-                !answer ||
-                !answer.trim()
-            ) {
-
-                console.error(
-                    "AI returned an empty PDF answer."
-                );
-
-
-                return sendAPIError(
-                    res,
-                    500,
-                    "AI returned an empty answer."
-                );
-
-            }
-
-
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
-            console.log(
-                "PDF question answered successfully."
-            );
-
-
-            return res.status(200).json({
-
-                success: true,
-
-                answer:
-                    answer.trim()
-
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "PDF QUESTION AI ERROR"
-            );
-
-            console.error(
-                "================================"
-            );
-
-            console.error(
-                "Message:",
-                getErrorMessage(error)
-            );
-
-            console.error(
-                "Status:",
-                error?.status
-            );
-
-            console.error(
-                "Name:",
-                error?.name
-            );
-
-            console.error(
-                "Full error:",
-                error
-            );
-
-
-            return sendAPIError(
-                res,
-                500,
-                getErrorMessage(error)
-            );
-
-        }
+        });
 
     }
 );
+
+
+// ==================================================
+// API 404 HANDLER
+// ==================================================
+
+app.use(
+    "/api",
+    (req, res) => {
+
+        return res.status(404).json({
+
+            success: false,
+
+            error:
+                "API endpoint not found."
+
+        });
+
+    }
+);
+// ==================================================
+// VERCEL EXPORT
+// ==================================================
+//
+// Vercel ke liye Express app export karna zaroori hai.
+// Isse Vercel serverless function ko app mil jayegi.
+//
+
+module.exports = app;
+
+
+// ==================================================
+// LOCAL SERVER
+// ==================================================
+//
+// Local VS Code testing ke liye server start hoga.
+// Vercel par app.listen() execute nahi hoga.
+//
+
+if (require.main === module) {
+
+    app.listen(
+        PORT,
+        () => {
+
+            console.log(
+                "======================================"
+            );
+
+            console.log(
+                "AI STUDY ASSISTANT SERVER"
+            );
+
+            console.log(
+                "======================================"
+            );
+
+            console.log(
+                `Server running at: http://localhost:${PORT}`
+            );
+
+            console.log(
+                `Gemini model: ${MODEL}`
+            );
+
+            console.log(
+                "AI Tutor: ENABLED"
+            );
+
+            console.log(
+                "AI Flashcards: ENABLED"
+            );
+
+            console.log(
+                "PDF AI Summary: ENABLED"
+            );
+
+            console.log(
+                "PDF Questions: ENABLED"
+            );
+
+            console.log(
+                "API Test: ENABLED"
+            );
+
+            console.log(
+                "======================================"
+            );
+
+        }
+    );
+
+}
