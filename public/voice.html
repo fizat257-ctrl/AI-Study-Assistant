@@ -49,6 +49,10 @@
       cursor: pointer;
     }
 
+    .back-btn:hover {
+      opacity: 0.9;
+    }
+
     .container {
       max-width: 900px;
       margin: auto;
@@ -153,10 +157,11 @@
       cursor: pointer;
     }
 
-    /* Hidden AI Tutor fields */
+    .clear-btn:hover {
+      border-color: #2563eb;
+    }
 
-    #question,
-    #answer {
+    .hidden {
       display: none;
     }
 
@@ -192,7 +197,9 @@
 <body>
 
 
-  <!-- HEADER -->
+  <!-- ==========================================
+       HEADER
+  =========================================== -->
 
   <header>
 
@@ -211,7 +218,9 @@
   </header>
 
 
-  <!-- MAIN -->
+  <!-- ==========================================
+       MAIN
+  =========================================== -->
 
   <main class="container">
 
@@ -232,7 +241,9 @@
     <section class="voice-card">
 
 
-      <!-- MICROPHONE -->
+      <!-- ======================================
+           MICROPHONE
+      ======================================= -->
 
       <button
         id="voiceButton"
@@ -244,7 +255,9 @@
       </button>
 
 
-      <!-- STATUS -->
+      <!-- ======================================
+           STATUS
+      ======================================= -->
 
       <div
         id="voiceStatus"
@@ -254,7 +267,9 @@
       </div>
 
 
-      <!-- QUESTION -->
+      <!-- ======================================
+           QUESTION
+      ======================================= -->
 
       <div class="box">
 
@@ -269,7 +284,9 @@
       </div>
 
 
-      <!-- ANSWER -->
+      <!-- ======================================
+           AI ANSWER
+      ======================================= -->
 
       <div class="box">
 
@@ -284,14 +301,9 @@
       </div>
 
 
-      <!-- HIDDEN AI TUTOR ELEMENTS -->
-
-      <textarea id="question"></textarea>
-
-      <div id="answer"></div>
-
-
-      <!-- CLEAR -->
+      <!-- ======================================
+           CLEAR
+      ======================================= -->
 
       <button
         class="clear-btn"
@@ -305,11 +317,6 @@
     </section>
 
   </main>
-
-
-  <!-- EXISTING AI LOGIC -->
-
-  <script src="script.js"></script>
 
 
   <script>
@@ -326,6 +333,10 @@
     let recognition = null;
 
 
+    // ==========================================
+    // CREATE SPEECH RECOGNITION
+    // ==========================================
+
     if (SpeechRecognition) {
 
       recognition =
@@ -338,24 +349,39 @@
       recognition.lang = "en-US";
 
 
+      // ========================================
+      // WHEN LISTENING STARTS
+      // ========================================
+
       recognition.onstart =
         function () {
 
-          document
-            .getElementById("voiceButton")
-            .classList.add("listening");
+          const button =
+            document.getElementById(
+              "voiceButton"
+            );
 
-          document
-            .getElementById("voiceButton")
-            .disabled = true;
+          const status =
+            document.getElementById(
+              "voiceStatus"
+            );
 
-          document
-            .getElementById("voiceStatus")
-            .textContent =
+
+          button.classList.add(
+            "listening"
+          );
+
+          button.disabled = true;
+
+          status.textContent =
             "🎤 Listening... Speak now.";
 
         };
 
+
+      // ========================================
+      // WHEN SPEECH IS RECEIVED
+      // ========================================
 
       recognition.onresult =
         function (event) {
@@ -367,6 +393,18 @@
               .trim();
 
 
+          if (!transcript) {
+
+            document
+              .getElementById("voiceStatus")
+              .textContent =
+              "❌ No question detected. Please try again.";
+
+            return;
+
+          }
+
+
           document
             .getElementById("questionText")
             .textContent =
@@ -376,13 +414,19 @@
           document
             .getElementById("voiceStatus")
             .textContent =
-            "✅ Question captured. AI is preparing your answer...";
+            "🤖 AI is preparing your answer...";
 
 
-          getVoiceAnswer(transcript);
+          getVoiceAnswer(
+            transcript
+          );
 
         };
 
+
+      // ========================================
+      // SPEECH ERROR
+      // ========================================
 
       recognition.onerror =
         function (event) {
@@ -393,24 +437,60 @@
           );
 
 
-          document
-            .getElementById("voiceStatus")
-            .textContent =
-            "❌ Could not hear your question. Please try again.";
+          const status =
+            document.getElementById(
+              "voiceStatus"
+            );
+
+
+          if (
+            event.error ===
+            "not-allowed"
+          ) {
+
+            status.textContent =
+              "❌ Microphone permission was denied.";
+
+          }
+
+          else if (
+            event.error ===
+            "no-speech"
+          ) {
+
+            status.textContent =
+              "❌ No speech detected. Please try again.";
+
+          }
+
+          else {
+
+            status.textContent =
+              "❌ Could not hear your question. Please try again.";
+
+          }
 
         };
 
 
+      // ========================================
+      // SPEECH ENDED
+      // ========================================
+
       recognition.onend =
         function () {
 
-          document
-            .getElementById("voiceButton")
-            .classList.remove("listening");
+          const button =
+            document.getElementById(
+              "voiceButton"
+            );
 
-          document
-            .getElementById("voiceButton")
-            .disabled = false;
+
+          button.classList.remove(
+            "listening"
+          );
+
+          button.disabled = false;
 
         };
 
@@ -441,6 +521,12 @@
         "Waiting for your question...";
 
 
+      document
+        .getElementById("voiceStatus")
+        .textContent =
+        "🎤 Starting microphone...";
+
+
       try {
 
         recognition.start();
@@ -460,156 +546,240 @@
 
 
     // ==========================================
-    // SEND VOICE QUESTION TO EXISTING AI TUTOR
+    // SEND QUESTION DIRECTLY TO AI API
     // ==========================================
 
-    function getVoiceAnswer(question) {
+    async function getVoiceAnswer(question) {
 
-      const hiddenQuestion =
-        document.getElementById("question");
+      const answerBox =
+        document.getElementById(
+          "answerText"
+        );
 
-      const hiddenAnswer =
-        document.getElementById("answer");
-
-      const visibleAnswer =
-        document.getElementById("answerText");
-
-
-      if (
-        !hiddenQuestion ||
-        !hiddenAnswer
-      ) {
-
-        visibleAnswer.textContent =
-          "❌ AI Tutor connection is not available.";
-
-        return;
-
-      }
+      const status =
+        document.getElementById(
+          "voiceStatus"
+        );
 
 
-      // Put voice question into existing AI Tutor input
+      // ----------------------------------------
+      // SHOW THINKING
+      // ----------------------------------------
 
-      hiddenQuestion.value =
-        question;
-
-
-      // Clear previous answer
-
-      hiddenAnswer.innerText =
-        "";
+      answerBox.textContent =
+        "🤖 AI Study Assistant is thinking...";
 
 
-      // ==========================================
-      // USE EXISTING askAssistant()
-      // ==========================================
+      try {
 
-      if (
-        typeof askAssistant === "function"
-      ) {
-
-        askAssistant();
-
-      }
-
-      else {
-
-        visibleAnswer.textContent =
-          "❌ AI Tutor function was not found.";
-
-        return;
-
-      }
+        console.log(
+          "Sending voice question:",
+          question
+        );
 
 
-      // ==========================================
-      // WAIT FOR EXISTING AI TUTOR RESPONSE
-      // ==========================================
+        // --------------------------------------
+        // CALL BACKEND
+        // --------------------------------------
 
-      setTimeout(
-        function () {
+        const response =
+          await fetch(
+            "/api/study",
+            {
 
-          const result =
-            hiddenAnswer.innerText.trim();
+              method: "POST",
 
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
 
-          if (result) {
+              body: JSON.stringify({
 
-            visibleAnswer.textContent =
-              result;
+                question:
+                  question
 
-            document
-              .getElementById("voiceStatus")
-              .textContent =
-              "✅ AI answer generated.";
+              })
 
-          }
-
-          else {
-
-            visibleAnswer.textContent =
-              "❌ Could not generate an AI answer.";
-
-          }
-
-
-          // ========================================
-          // VOICE PROGRESS
-          // ========================================
-
-          localStorage.setItem(
-            "voiceProgress",
-            "100"
+            }
           );
 
 
-          // ========================================
-          // ACTIVITY
-          // ========================================
+        // --------------------------------------
+        // READ RESPONSE
+        // --------------------------------------
 
-          let activities =
-            JSON.parse(
-              localStorage.getItem(
-                "studyActivity"
-              ) || "[]"
-            );
+        let data;
 
 
-          activities.push({
+        try {
 
-            icon: "🎤",
+          data =
+            await response.json();
 
-            text:
-              "Voice Study Question: " +
-              question,
+        }
 
-            time:
-              new Date().toLocaleString()
+        catch (jsonError) {
 
-          });
+          throw new Error(
+            "Server returned an invalid response."
+          );
 
-
-          if (
-            activities.length > 20
-          ) {
-
-            activities =
-              activities.slice(-20);
-
-          }
+        }
 
 
-          localStorage.setItem(
-            "studyActivity",
-            JSON.stringify(
-              activities
-            )
+        console.log(
+          "Voice AI response:",
+          data
+        );
+
+
+        // --------------------------------------
+        // API ERROR
+        // --------------------------------------
+
+        if (!response.ok) {
+
+          throw new Error(
+
+            data.error ||
+
+            data.message ||
+
+            `Server error ${response.status}`
+
+          );
+
+        }
+
+
+        // --------------------------------------
+        // CHECK SUCCESS
+        // --------------------------------------
+
+        if (
+          !data.success
+        ) {
+
+          throw new Error(
+
+            data.error ||
+
+            "AI could not generate an answer."
+
+          );
+
+        }
+
+
+        // --------------------------------------
+        // GET ANSWER
+        // --------------------------------------
+
+        const answer =
+          data.answer;
+
+
+        if (
+          !answer ||
+          !String(answer).trim()
+        ) {
+
+          throw new Error(
+            "AI returned an empty answer."
+          );
+
+        }
+
+
+        // --------------------------------------
+        // SHOW ANSWER
+        // --------------------------------------
+
+        answerBox.textContent =
+          String(answer).trim();
+
+
+        status.textContent =
+          "✅ AI answer generated.";
+
+
+        // --------------------------------------
+        // SAVE VOICE PROGRESS
+        // --------------------------------------
+
+        localStorage.setItem(
+          "voiceProgress",
+          "100"
+        );
+
+
+        // --------------------------------------
+        // SAVE ACTIVITY
+        // --------------------------------------
+
+        let activities =
+          JSON.parse(
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
           );
 
 
-        },
-        800
-      );
+        activities.push({
+
+          icon: "🎤",
+
+          text:
+            "Voice Study Question: " +
+            question,
+
+          time:
+            new Date().toLocaleString()
+
+        });
+
+
+        if (
+          activities.length > 20
+        ) {
+
+          activities =
+            activities.slice(-20);
+
+        }
+
+
+        localStorage.setItem(
+          "studyActivity",
+          JSON.stringify(
+            activities
+          )
+        );
+
+
+      }
+
+      catch (error) {
+
+        console.error(
+          "VOICE AI ERROR:",
+          error
+        );
+
+
+        answerBox.textContent =
+          "❌ Sorry, I could not generate the answer.\n\n" +
+          String(
+            error.message ||
+            "Unknown error."
+          );
+
+
+        status.textContent =
+          "❌ AI answer could not be generated.";
+
+      }
 
     }
 
@@ -636,16 +806,6 @@
         .getElementById("voiceStatus")
         .textContent =
         "Click the microphone and start speaking.";
-
-
-      document
-        .getElementById("question")
-        .value = "";
-
-
-      document
-        .getElementById("answer")
-        .innerText = "";
 
     }
 
