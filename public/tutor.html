@@ -12,6 +12,7 @@
 
     <title>AI Study Assistant - AI Tutor</title>
 
+
     <style>
 
         * {
@@ -21,14 +22,17 @@
             font-family: Arial, sans-serif;
         }
 
+
         body {
             min-height: 100vh;
             background: #0f1115;
             color: white;
         }
 
+
         header {
             padding: 20px 30px;
+
             border-bottom: 1px solid #292d36;
 
             display: flex;
@@ -36,96 +40,154 @@
             align-items: center;
         }
 
+
         header h1 {
             font-size: 22px;
         }
 
+
         .back-btn {
             border: none;
+
             background: #2563eb;
+
             color: white;
+
             padding: 10px 16px;
+
             border-radius: 8px;
+
             cursor: pointer;
         }
 
+
+        .back-btn:hover {
+            opacity: 0.9;
+        }
+
+
         .container {
             max-width: 900px;
+
             margin: auto;
+
             padding: 45px 20px;
         }
 
+
         .intro {
             text-align: center;
+
             margin-bottom: 35px;
         }
 
+
         .intro h2 {
             font-size: 32px;
+
             margin-bottom: 10px;
         }
 
+
         .intro p {
             color: #a8afbf;
+
+            font-size: 16px;
         }
+
 
         .tutor-card {
             background: #181b21;
+
             border: 1px solid #292d36;
+
             border-radius: 16px;
+
             padding: 30px;
         }
 
+
         textarea {
             width: 100%;
+
             min-height: 150px;
+
             resize: vertical;
 
             padding: 15px;
 
             border: 1px solid #363b46;
+
             border-radius: 10px;
 
             background: #101217;
+
             color: white;
 
             font-size: 16px;
+
+            line-height: 1.6;
+
             outline: none;
         }
+
 
         textarea:focus {
             border-color: #2563eb;
         }
 
+
+        textarea::placeholder {
+            color: #6b7280;
+        }
+
+
         .ask-btn {
             width: 100%;
+
             margin-top: 15px;
 
             padding: 13px;
 
             border: none;
+
             border-radius: 9px;
 
             background: #2563eb;
+
             color: white;
 
             font-size: 16px;
+
             font-weight: bold;
 
             cursor: pointer;
         }
 
+
         .ask-btn:hover {
             opacity: 0.9;
         }
+
+
+        .ask-btn:disabled {
+            opacity: 0.6;
+
+            cursor: not-allowed;
+        }
+
 
         .answer-section {
             margin-top: 30px;
         }
 
+
         .answer-section h3 {
             margin-bottom: 12px;
+
+            font-size: 20px;
         }
+
 
         .answer {
             min-height: 150px;
@@ -143,7 +205,10 @@
             line-height: 1.7;
 
             white-space: pre-wrap;
+
+            overflow-wrap: break-word;
         }
+
 
         .progress-note {
             margin-top: 20px;
@@ -163,26 +228,36 @@
             text-align: center;
         }
 
+
         @media (max-width: 600px) {
 
             header {
                 padding: 17px;
             }
 
+
             header h1 {
                 font-size: 18px;
             }
+
 
             .container {
                 padding: 30px 15px;
             }
 
+
             .intro h2 {
                 font-size: 26px;
             }
 
+
             .tutor-card {
                 padding: 20px;
+            }
+
+
+            textarea {
+                min-height: 130px;
             }
 
         }
@@ -195,7 +270,9 @@
 <body>
 
 
-    <!-- HEADER -->
+    <!-- ==================================================
+         HEADER
+    ================================================== -->
 
     <header>
 
@@ -203,8 +280,10 @@
             🤖 AI Study Assistant
         </h1>
 
+
         <button
             class="back-btn"
+            type="button"
             onclick="window.location.href='dashboard.html'"
         >
             ← Dashboard
@@ -213,9 +292,15 @@
     </header>
 
 
-    <!-- MAIN -->
+
+    <!-- ==================================================
+         MAIN
+    ================================================== -->
 
     <main class="container">
+
+
+        <!-- INTRO -->
 
         <section class="intro">
 
@@ -223,12 +308,19 @@
                 🤖 AI Tutor
             </h2>
 
+
             <p>
-                Ask your study question and get a simple explanation.
+                Ask any study question and get a simple,
+                accurate explanation from AI.
             </p>
 
         </section>
 
+
+
+        <!-- ==================================================
+             TUTOR CARD
+        ================================================== -->
 
         <section class="tutor-card">
 
@@ -237,27 +329,35 @@
 
             <textarea
                 id="question"
-                placeholder="Example: Explain loops in C++ in simple words..."
+                placeholder="Example: What is friction?"
+                autocomplete="off"
             ></textarea>
 
+
+
+            <!-- ASK BUTTON -->
 
             <button
                 class="ask-btn"
                 id="askButton"
                 type="button"
-                onclick="askTutorQuestion()"
+                onclick="askAssistant()"
             >
                 Ask AI
             </button>
 
 
-            <!-- ANSWER -->
+
+            <!-- ==================================================
+                 ANSWER
+            ================================================== -->
 
             <div class="answer-section">
 
                 <h3>
                     AI Answer
                 </h3>
+
 
                 <div
                     id="answer"
@@ -269,6 +369,11 @@
             </div>
 
 
+
+            <!-- ==================================================
+                 PROGRESS
+            ================================================== -->
+
             <div class="progress-note">
 
                 📊 Your AI Tutor questions will automatically
@@ -279,161 +384,60 @@
 
         </section>
 
+
     </main>
 
 
-    <!-- EXISTING AI TUTOR SCRIPT -->
+
+    <!-- ==================================================
+         AI TUTOR JAVASCRIPT
+    ================================================== -->
 
     <script src="script.js"></script>
 
 
-    <!-- PROGRESS CONNECTION -->
+
+    <!-- ==================================================
+         ENTER KEY SUPPORT
+    ================================================== -->
 
     <script>
 
-        function askTutorQuestion() {
+        const questionInput =
+            document.getElementById("question");
 
-            const questionInput =
-                document.getElementById("question");
 
-            if (!questionInput) {
-                return;
-            }
+        if (questionInput) {
 
-            const question =
-                questionInput.value.trim();
+            questionInput.addEventListener(
+                "keydown",
+                function(event) {
 
-            // Empty question ko progress mein add nahi karna
-            if (question === "") {
-                if (typeof askAssistant === "function") {
-                    askAssistant();
+                    if (
+                        event.key === "Enter" &&
+                        !event.shiftKey
+                    ) {
+
+                        event.preventDefault();
+
+                        if (
+                            typeof askAssistant ===
+                            "function"
+                        ) {
+
+                            askAssistant();
+
+                        }
+
+                    }
+
                 }
-                return;
-            }
-
-
-            // Existing AI Tutor function run karo
-            if (typeof askAssistant === "function") {
-
-                askAssistant();
-
-            } else {
-
-                alert("AI Tutor is not available.");
-
-                return;
-            }
-
-
-            // ==========================================
-            // TOPICS STUDIED
-            // ==========================================
-
-            let topics =
-                Number(
-                    localStorage.getItem("topicsStudied")
-                ) || 0;
-
-            topics += 1;
-
-            localStorage.setItem(
-                "topicsStudied",
-                topics
-            );
-
-
-            // ==========================================
-            // AI TUTOR PROGRESS
-            // ==========================================
-
-            let tutorProgress =
-                Number(
-                    localStorage.getItem("tutorProgress")
-                ) || 0;
-
-
-            tutorProgress =
-                Math.min(
-                    tutorProgress + 10,
-                    100
-                );
-
-
-            localStorage.setItem(
-                "tutorProgress",
-                tutorProgress
-            );
-
-
-            // ==========================================
-            // RECENT ACTIVITY
-            // ==========================================
-
-            let activities =
-                JSON.parse(
-                    localStorage.getItem("studyActivity") || "[]"
-                );
-
-
-            activities.push({
-
-                icon: "🤖",
-
-                text:
-                    "AI Tutor question: " + question,
-
-                time:
-                    new Date().toLocaleString()
-
-            });
-
-
-            // Sirf latest 20 activities rakhein
-            if (activities.length > 20) {
-
-                activities =
-                    activities.slice(-20);
-
-            }
-
-
-            localStorage.setItem(
-                "studyActivity",
-                JSON.stringify(activities)
-            );
-
-
-            // ==========================================
-            // FLASHCARD PROGRESS
-            // ==========================================
-
-            const flashcardProgress =
-                Number(
-                    localStorage.getItem("flashcardProgress")
-                ) || 0;
-
-
-            // ==========================================
-            // OVERALL LEARNING
-            // ==========================================
-
-            const overall =
-                Math.round(
-                    (
-                        tutorProgress +
-                        flashcardProgress
-                    ) / 2
-                );
-
-
-            localStorage.setItem(
-                "overallProgress",
-                overall
             );
 
         }
 
     </script>
+
 
 </body>
 
