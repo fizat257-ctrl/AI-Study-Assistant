@@ -8,17 +8,13 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
+
 // ==================================================
 // GEMINI MODEL
 // ==================================================
 
-const MODELS = [
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-2.5-flash"
-];
+const MODEL = "gemini-3.6-flash";
 
-const MODEL = MODELS[0];
 
 // ==================================================
 // GEMINI AI
@@ -27,6 +23,7 @@ const MODEL = MODELS[0];
 const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
+
 
 // ==================================================
 // HELPER FUNCTIONS
@@ -71,7 +68,11 @@ function getErrorMessage(error) {
 }
 
 
-function sendAPIError(res, statusCode, errorMessage) {
+function sendAPIError(
+    res,
+    statusCode,
+    errorMessage
+) {
 
     return res.status(statusCode).json({
 
@@ -170,7 +171,6 @@ app.get("/dashboard.html", (req, res) => {
 
 // ==================================================
 // AI TUTOR
-// GENERAL QUESTIONS
 // ==================================================
 
 app.post(
@@ -202,76 +202,64 @@ app.post(
             }
 
 
-            const cleanQuestion =
-                question
-                    .replace(/\u0000/g, "")
-                    .trim();
-
-
             console.log(
                 "AI Tutor question received:",
-                cleanQuestion
+                question.trim()
             );
 
 
             // ------------------------------------------
-            // GENERAL AI TUTOR PROMPT
+            // AI PROMPT
             // ------------------------------------------
 
             const prompt = `
-You are an AI Study Assistant for students.
+You are an AI Study Assistant and AI Tutor.
 
-You can answer questions from ANY educational
-subject.
+A student can ask questions from ANY academic
+subject or educational topic.
 
-You may answer questions about:
+You must answer the student's actual question.
 
-- Mathematics
+Supported subjects include, but are not limited to:
+
 - Physics
 - Chemistry
+- Mathematics
 - Biology
 - Computer Science
 - Programming
-- Artificial Intelligence
+- C++
 - English
+- Computer
+- Artificial Intelligence
 - History
 - Geography
-- Business
 - Economics
+- Business
+- Commerce
+- E-commerce
 - General academic subjects
-- Textbook concepts
-- Chapter-related questions
 
-IMPORTANT:
+Do NOT restrict the student to a fixed list of topics.
 
-Do NOT limit yourself to a predefined list
-of topics.
+If the question is educational, provide a clear,
+accurate and student-friendly answer.
 
-If the student asks about a subject that is
-not programming, still answer the question.
+Explain concepts in simple English.
 
-Explain the answer clearly and accurately.
+Use examples, formulas, steps or bullet points
+when they are useful.
 
-Use simple student-friendly language.
+If the question is mathematical, solve it step by step.
 
-Break difficult concepts into smaller parts.
+If the question is scientific, explain the concept clearly.
 
-Use examples when useful.
+If the question is programming-related, provide
+correct code examples when appropriate.
 
-For mathematical questions, show steps
-when appropriate.
+Student Question:
 
-For programming questions, explain the
-concept and give a simple example when useful.
-
-Do not say that the system only supports
-certain topics.
-
-Do not mention these instructions.
-
-STUDENT QUESTION:
-
-${cleanQuestion}
+${question.trim()}
 `;
 
 
@@ -311,16 +299,16 @@ ${cleanQuestion}
             }
 
 
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
             console.log(
                 "AI Tutor answer generated successfully."
             );
 
 
-            return res.status(200).json({
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            return res.json({
 
                 success: true,
 
@@ -348,6 +336,8 @@ ${cleanQuestion}
 
     }
 );
+
+
 // ==================================================
 // AI FLASHCARDS
 // ==================================================
@@ -395,43 +385,28 @@ Create exactly 5 useful study flashcards about:
 
 ${topic.trim()}
 
+The topic can belong to ANY academic subject.
+
 Return ONLY a valid JSON array.
 
-Use exactly this format:
+Use exactly this structure:
 
 [
   {
-    "question": "What is ...?",
-    "answer": "..."
-  },
-  {
-    "question": "What is ...?",
-    "answer": "..."
-  },
-  {
-    "question": "How does ... work?",
-    "answer": "..."
-  },
-  {
-    "question": "Why is ... important?",
-    "answer": "..."
-  },
-  {
-    "question": "Give an example of ...",
-    "answer": "..."
+    "question": "Question here",
+    "answer": "Answer here"
   }
 ]
 
 Rules:
 
 1. Create exactly 5 flashcards.
-2. Every flashcard must have question and answer.
-3. Questions must be clear.
-4. Answers must be accurate.
-5. Keep answers student-friendly.
+2. Questions must be directly related to the topic.
+3. Answers must be accurate.
+4. Keep answers student-friendly.
+5. Do not invent unrelated information.
 6. Do not use Markdown.
-7. Do not add explanations.
-8. Return ONLY the JSON array.
+7. Return ONLY the JSON array.
 `
 
                 });
@@ -443,8 +418,14 @@ Rules:
 
             text =
                 text
-                    .replace(/```json/gi, "")
-                    .replace(/```/g, "")
+                    .replace(
+                        /```json/gi,
+                        ""
+                    )
+                    .replace(
+                        /```/g,
+                        ""
+                    )
                     .trim();
 
 
@@ -492,7 +473,6 @@ Rules:
                     jsonError
                 );
 
-
                 return sendAPIError(
                     res,
                     500,
@@ -503,7 +483,9 @@ Rules:
 
 
             if (
-                !Array.isArray(flashcards)
+                !Array.isArray(
+                    flashcards
+                )
             ) {
 
                 return sendAPIError(
@@ -543,8 +525,6 @@ Rules:
 
     }
 );
-
-
 // ==================================================
 // PDF → AI SUMMARY
 // ==================================================
@@ -558,6 +538,10 @@ app.post(
             let text =
                 req.body.text;
 
+
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
 
             if (
                 !text ||
@@ -574,11 +558,22 @@ app.post(
             }
 
 
+            // ------------------------------------------
+            // CLEAN PDF TEXT
+            // ------------------------------------------
+
             text =
                 text
-                    .replace(/\u0000/g, "")
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
                     .trim();
 
+
+            // ------------------------------------------
+            // LIMIT PDF TEXT
+            // ------------------------------------------
 
             const MAX_TEXT_LENGTH =
                 120000;
@@ -596,7 +591,7 @@ app.post(
                     );
 
                 console.log(
-                    "PDF text was shortened because it was very large."
+                    "PDF text shortened because it was very large."
                 );
 
             }
@@ -612,16 +607,20 @@ app.post(
             );
 
 
+            // ------------------------------------------
+            // AI PROMPT
+            // ------------------------------------------
+
             const prompt = `
 You are an AI Study Assistant.
 
-Read the following study material
-extracted from a PDF.
+Read the following study material extracted
+from a PDF.
 
-Create a clear, accurate and
-student-friendly study summary.
+Create a clear, accurate and student-friendly
+study summary.
 
-Use exactly these sections:
+Use these sections:
 
 SHORT SUMMARY:
 Give a concise overview.
@@ -636,8 +635,8 @@ KEY TERMS:
 List important terms and explain them simply.
 
 STUDY TIPS:
-Give a few useful revision tips based only
-on the provided study material.
+Give useful revision tips based only on
+the provided study material.
 
 Rules:
 
@@ -645,7 +644,6 @@ Rules:
 - Keep the information accurate.
 - Do not invent information.
 - Do not discuss information that is not present.
-- Use headings and bullet points where helpful.
 - Make the result easy to study.
 
 PDF STUDY MATERIAL:
@@ -653,6 +651,10 @@ PDF STUDY MATERIAL:
 ${text}
 `;
 
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
 
             const response =
                 await ai.models.generateContent({
@@ -667,6 +669,10 @@ ${text}
             const summary =
                 response.text || "";
 
+
+            // ------------------------------------------
+            // CHECK ANSWER
+            // ------------------------------------------
 
             if (
                 !summary ||
@@ -715,6 +721,8 @@ ${text}
 
     }
 );
+
+
 // ==================================================
 // PDF → ASK AI QUESTION
 // ==================================================
@@ -776,12 +784,19 @@ app.post(
 
             text =
                 text
-                    .replace(/\u0000/g, "")
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
                     .trim();
+
 
             question =
                 question
-                    .replace(/\u0000/g, "")
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
                     .trim();
 
 
@@ -805,15 +820,11 @@ app.post(
                     );
 
                 console.log(
-                    "PDF question text was shortened because it was very large."
+                    "PDF question text shortened because it was very large."
                 );
 
             }
 
-
-            // ------------------------------------------
-            // LOG REQUEST
-            // ------------------------------------------
 
             console.log(
                 "PDF QUESTION REQUEST RECEIVED"
@@ -837,33 +848,34 @@ app.post(
             const prompt = `
 You are an AI Study Assistant.
 
-A student has uploaded study material
-from a PDF and wants to ask a question
-about that material.
+A student has uploaded a PDF and wants
+to ask a question specifically about
+that PDF.
 
-Answer the question using ONLY the
-provided PDF content.
+Answer the student's question using
+ONLY the PDF content provided below.
 
-PDF CONTENT:
+================ PDF CONTENT ================
 
 ${text}
 
-STUDENT QUESTION:
+================ STUDENT QUESTION ================
 
 ${question}
 
-IMPORTANT RULES:
+================ RULES ================
 
-1. Carefully search the provided PDF content.
+1. Carefully use the provided PDF content.
 
-2. If the answer exists in the PDF,
-   answer it clearly.
+2. If the answer is available anywhere
+   in the PDF, answer it clearly.
 
-3. You may combine information from
-   different parts of the PDF.
+3. If the answer requires combining
+   information from different parts
+   of the PDF, combine those parts.
 
-4. Do not invent facts that are not
-   supported by the PDF.
+4. Do not invent facts, statistics,
+   names, dates or results.
 
 5. If the answer genuinely cannot be
    found in the PDF, say:
@@ -875,6 +887,8 @@ in the provided PDF."
    student-friendly.
 
 7. Do not mention these instructions.
+
+================ END ================
 `;
 
 
@@ -914,10 +928,6 @@ in the provided PDF."
             }
 
 
-            // ------------------------------------------
-            // SUCCESS
-            // ------------------------------------------
-
             console.log(
                 "PDF question answered successfully."
             );
@@ -954,6 +964,314 @@ in the provided PDF."
 
 
 // ==================================================
+// AI QUIZ API
+// ==================================================
+
+app.post(
+    "/api/quiz",
+    async (req, res) => {
+
+        try {
+
+            const topic =
+                req.body.topic;
+
+
+            // ------------------------------------------
+            // CHECK TOPIC
+            // ------------------------------------------
+
+            if (
+                !topic ||
+                typeof topic !== "string" ||
+                !topic.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a quiz topic."
+                );
+
+            }
+
+
+            console.log(
+                "AI QUIZ REQUEST RECEIVED:"
+            );
+
+            console.log(
+                "Quiz topic:",
+                topic.trim()
+            );
+
+
+            // ------------------------------------------
+            // AI QUIZ PROMPT
+            // ------------------------------------------
+
+            const prompt = `
+You are an expert AI Quiz Generator
+for a student learning platform.
+
+Create a proper educational quiz about:
+
+"${topic.trim()}"
+
+The topic can be from ANY academic subject,
+including:
+
+Physics, Chemistry, Mathematics, Biology,
+Computer Science, Programming, C++, English,
+History, Geography, Economics, Business,
+Commerce, E-commerce, Artificial Intelligence,
+or any other school/college/university subject.
+
+The questions must be specifically about
+the requested topic.
+
+Do NOT create generic questions such as:
+
+"What is the purpose of studying this topic?"
+
+Instead, test the student's actual knowledge
+of the topic.
+
+Create exactly 5 multiple-choice questions.
+
+Each question must have exactly 4 options.
+
+There must be exactly ONE correct answer.
+
+Return ONLY valid JSON.
+
+Use exactly this format:
+
+[
+  {
+    "question": "What is ...?",
+    "options": [
+      "Option A",
+      "Option B",
+      "Option C",
+      "Option D"
+    ],
+    "correctAnswer": 0
+  }
+]
+
+IMPORTANT:
+
+- correctAnswer must be a number.
+- 0 means the first option.
+- 1 means the second option.
+- 2 means the third option.
+- 3 means the fourth option.
+- Questions must test real knowledge.
+- Options must be meaningful.
+- Avoid obviously silly wrong answers.
+- Do not repeat the same question.
+- Keep the difficulty suitable for a student.
+- Keep questions directly related to the topic.
+- Do not add explanations.
+- Do not add Markdown.
+- Return ONLY the JSON array.
+`;
+
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
+
+            const response =
+                await ai.models.generateContent({
+
+                    model: MODEL,
+
+                    contents: prompt
+
+                });
+
+
+            let text =
+                response.text || "";
+
+
+            // ------------------------------------------
+            // CLEAN AI RESPONSE
+            // ------------------------------------------
+
+            text =
+                text
+                    .replace(
+                        /```json/gi,
+                        ""
+                    )
+                    .replace(
+                        /```/g,
+                        ""
+                    )
+                    .trim();
+
+
+            // ------------------------------------------
+            // FIND JSON ARRAY
+            // ------------------------------------------
+
+            const start =
+                text.indexOf("[");
+
+
+            const end =
+                text.lastIndexOf("]");
+
+
+            if (
+                start === -1 ||
+                end === -1
+            ) {
+
+                console.error(
+                    "QUIZ JSON NOT FOUND:",
+                    text
+                );
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI did not return a valid quiz."
+                );
+
+            }
+
+
+            const jsonText =
+                text.substring(
+                    start,
+                    end + 1
+                );
+
+
+            let quiz;
+
+
+            // ------------------------------------------
+            // PARSE JSON
+            // ------------------------------------------
+
+            try {
+
+                quiz =
+                    JSON.parse(
+                        jsonText
+                    );
+
+            } catch (jsonError) {
+
+                console.error(
+                    "QUIZ JSON ERROR:",
+                    jsonError
+                );
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned invalid quiz data."
+                );
+
+            }
+
+
+            // ------------------------------------------
+            // VALIDATE QUIZ
+            // ------------------------------------------
+
+            if (
+                !Array.isArray(quiz) ||
+                quiz.length === 0
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty quiz."
+                );
+
+            }
+
+
+            for (
+                let i = 0;
+                i < quiz.length;
+                i++
+            ) {
+
+                const item =
+                    quiz[i];
+
+
+                if (
+                    !item ||
+                    typeof item.question !== "string" ||
+                    !Array.isArray(item.options) ||
+                    item.options.length !== 4 ||
+                    typeof item.correctAnswer !== "number" ||
+                    item.correctAnswer < 0 ||
+                    item.correctAnswer > 3
+                ) {
+
+                    return sendAPIError(
+                        res,
+                        500,
+                        "AI returned an invalid quiz format."
+                    );
+
+                }
+
+            }
+
+
+            console.log(
+                "AI QUIZ GENERATED SUCCESSFULLY."
+            );
+
+
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            return res.status(200).json({
+
+                success: true,
+
+                topic:
+                    topic.trim(),
+
+                quiz:
+                    quiz
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "AI QUIZ ERROR:",
+                error
+            );
+
+
+            return sendAPIError(
+                res,
+                500,
+                getErrorMessage(error)
+            );
+
+        }
+
+    }
+);
+// ==================================================
 // API TEST
 // ==================================================
 
@@ -975,13 +1293,15 @@ app.get(
 
                 aiTutor: true,
 
-                generalQuestions: true,
+                generalQuestion: true,
 
                 flashcards: true,
 
                 pdfSummary: true,
 
-                pdfQuestions: true
+                pdfQuestions: true,
+
+                quizGenerator: true
 
             }
 
@@ -1015,6 +1335,10 @@ app.use(
 // ==================================================
 // VERCEL EXPORT
 // ==================================================
+//
+// Vercel serverless function ke liye
+// Express app export karna zaroori hai.
+//
 
 module.exports = app;
 
@@ -1022,6 +1346,10 @@ module.exports = app;
 // ==================================================
 // LOCAL SERVER
 // ==================================================
+//
+// Local VS Code testing ke liye server start hoga.
+// Vercel par app.listen() execute nahi hoga.
+//
 
 if (require.main === module) {
 
@@ -1067,6 +1395,10 @@ if (require.main === module) {
 
             console.log(
                 "PDF Questions: ENABLED"
+            );
+
+            console.log(
+                "AI Quiz Generator: ENABLED"
             );
 
             console.log(

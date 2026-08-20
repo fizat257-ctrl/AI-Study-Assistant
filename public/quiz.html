@@ -139,25 +139,31 @@
       line-height: 1.7;
     }
 
-    .quiz-container h3 {
-      margin-bottom: 15px;
-    }
-
-    .question {
+    .quiz-header {
       margin-bottom: 25px;
     }
 
+    .quiz-header h3 {
+      margin-bottom: 8px;
+    }
+
+    .question-number {
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
     .question-title {
+      font-size: 19px;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
 
     .option {
       display: block;
       width: 100%;
 
-      margin-top: 10px;
-      padding: 11px;
+      margin-top: 12px;
+      padding: 13px;
 
       border: 1px solid #363b46;
       border-radius: 8px;
@@ -167,21 +173,117 @@
 
       cursor: pointer;
       text-align: left;
+
+      transition: 0.2s;
     }
 
     .option:hover {
       border-color: #2563eb;
     }
 
-    .result {
+    .option:disabled {
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .correct {
+      border-color: #22c55e !important;
+    }
+
+    .wrong {
+      border-color: #ef4444 !important;
+    }
+
+    .next-btn {
+      width: 100%;
       margin-top: 20px;
-      padding: 15px;
+
+      padding: 13px;
+
+      border: none;
+      border-radius: 9px;
+
+      background: #16a34a;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .next-btn:hover {
+      opacity: 0.9;
+    }
+
+    .feedback {
+      margin-top: 18px;
+      padding: 12px;
+
+      border-radius: 8px;
+
+      background: #181b21;
+
+      color: #d7dbe4;
+    }
+
+    .result {
+      margin-top: 10px;
+      padding: 25px;
 
       background: #181b21;
       border: 1px solid #292d36;
-      border-radius: 8px;
 
-      color: #d7dbe4;
+      border-radius: 10px;
+
+      text-align: center;
+    }
+
+    .result h3 {
+      font-size: 26px;
+      margin-bottom: 15px;
+    }
+
+    .score {
+      font-size: 40px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    .result p {
+      margin-top: 8px;
+      color: #cbd5e1;
+    }
+
+    .restart-btn {
+      width: 100%;
+      margin-top: 20px;
+
+      padding: 13px;
+
+      border: none;
+      border-radius: 9px;
+
+      background: #2563eb;
+      color: white;
+
+      font-size: 16px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: #cbd5e1;
+    }
+
+    .error {
+      padding: 20px;
+      color: #fca5a5;
+      background: #2a1515;
+      border-radius: 8px;
     }
 
     @media (max-width: 600px) {
@@ -216,8 +318,6 @@
 <body>
 
 
-  <!-- HEADER -->
-
   <header>
 
     <h1>
@@ -234,10 +334,7 @@
   </header>
 
 
-  <!-- MAIN -->
-
   <main class="container">
-
 
     <section class="intro">
 
@@ -246,7 +343,7 @@
       </h2>
 
       <p>
-        Enter a topic and test your knowledge.
+        Enter any topic and let AI create a personalized quiz.
       </p>
 
     </section>
@@ -255,16 +352,12 @@
     <section class="quiz-card">
 
 
-      <!-- TOPIC -->
-
       <input
         id="quizTopic"
         type="text"
-        placeholder="Example: C++ Loops"
+        placeholder="Example: Friction, Periodic Table, C++ Loops, Photosynthesis..."
       >
 
-
-      <!-- GENERATE -->
 
       <button
         id="generateButton"
@@ -272,18 +365,16 @@
         type="button"
         onclick="generateQuiz()"
       >
-        Generate Quiz
+        Generate AI Quiz
       </button>
 
-
-      <!-- QUIZ -->
 
       <div
         id="quizContainer"
         class="quiz-container"
       >
 
-        Your quiz will appear here.
+        Your AI-generated quiz will appear here.
 
       </div>
 
@@ -291,19 +382,28 @@
     </section>
 
   </main>
-
-
-  <!-- ==========================================
-       JAVASCRIPT
-  =========================================== -->
-
   <script>
 
-    // ==========================================
-    // GENERATE QUIZ
-    // ==========================================
+    // ==================================================
+    // QUIZ VARIABLES
+    // ==================================================
 
-    function generateQuiz() {
+    let currentQuiz = [];
+
+    let currentQuestionIndex = 0;
+
+    let score = 0;
+
+    let answered = false;
+
+    let currentTopic = "";
+
+
+    // ==================================================
+    // GENERATE QUIZ
+    // ==================================================
+
+    async function generateQuiz() {
 
       const topicInput =
         document.getElementById("quizTopic");
@@ -315,30 +415,47 @@
         document.getElementById("generateButton");
 
 
+      if (!topicInput || !quizContainer) {
+        return;
+      }
+
+
       const topic =
         topicInput.value.trim();
 
 
-      // ==========================================
-      // CHECK TOPIC
-      // ==========================================
-
       if (!topic) {
 
         quizContainer.innerHTML =
-          "Please enter a topic first.";
+          '<div class="error">Please enter a topic first.</div>';
 
         return;
-
       }
 
 
-      // ==========================================
-      // LOADING
-      // ==========================================
+      currentTopic = topic;
 
-      quizContainer.innerHTML =
-        "🧠 Generating quiz...";
+      currentQuiz = [];
+
+      currentQuestionIndex = 0;
+
+      score = 0;
+
+      answered = false;
+
+
+      // ==================================================
+      // LOADING
+      // ==================================================
+
+      quizContainer.innerHTML = `
+        <div class="loading">
+          🧠 AI is creating a quiz about
+          <strong>${escapeHTML(topic)}</strong>...
+          <br><br>
+          Please wait.
+        </div>
+      `;
 
 
       generateButton.disabled = true;
@@ -347,128 +464,76 @@
         "Generating Quiz...";
 
 
-      // ==========================================
-      // CREATE SIMPLE QUIZ
-      // ==========================================
+      try {
 
-      setTimeout(function() {
+        // ==================================================
+        // CALL BACKEND
+        // ==================================================
 
+        const response =
+          await fetch("/api/quiz", {
 
-        quizContainer.innerHTML = `
+            method: "POST",
 
-          <h3>
-            🧠 Quiz: ${escapeHTML(topic)}
-          </h3>
+            headers: {
+              "Content-Type": "application/json"
+            },
 
-          <div class="question">
+            body: JSON.stringify({
+              topic: topic
+            })
 
-            <div class="question-title">
-              1. What is the main purpose of studying ${escapeHTML(topic)}?
-            </div>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, true)"
-            >
-              A. To understand the topic and apply its concepts
-            </button>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, false)"
-            >
-              B. To avoid learning the topic
-            </button>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, false)"
-            >
-              C. To memorize without understanding
-            </button>
-
-          </div>
+          });
 
 
-          <div class="question">
-
-            <div class="question-title">
-              2. What is a good way to learn ${escapeHTML(topic)}?
-            </div>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, true)"
-            >
-              A. Practice and review regularly
-            </button>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, false)"
-            >
-              B. Never practice
-            </button>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, false)"
-            >
-              C. Skip the important concepts
-            </button>
-
-          </div>
+        const data =
+          await response.json();
 
 
-          <div class="question">
+        // ==================================================
+        // ERROR
+        // ==================================================
 
-            <div class="question-title">
-              3. What should you do after completing a topic?
-            </div>
+        if (!response.ok || !data.success) {
 
-            <button
-              class="option"
-              onclick="selectAnswer(this, true)"
-            >
-              A. Test your understanding
-            </button>
+          throw new Error(
+            data.error ||
+            "Unable to generate quiz."
+          );
 
-            <button
-              class="option"
-              onclick="selectAnswer(this, false)"
-            >
-              B. Forget everything
-            </button>
-
-            <button
-              class="option"
-              onclick="selectAnswer(this, false)"
-            >
-              C. Stop studying completely
-            </button>
-
-          </div>
+        }
 
 
-          <div
-            id="quizResult"
-            class="result"
-          >
-            Answer the questions to test your knowledge.
-          </div>
+        // ==================================================
+        // VALIDATE QUIZ
+        // ==================================================
 
-        `;
+        if (
+          !Array.isArray(data.quiz) ||
+          data.quiz.length === 0
+        ) {
+
+          throw new Error(
+            "AI returned an empty quiz."
+          );
+
+        }
 
 
-        generateButton.disabled = false;
-
-        generateButton.innerText =
-          "Generate Quiz";
+        currentQuiz =
+          data.quiz;
 
 
-        // ==========================================
+        // ==================================================
+        // SHOW FIRST QUESTION
+        // ==================================================
+
+        showQuestion();
+
+
+        // ==================================================
         // QUIZ PROGRESS
-        // ==========================================
+        // ==================================================
 
         let quizProgress =
           Number(
@@ -491,9 +556,9 @@
         );
 
 
-        // ==========================================
+        // ==================================================
         // TOPICS STUDIED
-        // ==========================================
+        // ==================================================
 
         let topics =
           Number(
@@ -512,9 +577,9 @@
         );
 
 
-        // ==========================================
+        // ==================================================
         // RECENT ACTIVITY
-        // ==========================================
+        // ==================================================
 
         let activities =
           JSON.parse(
@@ -529,7 +594,7 @@
           icon: "🧠",
 
           text:
-            `Quiz Generated: ${topic}`,
+            "AI Quiz Generated: " + topic,
 
           time:
             new Date().toLocaleString()
@@ -553,51 +618,471 @@
         );
 
 
-        // ==========================================
-        // UPDATE OVERALL
-        // ==========================================
-
         updateOverallProgress();
 
 
-      }, 600);
+      } catch (error) {
 
-    }
-
-
-    // ==========================================
-    // SELECT ANSWER
-    // ==========================================
-
-    function selectAnswer(
-      button,
-      correct
-    ) {
-
-      const result =
-        document.getElementById(
-          "quizResult"
+        console.error(
+          "QUIZ ERROR:",
+          error
         );
 
 
-      if (correct) {
+        quizContainer.innerHTML = `
+          <div class="error">
+            ❌ ${escapeHTML(
+              error.message ||
+              "Something went wrong while generating the quiz."
+            )}
+          </div>
+        `;
 
-        result.textContent =
-          "✅ Correct! Good job.";
+      } finally {
 
-      } else {
+        generateButton.disabled = false;
 
-        result.textContent =
-          "❌ Not quite. Review the topic and try again.";
+        generateButton.innerText =
+          "Generate AI Quiz";
 
       }
 
     }
 
 
-    // ==========================================
+    // ==================================================
+    // SHOW QUESTION
+    // ==================================================
+
+    function showQuestion() {
+
+      const quizContainer =
+        document.getElementById(
+          "quizContainer"
+        );
+
+
+      if (!quizContainer) {
+        return;
+      }
+
+
+      const question =
+        currentQuiz[
+          currentQuestionIndex
+        ];
+
+
+      if (!question) {
+
+        showFinalResult();
+
+        return;
+
+      }
+
+
+      answered = false;
+
+
+      let optionsHTML = "";
+
+
+      question.options.forEach(
+        function(option, index) {
+
+          optionsHTML += `
+
+            <button
+              class="option"
+              type="button"
+              onclick="selectAnswer(${index}, this)"
+            >
+              ${escapeHTML(option)}
+            </button>
+
+          `;
+
+        }
+      );
+
+
+      quizContainer.innerHTML = `
+
+        <div class="quiz-header">
+
+          <h3>
+            🧠 Quiz: ${escapeHTML(currentTopic)}
+          </h3>
+
+          <div class="question-number">
+            Question
+            ${currentQuestionIndex + 1}
+            of
+            ${currentQuiz.length}
+          </div>
+
+        </div>
+
+
+        <div class="question-title">
+
+          ${escapeHTML(question.question)}
+
+        </div>
+
+
+        <div>
+
+          ${optionsHTML}
+
+        </div>
+
+
+        <div
+          id="feedback"
+          class="feedback"
+        >
+          Select an answer.
+        </div>
+
+
+        <button
+          id="nextButton"
+          class="next-btn"
+          type="button"
+          onclick="nextQuestion()"
+          style="display:none;"
+        >
+          ${
+            currentQuestionIndex ===
+            currentQuiz.length - 1
+              ? "Show Final Score"
+              : "Next Question"
+          }
+        </button>
+
+      `;
+
+    }
+
+
+    // ==================================================
+    // SELECT ANSWER
+    // ==================================================
+
+    function selectAnswer(
+      selectedIndex,
+      selectedButton
+    ) {
+
+      if (answered) {
+        return;
+      }
+
+
+      answered = true;
+
+
+      const question =
+        currentQuiz[
+          currentQuestionIndex
+        ];
+
+
+      const optionButtons =
+        document.querySelectorAll(
+          ".option"
+        );
+
+
+      optionButtons.forEach(
+        function(button) {
+
+          button.disabled = true;
+
+        }
+      );
+
+
+      const feedback =
+        document.getElementById(
+          "feedback"
+        );
+
+
+      const correctIndex =
+        Number(
+          question.correctAnswer
+        );
+
+
+      if (
+        selectedIndex ===
+        correctIndex
+      ) {
+
+        score += 1;
+
+
+        selectedButton.classList.add(
+          "correct"
+        );
+
+
+        feedback.innerHTML =
+          "✅ Correct! Good job.";
+
+      } else {
+
+        selectedButton.classList.add(
+          "wrong"
+        );
+
+
+        if (
+          optionButtons[
+            correctIndex
+          ]
+        ) {
+
+          optionButtons[
+            correctIndex
+          ].classList.add(
+            "correct"
+          );
+
+        }
+
+
+        feedback.innerHTML =
+          "❌ Incorrect. The correct answer is: " +
+          escapeHTML(
+            question.options[
+              correctIndex
+            ]
+          );
+
+      }
+
+
+      const nextButton =
+        document.getElementById(
+          "nextButton"
+        );
+
+
+      if (nextButton) {
+
+        nextButton.style.display =
+          "block";
+
+      }
+
+    }
+
+
+    // ==================================================
+    // NEXT QUESTION
+    // ==================================================
+
+    function nextQuestion() {
+
+      if (!answered) {
+
+        return;
+
+      }
+
+
+      currentQuestionIndex += 1;
+
+
+      if (
+        currentQuestionIndex >=
+        currentQuiz.length
+      ) {
+
+        showFinalResult();
+
+        return;
+
+      }
+
+
+      showQuestion();
+
+    }
+
+
+    // ==================================================
+    // FINAL RESULT
+    // ==================================================
+
+    function showFinalResult() {
+
+      const quizContainer =
+        document.getElementById(
+          "quizContainer"
+        );
+
+
+      if (!quizContainer) {
+        return;
+      }
+
+
+      const total =
+        currentQuiz.length;
+
+
+      const percentage =
+        Math.round(
+          (score / total) * 100
+        );
+
+
+      quizContainer.innerHTML = `
+
+        <div class="result">
+
+          <h3>
+            🎉 Quiz Completed!
+          </h3>
+
+          <div class="score">
+            ${score} / ${total}
+          </div>
+
+          <p>
+            📊 Percentage:
+            <strong>${percentage}%</strong>
+          </p>
+
+          <p>
+            ✅ Correct Answers:
+            <strong>${score}</strong>
+          </p>
+
+          <p>
+            ❌ Incorrect Answers:
+            <strong>${total - score}</strong>
+          </p>
+
+          <p>
+            📚 Topic:
+            <strong>${escapeHTML(currentTopic)}</strong>
+          </p>
+
+
+          <button
+            class="restart-btn"
+            type="button"
+            onclick="generateQuiz()"
+          >
+            🔄 Generate Another Quiz
+          </button>
+
+        </div>
+
+      `;
+
+
+      // ==================================================
+      // SAVE QUIZ SCORE
+      // ==================================================
+
+      localStorage.setItem(
+        "lastQuizScore",
+        score
+      );
+
+
+      localStorage.setItem(
+        "lastQuizTotal",
+        total
+      );
+
+
+      localStorage.setItem(
+        "lastQuizPercentage",
+        percentage
+      );
+
+
+      // ==================================================
+      // ACTIVITY
+      // ==================================================
+
+      addQuizResultActivity(
+        currentTopic,
+        score,
+        total,
+        percentage
+      );
+
+    }
+    // ==================================================
+    // SAVE QUIZ RESULT IN STUDY ACTIVITY
+    // ==================================================
+
+    function addQuizResultActivity(
+      topic,
+      score,
+      total,
+      percentage
+    ) {
+
+      let activities =
+        JSON.parse(
+          localStorage.getItem(
+            "studyActivity"
+          ) || "[]"
+        );
+
+
+      activities.push({
+
+        icon: "🏆",
+
+        text:
+          "Quiz completed: " +
+          topic +
+          " — Score: " +
+          score +
+          "/" +
+          total +
+          " (" +
+          percentage +
+          "%)",
+
+        time:
+          new Date().toLocaleString()
+
+      });
+
+
+      if (
+        activities.length > 20
+      ) {
+
+        activities =
+          activities.slice(-20);
+
+      }
+
+
+      localStorage.setItem(
+        "studyActivity",
+        JSON.stringify(activities)
+      );
+
+    }
+
+
+    // ==================================================
     // UPDATE OVERALL PROGRESS
-    // ==========================================
+    // ==================================================
 
     function updateOverallProgress() {
 
@@ -637,9 +1122,9 @@
         );
 
 
-      // ==========================================
+      // ==================================================
       // STUDY LIBRARY
-      // ==========================================
+      // ==================================================
 
       const libraryResources =
         JSON.parse(
@@ -665,9 +1150,9 @@
       }
 
 
-      // ==========================================
-      // OVERALL
-      // ==========================================
+      // ==================================================
+      // OVERALL PROGRESS
+      // ==================================================
 
       const overall =
         Math.round(
@@ -691,9 +1176,9 @@
     }
 
 
-    // ==========================================
+    // ==================================================
     // GET PROGRESS
-    // ==========================================
+    // ==================================================
 
     function getProgress(key) {
 
@@ -707,9 +1192,9 @@
     }
 
 
-    // ==========================================
+    // ==================================================
     // ESCAPE HTML
-    // ==========================================
+    // ==================================================
 
     function escapeHTML(text) {
 
@@ -742,8 +1227,48 @@
 
     }
 
-  </script>
 
+    // ==================================================
+    // ENTER KEY SUPPORT
+    // ==================================================
+
+    const quizTopicInput =
+      document.getElementById(
+        "quizTopic"
+      );
+
+
+    if (quizTopicInput) {
+
+      quizTopicInput.addEventListener(
+        "keydown",
+        function(event) {
+
+          if (
+            event.key === "Enter"
+          ) {
+
+            event.preventDefault();
+
+            generateQuiz();
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ==================================================
+    // INITIAL STATE
+    // ==================================================
+
+    console.log(
+      "AI Quiz Generator loaded successfully."
+    );
+
+  </script>
 
 </body>
 
