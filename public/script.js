@@ -34,18 +34,23 @@ function addStudyActivity(icon, text) {
         time: new Date().toLocaleString()
     });
 
+    // Keep latest 20 activities
+    const limitedActivities =
+        activities.slice(-20);
+
     localStorage.setItem(
         "studyActivity",
-        JSON.stringify(activities)
+        JSON.stringify(limitedActivities)
     );
 }
 
 
 // ==================================================
 // AI TUTOR
+// CONNECTED TO GEMINI BACKEND
 // ==================================================
 
-function askAssistant() {
+async function askAssistant() {
 
     const questionInput =
         document.getElementById("question");
@@ -53,18 +58,28 @@ function askAssistant() {
     const answer =
         document.getElementById("answer");
 
+    const askButton =
+        document.getElementById("askButton");
+
+
     if (!questionInput || !answer) {
         return;
     }
 
+
+    // ----------------------------------------------
+    // GET QUESTION
+    // ----------------------------------------------
+
     const originalQuestion =
         questionInput.value.trim();
 
-    const question =
-        originalQuestion.toLowerCase();
 
+    // ----------------------------------------------
+    // CHECK EMPTY QUESTION
+    // ----------------------------------------------
 
-    if (question === "") {
+    if (originalQuestion === "") {
 
         answer.innerText =
             "Please enter a study question first.";
@@ -73,341 +88,199 @@ function askAssistant() {
     }
 
 
+    // ----------------------------------------------
+    // SHOW LOADING
+    // ----------------------------------------------
+
     answer.innerText =
         "🤖 AI Study Assistant is thinking...";
 
 
-    // ----------------------------------------------
-    // UPDATE PROGRESS
-    // ----------------------------------------------
+    if (askButton) {
 
-    let topics =
-        Number(
-            localStorage.getItem("topicsStudied")
-        ) || 0;
+        askButton.disabled = true;
 
-    let tutorProgress =
-        Number(
-            localStorage.getItem("tutorProgress")
-        ) || 0;
+        askButton.innerText =
+            "Thinking...";
 
-
-    topics += 1;
-
-    tutorProgress += 10;
-
-    if (tutorProgress > 100) {
-        tutorProgress = 100;
     }
 
 
-    localStorage.setItem(
-        "topicsStudied",
-        topics
-    );
+    try {
 
-    localStorage.setItem(
-        "tutorProgress",
-        tutorProgress
-    );
+        // ------------------------------------------
+        // SEND QUESTION TO BACKEND
+        // ------------------------------------------
+
+        const response =
+            await fetch(
+                "/api/study",
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            question:
+                                originalQuestion
+                        })
+
+                }
+            );
 
 
-    // Recent Activity
+        // ------------------------------------------
+        // GET API RESPONSE
+        // ------------------------------------------
 
-    addStudyActivity(
-        "🤖",
-        "AI Tutor question: " + originalQuestion
-    );
-
-
-    setTimeout(function () {
-
-        let response = "";
+        const data =
+            await response.json();
 
 
-        // ==========================================
-        // LOOPS
-        // ==========================================
+        // ------------------------------------------
+        // CHECK API RESPONSE
+        // ------------------------------------------
 
         if (
-            question.includes("loop") ||
-            question.includes("loops")
+            !response.ok ||
+            !data.success
         ) {
 
-            response =
-                "📚 C++ Loops\n\n" +
-
-                "A loop is used to repeat a block of " +
-                "code multiple times.\n\n" +
-
-                "Main types of loops in C++:\n\n" +
-
-                "1. for loop\n" +
-                "2. while loop\n" +
-                "3. do-while loop\n\n" +
-
-                "Example:\n\n" +
-
-                "for(int i = 1; i <= 5; i++) {\n" +
-                "    cout << i;\n" +
-                "}\n\n" +
-
-                "This loop prints numbers from 1 to 5.";
+            throw new Error(
+                data.error ||
+                "Unable to get AI response."
+            );
 
         }
 
 
-        // ==========================================
-        // FUNCTIONS
-        // ==========================================
+        // ------------------------------------------
+        // DISPLAY AI ANSWER
+        // ------------------------------------------
 
-        else if (
-            question.includes("function") ||
-            question.includes("functions")
-        ) {
+        answer.innerText =
+            data.answer ||
+            "AI did not return an answer.";
 
-            response =
-                "📘 C++ Functions\n\n" +
 
-                "A function is a reusable block of code " +
-                "that performs a specific task.\n\n" +
+        // ------------------------------------------
+        // UPDATE TOPICS STUDIED
+        // ------------------------------------------
 
-                "Example:\n\n" +
+        let topics =
+            Number(
+                localStorage.getItem(
+                    "topicsStudied"
+                )
+            ) || 0;
 
-                "int add(int a, int b) {\n" +
-                "    return a + b;\n" +
-                "}\n\n" +
 
-                "Functions make programs easier to " +
-                "organize and reuse.";
+        topics += 1;
 
-        }
 
+        localStorage.setItem(
+            "topicsStudied",
+            topics
+        );
 
-        // ==========================================
-        // ARRAYS
-        // ==========================================
 
-        else if (
-            question.includes("array") ||
-            question.includes("arrays")
-        ) {
+        // ------------------------------------------
+        // UPDATE AI TUTOR PROGRESS
+        // ------------------------------------------
 
-            response =
-                "📊 C++ Arrays\n\n" +
+        let tutorProgress =
+            Number(
+                localStorage.getItem(
+                    "tutorProgress"
+                )
+            ) || 0;
 
-                "An array stores multiple values of " +
-                "the same data type in one variable.\n\n" +
 
-                "Example:\n\n" +
+        tutorProgress =
+            Math.min(
+                tutorProgress + 10,
+                100
+            );
 
-                "int marks[5] = " +
-                "{80, 75, 90, 85, 70};\n\n" +
 
-                "Here, marks stores five integer values.";
+        localStorage.setItem(
+            "tutorProgress",
+            tutorProgress
+        );
 
-        }
 
+        // ------------------------------------------
+        // ADD RECENT ACTIVITY
+        // ------------------------------------------
 
-        // ==========================================
-        // IF ELSE
-        // ==========================================
+        addStudyActivity(
+            "🤖",
+            "AI Tutor question: " +
+            originalQuestion
+        );
 
-        else if (
-            question.includes("if else") ||
-            question.includes("if-else") ||
-            question.includes("conditional")
-        ) {
 
-            response =
-                "🔀 If-Else in C++\n\n" +
+        // ------------------------------------------
+        // OVERALL LEARNING PROGRESS
+        // ------------------------------------------
 
-                "An if-else statement is used to make " +
-                "decisions in a program.\n\n" +
+        const flashcardProgress =
+            Number(
+                localStorage.getItem(
+                    "flashcardProgress"
+                )
+            ) || 0;
 
-                "Example:\n\n" +
 
-                "if(age >= 18) {\n" +
-                "    cout << \"Adult\";\n" +
-                "} else {\n" +
-                "    cout << \"Minor\";\n" +
-                "}\n\n" +
+        const overall =
+            Math.round(
+                (
+                    tutorProgress +
+                    flashcardProgress
+                ) / 2
+            );
 
-                "The program executes different code " +
-                "depending on the condition.";
 
-        }
+        localStorage.setItem(
+            "overallProgress",
+            overall
+        );
 
 
-        // ==========================================
-        // SWITCH
-        // ==========================================
+    } catch (error) {
 
-        else if (
-            question.includes("switch")
-        ) {
-
-            response =
-                "🔄 Switch Statement in C++\n\n" +
-
-                "A switch statement is useful when you " +
-                "want to select one option from multiple " +
-                "possible cases.\n\n" +
-
-                "Example:\n\n" +
-
-                "switch(choice) {\n\n" +
-
-                "case 1:\n" +
-                "    cout << \"Add\";\n" +
-                "    break;\n\n" +
-
-                "case 2:\n" +
-                "    cout << \"Exit\";\n" +
-                "    break;\n\n" +
-
-                "default:\n" +
-                "    cout << \"Invalid choice\";\n" +
-
-                "}\n\n" +
-
-                "The break statement stops execution " +
-                "from continuing into the next case.";
-
-        }
-
-
-        // ==========================================
-        // POINTERS
-        // ==========================================
-
-        else if (
-            question.includes("pointer") ||
-            question.includes("pointers")
-        ) {
-
-            response =
-                "📍 C++ Pointers\n\n" +
-
-                "A pointer is a variable that stores " +
-                "the memory address of another variable.\n\n" +
-
-                "Example:\n\n" +
-
-                "int number = 10;\n" +
-                "int *ptr = &number;\n\n" +
-
-                "& gives the address of a variable, " +
-                "while * is used to access the value " +
-                "stored at that address.";
-
-        }
-
-
-        // ==========================================
-        // CLASSES
-        // ==========================================
-
-        else if (
-            question.includes("class") ||
-            question.includes("classes")
-        ) {
-
-            response =
-                "🏗️ C++ Classes\n\n" +
-
-                "A class is a user-defined data type " +
-                "that can contain data members and " +
-                "member functions.\n\n" +
-
-                "Example:\n\n" +
-
-                "class Student {\n" +
-                "public:\n" +
-                "    string name;\n" +
-                "    void study() {\n" +
-                "        cout << \"Studying\";\n" +
-                "    }\n" +
-                "};\n\n" +
-
-                "Classes are an important part of " +
-                "Object-Oriented Programming.";
-
-        }
-
-
-        // ==========================================
-        // ARTIFICIAL INTELLIGENCE
-        // ==========================================
-
-        else if (
-            question.includes("artificial intelligence") ||
-            question.includes("machine learning") ||
-            question === "ai" ||
-            question.includes("what is ai")
-        ) {
-
-            response =
-                "🤖 Artificial Intelligence\n\n" +
-
-                "Artificial Intelligence (AI) is " +
-                "technology that enables computers " +
-                "to perform tasks that normally require " +
-                "human intelligence.\n\n" +
-
-                "Examples include:\n\n" +
-
-                "• Understanding language\n" +
-                "• Recognizing patterns\n" +
-                "• Answering questions\n" +
-                "• Learning from data\n\n" +
-
-                "AI is used in education, healthcare, " +
-                "business, robotics and many other fields.";
-
-        }
-
-
-        // ==========================================
-        // DEFAULT
-        // ==========================================
-
-        else {
-
-            response =
-                "🎓 AI Study Assistant\n\n" +
-
-                "I received your question:\n\n" +
-
-                "\"" + originalQuestion + "\"\n\n" +
-
-                "This demo currently supports these " +
-                "study topics:\n\n" +
-
-                "• C++ Loops\n" +
-                "• Functions\n" +
-                "• Arrays\n" +
-                "• If-Else\n" +
-                "• Switch\n" +
-                "• Pointers\n" +
-                "• Classes\n" +
-                "• Artificial Intelligence\n\n" +
-
-                "Try asking:\n\n" +
-
-                "• Explain loops in C++\n" +
-                "• What is a function?\n" +
-                "• Explain arrays\n" +
-                "• What is a pointer?\n" +
-                "• What is Artificial Intelligence?";
-
-        }
+        console.error(
+            "AI TUTOR ERROR:",
+            error
+        );
 
 
         answer.innerText =
-            response;
+            "❌ Sorry, I could not get an AI answer.\n\n" +
+            error.message;
 
-    }, 600);
+    } finally {
+
+        // ------------------------------------------
+        // ENABLE BUTTON AGAIN
+        // ------------------------------------------
+
+        if (askButton) {
+
+            askButton.disabled = false;
+
+            askButton.innerText =
+                "Ask AI";
+
+        }
+
+    }
+
 }
 
 
@@ -461,11 +334,15 @@ function summarizeNotes() {
 
 
         let shortSummary =
-            words.slice(0, 60).join(" ");
+            words
+                .slice(0, 60)
+                .join(" ");
 
 
         if (words.length > 60) {
+
             shortSummary += "...";
+
         }
 
 
@@ -670,6 +547,7 @@ function showQuizResult(result) {
             "<p><strong>❌ Incorrect answer. Try again!</strong></p>";
 
     }
+
 }
 
 
