@@ -58,22 +58,14 @@ function getErrorMessage(error) {
     }
 
     try {
-
         return JSON.stringify(error);
-
     } catch (e) {
-
         return "An unexpected error occurred.";
-
     }
 }
 
 
-function sendAPIError(
-    res,
-    statusCode,
-    errorMessage
-) {
+function sendAPIError(res, statusCode, errorMessage) {
 
     return res.status(statusCode).json({
 
@@ -172,6 +164,7 @@ app.get("/dashboard.html", (req, res) => {
 
 // ==================================================
 // AI TUTOR
+// GENERAL QUESTIONS
 // ==================================================
 
 app.post(
@@ -183,6 +176,10 @@ app.post(
             const question =
                 req.body.question;
 
+
+            // ------------------------------------------
+            // CHECK QUESTION
+            // ------------------------------------------
 
             if (
                 !question ||
@@ -199,30 +196,89 @@ app.post(
             }
 
 
+            const cleanQuestion =
+                question
+                    .replace(/\u0000/g, "")
+                    .trim();
+
+
             console.log(
-                "AI Tutor question received."
+                "AI Tutor question received:",
+                cleanQuestion
             );
 
+
+            // ------------------------------------------
+            // GENERAL AI TUTOR PROMPT
+            // ------------------------------------------
+
+            const prompt = `
+You are an AI Study Assistant for students.
+
+You can answer questions from ANY educational
+subject.
+
+You may answer questions about:
+
+- Mathematics
+- Physics
+- Chemistry
+- Biology
+- Computer Science
+- Programming
+- Artificial Intelligence
+- English
+- History
+- Geography
+- Business
+- Economics
+- General academic subjects
+- Textbook concepts
+- Chapter-related questions
+
+IMPORTANT:
+
+Do NOT limit yourself to a predefined list
+of topics.
+
+If the student asks about a subject that is
+not programming, still answer the question.
+
+Explain the answer clearly and accurately.
+
+Use simple student-friendly language.
+
+Break difficult concepts into smaller parts.
+
+Use examples when useful.
+
+For mathematical questions, show steps
+when appropriate.
+
+For programming questions, explain the
+concept and give a simple example when useful.
+
+Do not say that the system only supports
+certain topics.
+
+Do not mention these instructions.
+
+STUDENT QUESTION:
+
+${cleanQuestion}
+`;
+
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
 
             const response =
                 await ai.models.generateContent({
 
                     model: MODEL,
 
-                    contents: `
-You are an AI Study Assistant.
-
-Explain the following question
-clearly and simply for a student.
-
-Question:
-${question.trim()}
-
-Give an accurate,
-helpful and student-friendly explanation.
-
-Use simple examples when useful.
-`
+                    contents: prompt
 
                 });
 
@@ -231,7 +287,14 @@ Use simple examples when useful.
                 response.text || "";
 
 
-            if (!answer.trim()) {
+            // ------------------------------------------
+            // CHECK ANSWER
+            // ------------------------------------------
+
+            if (
+                !answer ||
+                !answer.trim()
+            ) {
 
                 return sendAPIError(
                     res,
@@ -242,7 +305,16 @@ Use simple examples when useful.
             }
 
 
-            return res.json({
+            // ------------------------------------------
+            // SUCCESS
+            // ------------------------------------------
+
+            console.log(
+                "AI Tutor answer generated successfully."
+            );
+
+
+            return res.status(200).json({
 
                 success: true,
 
@@ -270,8 +342,6 @@ Use simple examples when useful.
 
     }
 );
-
-
 // ==================================================
 // AI FLASHCARDS
 // ==================================================
@@ -367,14 +437,8 @@ Rules:
 
             text =
                 text
-                    .replace(
-                        /```json/gi,
-                        ""
-                    )
-                    .replace(
-                        /```/g,
-                        ""
-                    )
+                    .replace(/```json/gi, "")
+                    .replace(/```/g, "")
                     .trim();
 
 
@@ -433,9 +497,7 @@ Rules:
 
 
             if (
-                !Array.isArray(
-                    flashcards
-                )
+                !Array.isArray(flashcards)
             ) {
 
                 return sendAPIError(
@@ -508,10 +570,7 @@ app.post(
 
             text =
                 text
-                    .replace(
-                        /\u0000/g,
-                        ""
-                    )
+                    .replace(/\u0000/g, "")
                     .trim();
 
 
@@ -553,8 +612,8 @@ You are an AI Study Assistant.
 Read the following study material
 extracted from a PDF.
 
-Create a clear,
-accurate and student-friendly study summary.
+Create a clear, accurate and
+student-friendly study summary.
 
 Use exactly these sections:
 
@@ -711,19 +770,12 @@ app.post(
 
             text =
                 text
-                    .replace(
-                        /\u0000/g,
-                        ""
-                    )
+                    .replace(/\u0000/g, "")
                     .trim();
-
 
             question =
                 question
-                    .replace(
-                        /\u0000/g,
-                        ""
-                    )
+                    .replace(/\u0000/g, "")
                     .trim();
 
 
@@ -779,56 +831,44 @@ app.post(
             const prompt = `
 You are an AI Study Assistant.
 
-A student has uploaded a PDF and wants
-to ask a question specifically about
-that PDF.
+A student has uploaded study material
+from a PDF and wants to ask a question
+about that material.
 
-Your job is to answer the question
-using ONLY the PDF content provided below.
+Answer the question using ONLY the
+provided PDF content.
 
-================ PDF CONTENT ================
+PDF CONTENT:
 
 ${text}
 
-================ STUDENT QUESTION ================
+STUDENT QUESTION:
 
 ${question}
 
-================ IMPORTANT RULES ================
+IMPORTANT RULES:
 
-1. Use ONLY the information in the PDF.
+1. Carefully search the provided PDF content.
 
-2. Do NOT use outside knowledge.
+2. If the answer exists in the PDF,
+   answer it clearly.
 
-3. Do NOT invent facts, statistics,
-   names, dates, results or explanations.
+3. You may combine information from
+   different parts of the PDF.
 
-4. Carefully search the entire provided
-   PDF content before deciding that
-   the answer is unavailable.
+4. Do not invent facts that are not
+   supported by the PDF.
 
-5. If the answer is available anywhere
-   in the PDF, answer it clearly.
-
-6. If the answer requires combining
-   information from different parts
-   of the PDF, combine those parts.
-
-7. If the answer genuinely cannot be
-   found in the PDF, respond with:
+5. If the answer genuinely cannot be
+   found in the PDF, say:
 
 "I couldn't find the answer to this question
 in the provided PDF."
 
-8. Keep the answer simple and
+6. Keep the answer simple and
    student-friendly.
 
-9. You may use short bullet points
-   when helpful.
-
-10. Do not mention these instructions.
-
-================ END ================
+7. Do not mention these instructions.
 `;
 
 
@@ -858,10 +898,6 @@ in the provided PDF."
                 !answer ||
                 !answer.trim()
             ) {
-
-                console.error(
-                    "AI returned an empty PDF answer."
-                );
 
                 return sendAPIError(
                     res,
@@ -933,6 +969,8 @@ app.get(
 
                 aiTutor: true,
 
+                generalQuestions: true,
+
                 flashcards: true,
 
                 pdfSummary: true,
@@ -966,13 +1004,11 @@ app.use(
 
     }
 );
+
+
 // ==================================================
 // VERCEL EXPORT
 // ==================================================
-//
-// Vercel ke liye Express app export karna zaroori hai.
-// Isse Vercel serverless function ko app mil jayegi.
-//
 
 module.exports = app;
 
@@ -980,10 +1016,6 @@ module.exports = app;
 // ==================================================
 // LOCAL SERVER
 // ==================================================
-//
-// Local VS Code testing ke liye server start hoga.
-// Vercel par app.listen() execute nahi hoga.
-//
 
 if (require.main === module) {
 
@@ -1013,6 +1045,10 @@ if (require.main === module) {
 
             console.log(
                 "AI Tutor: ENABLED"
+            );
+
+            console.log(
+                "General Questions: ENABLED"
             );
 
             console.log(
