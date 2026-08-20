@@ -175,6 +175,7 @@
     .question-text {
       margin-bottom: 15px;
       line-height: 1.6;
+      font-size: 17px;
     }
 
     .option {
@@ -192,6 +193,8 @@
 
       text-align: left;
       cursor: pointer;
+
+      font-size: 15px;
     }
 
     .option:hover {
@@ -227,6 +230,26 @@
     .result-message {
       color: #a8afbf;
       margin-bottom: 15px;
+    }
+
+    .error-box {
+      margin-top: 15px;
+      padding: 15px;
+
+      background: #2a1515;
+      border: 1px solid #7f1d1d;
+
+      border-radius: 8px;
+
+      color: #fca5a5;
+
+      line-height: 1.6;
+    }
+
+    .loading {
+      text-align: center;
+      color: #a8afbf;
+      line-height: 1.7;
     }
 
     .hidden {
@@ -371,6 +394,8 @@
 
         alert("Please enter a topic.");
 
+        topicInput.focus();
+
         return;
 
       }
@@ -382,16 +407,30 @@
 
       selectedAnswer = null;
 
+      practiceQuestions = [];
+
 
       resultBox.classList.add("hidden");
 
       questionBox.classList.remove("hidden");
 
 
-      questionBox.innerHTML =
-        "🤖 Creating questions for " +
-        escapeHTML(practiceTopic) +
-        "...";
+      questionBox.innerHTML = `
+
+        <div class="loading">
+
+          🤖 Creating questions for
+          <strong>
+            ${escapeHTML(practiceTopic)}
+          </strong>
+
+          <br><br>
+
+          Please wait...
+
+        </div>
+
+      `;
 
 
       startButton.disabled = true;
@@ -402,54 +441,152 @@
 
       try {
 
+        console.log(
+          "Sending practice request:",
+          practiceTopic
+        );
+
+
         const response =
-          await fetch("/api/practice", {
+          await fetch(
+            "/api/practice",
+            {
+              method: "POST",
 
-            method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
 
-            headers: {
-              "Content-Type": "application/json"
-            },
+              body: JSON.stringify({
 
-            body: JSON.stringify({
+                topic: practiceTopic,
 
-              topic: practiceTopic,
+                numberOfQuestions: 5
 
-              numberOfQuestions: 5
+              })
 
-            })
-
-          });
+            }
+          );
 
 
-        const data =
-          await response.json();
+        console.log(
+          "Practice API status:",
+          response.status
+        );
 
+
+        // ==========================================
+        // READ RESPONSE SAFELY
+        // ==========================================
+
+        const responseText =
+          await response.text();
+
+
+        console.log(
+          "Practice API raw response:",
+          responseText
+        );
+
+
+        let data;
+
+
+        try {
+
+          data =
+            JSON.parse(responseText);
+
+        } catch (jsonError) {
+
+          throw new Error(
+            "Server returned an invalid response. HTTP Status: " +
+            response.status
+          );
+
+        }
+
+
+        // ==========================================
+        // CHECK SERVER ERROR
+        // ==========================================
 
         if (!response.ok) {
 
           throw new Error(
+
+            data.error ||
+
             data.message ||
-            "Unable to generate questions."
+
+            "Unable to generate practice questions. HTTP " +
+            response.status
+
           );
 
         }
 
 
+        // ==========================================
+        // GET QUESTIONS
+        // ==========================================
+
         practiceQuestions =
-          data.questions;
+          Array.isArray(data.questions)
+            ? data.questions
+            : Array.isArray(data.practiceQuestions)
+              ? data.practiceQuestions
+              : [];
+
+
+        // ==========================================
+        // VALIDATE QUESTIONS
+        // ==========================================
+
+        practiceQuestions =
+          practiceQuestions
+            .filter(function(q) {
+
+              return (
+
+                q &&
+
+                typeof q.question ===
+                "string" &&
+
+                Array.isArray(q.options) &&
+
+                q.options.length === 4 &&
+
+                Number.isInteger(
+                  Number(q.answer)
+                ) &&
+
+                Number(q.answer) >= 0 &&
+
+                Number(q.answer) <= 3
+
+              );
+
+            })
+            .slice(0, 5);
 
 
         if (
-          !Array.isArray(practiceQuestions) ||
           practiceQuestions.length === 0
         ) {
 
           throw new Error(
-            "No questions were generated."
+            "Server did not return valid practice questions."
           );
 
         }
+
+
+        console.log(
+          "Valid practice questions:",
+          practiceQuestions
+        );
 
 
         startButton.disabled = false;
@@ -471,14 +608,29 @@
 
         questionBox.innerHTML = `
 
-          <p>
-            ❌ Sorry, I could not generate the
-            practice questions.
-          </p>
+          <div>
 
-          <p style="margin-top:10px;color:#9ca3af;">
-            ${escapeHTML(error.message)}
-          </p>
+            <p>
+              ❌ Sorry, I could not generate the
+              practice questions.
+            </p>
+
+            <div class="error-box">
+
+              <strong>
+                Error:
+              </strong>
+
+              <br>
+
+              ${escapeHTML(
+                error.message ||
+                "Unable to generate question."
+              )}
+
+            </div>
+
+          </div>
 
         `;
 
@@ -521,7 +673,30 @@
 
 
       const q =
-        practiceQuestions[currentQuestion];
+        practiceQuestions[
+          currentQuestion
+        ];
+
+
+      if (
+        !q ||
+        typeof q.question !== "string" ||
+        !Array.isArray(q.options)
+      ) {
+
+        questionBox.innerHTML = `
+
+          <div class="error-box">
+
+            Invalid question data received.
+
+          </div>
+
+        `;
+
+        return;
+
+      }
 
 
       let html = `
@@ -529,14 +704,18 @@
         <div class="question">
 
           <h3>
+
             Question
             ${currentQuestion + 1}
             of
             ${practiceQuestions.length}
+
           </h3>
 
           <p class="question-text">
+
             ${escapeHTML(q.question)}
+
           </p>
 
       `;
@@ -548,12 +727,19 @@
           html += `
 
             <button
+
               class="option"
+
               type="button"
+
               onclick="selectAnswer(${index})"
+
             >
+
               ${String.fromCharCode(65 + index)}.
+
               ${escapeHTML(option)}
+
             </button>
 
           `;
@@ -565,11 +751,17 @@
       html += `
 
           <button
+
             class="primary-btn"
+
             type="button"
+
             onclick="submitAnswer()"
+
           >
+
             Submit Answer
+
           </button>
 
         </div>
@@ -638,6 +830,13 @@
         ];
 
 
+      if (!question) {
+
+        return;
+
+      }
+
+
       if (
         Number(selectedAnswer) ===
         Number(question.answer)
@@ -678,9 +877,11 @@
 
       const percentage =
         total > 0
+
           ? Math.round(
               (score / total) * 100
             )
+
           : 0;
 
 
@@ -697,21 +898,27 @@
       let message;
 
 
-      if (percentage === 100) {
+      if (
+        percentage === 100
+      ) {
 
         message =
           "🌟 Excellent! Perfect score!";
 
       }
 
-      else if (percentage >= 80) {
+      else if (
+        percentage >= 80
+      ) {
 
         message =
           "👏 Great job! You understand this topic well.";
 
       }
 
-      else if (percentage >= 60) {
+      else if (
+        percentage >= 60
+      ) {
 
         message =
           "👍 Good work! Review a few concepts and try again.";
@@ -737,46 +944,71 @@
         </div>
 
         <p>
+
           Correct Answers:
+
           <strong>
             ${score}
           </strong>
+
           /
+
           ${total}
+
         </p>
 
         <p>
+
           Wrong Answers:
+
           <strong>
             ${total - score}
           </strong>
+
         </p>
 
         <p class="result-message">
+
           ${message}
+
         </p>
 
         <p>
+
           Topic:
+
           <strong>
             ${escapeHTML(practiceTopic)}
           </strong>
+
         </p>
 
         <button
+
           class="primary-btn"
+
           type="button"
+
           onclick="startPractice()"
+
         >
+
           Practice Again
+
         </button>
 
         <button
+
           class="secondary-btn"
+
           type="button"
+
           onclick="viewProgress()"
+
         >
+
           📊 View Progress
+
         </button>
 
       `;
@@ -788,7 +1020,7 @@
 
       localStorage.setItem(
         "practiceProgress",
-        percentage
+        String(percentage)
       );
 
 
@@ -796,12 +1028,31 @@
       // SAVE ACTIVITY
       // ==========================================
 
-      let activities =
-        JSON.parse(
-          localStorage.getItem(
-            "studyActivity"
-          ) || "[]"
-        );
+      let activities;
+
+
+      try {
+
+        activities =
+          JSON.parse(
+            localStorage.getItem(
+              "studyActivity"
+            ) || "[]"
+          );
+
+        if (
+          !Array.isArray(activities)
+        ) {
+
+          activities = [];
+
+        }
+
+      } catch (error) {
+
+        activities = [];
+
+      }
 
 
       activities.push({
@@ -833,10 +1084,13 @@
 
 
       localStorage.setItem(
+
         "studyActivity",
+
         JSON.stringify(
           activities
         )
+
       );
 
 
@@ -871,12 +1125,33 @@
         getProgress("practiceProgress");
 
 
-      const libraryResources =
-        JSON.parse(
-          localStorage.getItem(
-            "studyLibrary"
-          ) || "[]"
-        );
+      let libraryResources = [];
+
+
+      try {
+
+        libraryResources =
+          JSON.parse(
+            localStorage.getItem(
+              "studyLibrary"
+            ) || "[]"
+          );
+
+        if (
+          !Array.isArray(
+            libraryResources
+          )
+        ) {
+
+          libraryResources = [];
+
+        }
+
+      } catch (error) {
+
+        libraryResources = [];
+
+      }
 
 
       let libraryProgress = 0;
@@ -897,6 +1172,7 @@
 
       const overall =
         Math.round(
+
           (
             tutor +
             summarizer +
@@ -906,13 +1182,15 @@
             pdf +
             practice +
             libraryProgress
+
           ) / 8
+
         );
 
 
       localStorage.setItem(
         "overallProgress",
-        overall
+        String(overall)
       );
 
     }
@@ -924,10 +1202,14 @@
 
     function getProgress(key) {
 
-      return Math.min(
+      const value =
         Number(
           localStorage.getItem(key)
-        ) || 0,
+        ) || 0;
+
+
+      return Math.min(
+        Math.max(value, 0),
         100
       );
 
@@ -980,6 +1262,30 @@
         );
 
     }
+
+
+    // ==========================================
+    // ENTER KEY SUPPORT
+    // ==========================================
+
+    document
+      .getElementById("practiceTopic")
+      .addEventListener(
+        "keydown",
+        function(event) {
+
+          if (
+            event.key === "Enter"
+          ) {
+
+            event.preventDefault();
+
+            startPractice();
+
+          }
+
+        }
+      );
 
   </script>
 
