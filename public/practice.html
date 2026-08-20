@@ -49,6 +49,10 @@
       cursor: pointer;
     }
 
+    .back-btn:hover {
+      opacity: 0.9;
+    }
+
     .container {
       max-width: 900px;
       margin: auto;
@@ -122,6 +126,11 @@
       opacity: 0.9;
     }
 
+    .primary-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .secondary-btn {
       width: 100%;
       margin-top: 10px;
@@ -170,7 +179,6 @@
 
     .option {
       display: block;
-
       width: 100%;
 
       margin-top: 10px;
@@ -253,11 +261,7 @@
 
 </head>
 
-
 <body>
-
-
-  <!-- HEADER -->
 
   <header>
 
@@ -275,11 +279,7 @@
 
   </header>
 
-
-  <!-- MAIN -->
-
   <main class="container">
-
 
     <section class="intro">
 
@@ -288,16 +288,12 @@
       </h2>
 
       <p>
-        Practice a topic with questions and check your knowledge.
+        Enter any topic and practice with topic-specific questions.
       </p>
 
     </section>
 
-
     <section class="practice-card">
-
-
-      <!-- TOPIC -->
 
       <label for="practiceTopic">
         Enter Topic
@@ -306,13 +302,11 @@
       <input
         id="practiceTopic"
         type="text"
-        placeholder="Example: C++ Loops"
+        placeholder="Example: Force, Periodic Table, C++ Loops"
       >
 
-
-      <!-- START -->
-
       <button
+        id="startButton"
         class="primary-btn"
         type="button"
         onclick="startPractice()"
@@ -320,116 +314,26 @@
         Start Practice
       </button>
 
-
-      <!-- QUESTIONS -->
-
       <div
         id="questionBox"
         class="question-box hidden"
       ></div>
-
-
-      <!-- RESULT -->
 
       <div
         id="resultBox"
         class="result hidden"
       ></div>
 
-
     </section>
 
   </main>
-
-
   <script>
 
     // ==========================================
-    // PRACTICE QUESTIONS
+    // PRACTICE VARIABLES
     // ==========================================
 
-    const questions = [
-
-      {
-        question:
-          "Which loop is commonly used when the number of iterations is known?",
-
-        options: [
-          "for loop",
-          "while loop",
-          "switch",
-          "if statement"
-        ],
-
-        answer: 0
-      },
-
-
-      {
-        question:
-          "Which keyword is used to exit a loop?",
-
-        options: [
-          "skip",
-          "break",
-          "exitloop",
-          "stop"
-        ],
-
-        answer: 1
-      },
-
-
-      {
-        question:
-          "Which loop checks its condition before executing?",
-
-        options: [
-          "while loop",
-          "do-while loop",
-          "switch",
-          "function"
-        ],
-
-        answer: 0
-      },
-
-
-      {
-        question:
-          "Which statement skips the current iteration?",
-
-        options: [
-          "break",
-          "continue",
-          "return",
-          "skip"
-        ],
-
-        answer: 1
-      },
-
-
-      {
-        question:
-          "Which symbol is commonly used to increment a variable by one?",
-
-        options: [
-          "--",
-          "++",
-          "**",
-          "=="
-        ],
-
-        answer: 1
-      }
-
-    ];
-
-
-    // ==========================================
-    // VARIABLES
-    // ==========================================
+    let practiceQuestions = [];
 
     let currentQuestion = 0;
 
@@ -437,25 +341,35 @@
 
     let selectedAnswer = null;
 
+    let practiceTopic = "";
+
 
     // ==========================================
     // START PRACTICE
     // ==========================================
 
-    function startPractice() {
+    async function startPractice() {
 
-      const topic =
-        document
-          .getElementById("practiceTopic")
-          .value
-          .trim();
+      const topicInput =
+        document.getElementById("practiceTopic");
+
+      const questionBox =
+        document.getElementById("questionBox");
+
+      const resultBox =
+        document.getElementById("resultBox");
+
+      const startButton =
+        document.getElementById("startButton");
 
 
-      if (!topic) {
+      practiceTopic =
+        topicInput.value.trim();
 
-        alert(
-          "Please enter a topic."
-        );
+
+      if (!practiceTopic) {
+
+        alert("Please enter a topic.");
 
         return;
 
@@ -469,17 +383,112 @@
       selectedAnswer = null;
 
 
-      document
-        .getElementById("resultBox")
-        .classList.add("hidden");
+      resultBox.classList.add("hidden");
+
+      questionBox.classList.remove("hidden");
 
 
-      document
-        .getElementById("questionBox")
-        .classList.remove("hidden");
+      questionBox.innerHTML =
+        "🤖 Creating questions for " +
+        escapeHTML(practiceTopic) +
+        "...";
 
 
-      showQuestion();
+      startButton.disabled = true;
+
+      startButton.innerText =
+        "Generating Questions...";
+
+
+      try {
+
+        const response =
+          await fetch("/api/practice", {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+              topic: practiceTopic,
+
+              numberOfQuestions: 5
+
+            })
+
+          });
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            data.message ||
+            "Unable to generate questions."
+          );
+
+        }
+
+
+        practiceQuestions =
+          data.questions;
+
+
+        if (
+          !Array.isArray(practiceQuestions) ||
+          practiceQuestions.length === 0
+        ) {
+
+          throw new Error(
+            "No questions were generated."
+          );
+
+        }
+
+
+        startButton.disabled = false;
+
+        startButton.innerText =
+          "Start Practice";
+
+
+        showQuestion();
+
+
+      } catch (error) {
+
+        console.error(
+          "Practice error:",
+          error
+        );
+
+
+        questionBox.innerHTML = `
+
+          <p>
+            ❌ Sorry, I could not generate the
+            practice questions.
+          </p>
+
+          <p style="margin-top:10px;color:#9ca3af;">
+            ${escapeHTML(error.message)}
+          </p>
+
+        `;
+
+
+        startButton.disabled = false;
+
+        startButton.innerText =
+          "Start Practice";
+
+      }
 
     }
 
@@ -490,17 +499,16 @@
 
     function showQuestion() {
 
-      const box =
+      const questionBox =
         document.getElementById(
           "questionBox"
         );
 
 
-      const q =
-        questions[currentQuestion];
-
-
-      if (!q) {
+      if (
+        currentQuestion >=
+        practiceQuestions.length
+      ) {
 
         finishPractice();
 
@@ -512,17 +520,23 @@
       selectedAnswer = null;
 
 
+      const q =
+        practiceQuestions[currentQuestion];
+
+
       let html = `
 
         <div class="question">
 
           <h3>
-            Question ${currentQuestion + 1}
-            of ${questions.length}
+            Question
+            ${currentQuestion + 1}
+            of
+            ${practiceQuestions.length}
           </h3>
 
           <p class="question-text">
-            ${q.question}
+            ${escapeHTML(q.question)}
           </p>
 
       `;
@@ -538,7 +552,8 @@
               type="button"
               onclick="selectAnswer(${index})"
             >
-              ${option}
+              ${String.fromCharCode(65 + index)}.
+              ${escapeHTML(option)}
             </button>
 
           `;
@@ -562,7 +577,8 @@
       `;
 
 
-      box.innerHTML = html;
+      questionBox.innerHTML =
+        html;
 
     }
 
@@ -573,12 +589,13 @@
 
     function selectAnswer(index) {
 
-      selectedAnswer = index;
+      selectedAnswer =
+        index;
 
 
       const options =
         document.querySelectorAll(
-          ".option"
+          "#questionBox .option"
         );
 
 
@@ -615,9 +632,15 @@
       }
 
 
+      const question =
+        practiceQuestions[
+          currentQuestion
+        ];
+
+
       if (
-        selectedAnswer ===
-        questions[currentQuestion].answer
+        Number(selectedAnswer) ===
+        Number(question.answer)
       ) {
 
         score++;
@@ -638,22 +661,27 @@
 
     function finishPractice() {
 
-      const percentage =
-        Math.round(
-          (score / questions.length) * 100
-        );
-
-
       const questionBox =
         document.getElementById(
           "questionBox"
         );
 
-
       const resultBox =
         document.getElementById(
           "resultBox"
         );
+
+
+      const total =
+        practiceQuestions.length;
+
+
+      const percentage =
+        total > 0
+          ? Math.round(
+              (score / total) * 100
+            )
+          : 0;
 
 
       questionBox.classList.add(
@@ -666,13 +694,92 @@
       );
 
 
-      const topic =
-        document
-          .getElementById(
-            "practiceTopic"
-          )
-          .value
-          .trim();
+      let message;
+
+
+      if (percentage === 100) {
+
+        message =
+          "🌟 Excellent! Perfect score!";
+
+      }
+
+      else if (percentage >= 80) {
+
+        message =
+          "👏 Great job! You understand this topic well.";
+
+      }
+
+      else if (percentage >= 60) {
+
+        message =
+          "👍 Good work! Review a few concepts and try again.";
+
+      }
+
+      else {
+
+        message =
+          "📚 Keep practicing! Review the topic and try again.";
+
+      }
+
+
+      resultBox.innerHTML = `
+
+        <h2>
+          🎉 Practice Complete!
+        </h2>
+
+        <div class="score">
+          ${percentage}%
+        </div>
+
+        <p>
+          Correct Answers:
+          <strong>
+            ${score}
+          </strong>
+          /
+          ${total}
+        </p>
+
+        <p>
+          Wrong Answers:
+          <strong>
+            ${total - score}
+          </strong>
+        </p>
+
+        <p class="result-message">
+          ${message}
+        </p>
+
+        <p>
+          Topic:
+          <strong>
+            ${escapeHTML(practiceTopic)}
+          </strong>
+        </p>
+
+        <button
+          class="primary-btn"
+          type="button"
+          onclick="startPractice()"
+        >
+          Practice Again
+        </button>
+
+        <button
+          class="secondary-btn"
+          type="button"
+          onclick="viewProgress()"
+        >
+          📊 View Progress
+        </button>
+
+      `;
 
 
       // ==========================================
@@ -703,11 +810,11 @@
 
         text:
           "Practice completed: " +
-          topic +
+          practiceTopic +
           " - " +
           score +
           "/" +
-          questions.length,
+          total,
 
         time:
           new Date().toLocaleString()
@@ -733,56 +840,96 @@
       );
 
 
-      // ==========================================
-      // SHOW RESULT
-      // ==========================================
+      updateOverallProgress();
 
-      resultBox.innerHTML = `
+    }
+    // ==========================================
+    // UPDATE OVERALL PROGRESS
+    // ==========================================
 
-        <h2>
-          🎉 Practice Complete!
-        </h2>
+    function updateOverallProgress() {
 
-        <div class="score">
-          ${percentage}%
-        </div>
+      const tutor =
+        getProgress("tutorProgress");
 
-        <p>
-          Correct Answers:
-          <strong>${score}</strong>
-          / ${questions.length}
-        </p>
+      const summarizer =
+        getProgress("summarizerProgress");
 
-        <p>
-          Wrong Answers:
-          <strong>
-            ${questions.length - score}
-          </strong>
-        </p>
+      const quiz =
+        getProgress("quizProgress");
 
-        <p class="result-message">
-          Topic: ${topic}
-        </p>
+      const planner =
+        getProgress("plannerProgress");
 
+      const flashcards =
+        getProgress("flashcardProgress");
 
-        <button
-          class="primary-btn"
-          type="button"
-          onclick="startPractice()"
-        >
-          Practice Again
-        </button>
+      const pdf =
+        getProgress("pdfProgress");
+
+      const practice =
+        getProgress("practiceProgress");
 
 
-        <button
-          class="secondary-btn"
-          type="button"
-          onclick="viewProgress()"
-        >
-          📊 View Progress
-        </button>
+      const libraryResources =
+        JSON.parse(
+          localStorage.getItem(
+            "studyLibrary"
+          ) || "[]"
+        );
 
-      `;
+
+      let libraryProgress = 0;
+
+
+      if (
+        libraryResources.length > 0
+      ) {
+
+        libraryProgress =
+          Math.min(
+            libraryResources.length * 20,
+            100
+          );
+
+      }
+
+
+      const overall =
+        Math.round(
+          (
+            tutor +
+            summarizer +
+            quiz +
+            planner +
+            flashcards +
+            pdf +
+            practice +
+            libraryProgress
+          ) / 8
+        );
+
+
+      localStorage.setItem(
+        "overallProgress",
+        overall
+      );
+
+    }
+
+
+    // ==========================================
+    // GET PROGRESS
+    // ==========================================
+
+    function getProgress(key) {
+
+      return Math.min(
+        Number(
+          localStorage.getItem(key)
+        ) || 0,
+        100
+      );
 
     }
 
@@ -799,8 +946,42 @@
     }
 
 
-  </script>
+    // ==========================================
+    // ESCAPE HTML
+    // ==========================================
 
+    function escapeHTML(text) {
+
+      return String(text)
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+  </script>
 
 </body>
 
