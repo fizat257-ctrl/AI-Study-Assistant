@@ -13,8 +13,7 @@ const PORT = process.env.PORT || 5000;
 // GEMINI MODEL
 // ==================================================
 
-const MODEL = "gemini-2.5-flash";
-
+const MODEL = "gemini-3.6-flash";
 
 // ==================================================
 // GEMINI AI
