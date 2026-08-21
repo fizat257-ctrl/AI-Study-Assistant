@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 
 const MODEL = "gemini-3.6-flash";
 
+
 // ==================================================
 // GEMINI AI
 // ==================================================
@@ -25,7 +26,74 @@ const ai = new GoogleGenAI({
 
 
 // ==================================================
-// HELPER: ERROR MESSAGE
+// REQUEST CONTROL
+// ==================================================
+
+// Prevent accidental repeated requests from the
+// same IP within a short period.
+
+const requestTracker = new Map();
+
+const REQUEST_COOLDOWN = 1500; // 1.5 seconds
+
+
+function isRequestTooFast(req) {
+
+    const ip =
+        req.ip ||
+        req.headers["x-forwarded-for"] ||
+        "unknown";
+
+    const now = Date.now();
+
+    const lastRequest =
+        requestTracker.get(ip) || 0;
+
+    if (
+        now - lastRequest <
+        REQUEST_COOLDOWN
+    ) {
+
+        return true;
+
+    }
+
+    requestTracker.set(
+        ip,
+        now
+    );
+
+    return false;
+}
+
+
+// Clean old request tracker entries
+
+setInterval(() => {
+
+    const now = Date.now();
+
+    for (
+        const [ip, timestamp]
+        of requestTracker.entries()
+    ) {
+
+        if (
+            now - timestamp >
+            60000
+        ) {
+
+            requestTracker.delete(ip);
+
+        }
+
+    }
+
+}, 60000);
+
+
+// ==================================================
+// HELPER: GET ERROR MESSAGE
 // ==================================================
 
 function getErrorMessage(error) {
@@ -48,22 +116,268 @@ function getErrorMessage(error) {
 
     if (error.details) {
 
-        if (typeof error.details === "string") {
+        if (
+            typeof error.details ===
+            "string"
+        ) {
+
             return error.details;
+
         }
 
         try {
-            return JSON.stringify(error.details);
+
+            return JSON.stringify(
+                error.details
+            );
+
         } catch (e) {
+
             return "An unexpected error occurred.";
+
         }
+
     }
 
     try {
+
         return JSON.stringify(error);
+
     } catch (e) {
+
         return "An unexpected error occurred.";
+
     }
+
+}
+
+
+// ==================================================
+// HELPER: DETECT GEMINI ERROR STATUS
+// ==================================================
+
+function getGeminiErrorStatus(error) {
+
+    if (!error) {
+        return null;
+    }
+
+    const possibleStatuses = [
+
+        error.status,
+
+        error.statusCode,
+
+        error.code,
+
+        error.error?.status,
+
+        error.error?.code
+
+    ];
+
+    for (
+        const status
+        of possibleStatuses
+    ) {
+
+        if (
+            status !== undefined &&
+            status !== null
+        ) {
+
+            const numericStatus =
+                Number(status);
+
+            if (
+                !Number.isNaN(
+                    numericStatus
+                )
+            ) {
+
+                return numericStatus;
+
+            }
+
+        }
+
+    }
+
+    const message =
+        getErrorMessage(
+            error
+        ).toLowerCase();
+
+
+    if (
+        message.includes("429") ||
+        message.includes("quota") ||
+        message.includes("rate limit") ||
+        message.includes("resource exhausted")
+    ) {
+
+        return 429;
+
+    }
+
+
+    if (
+        message.includes("401") ||
+        message.includes("unauthorized")
+    ) {
+
+        return 401;
+
+    }
+
+
+    if (
+        message.includes("403") ||
+        message.includes("permission denied")
+    ) {
+
+        return 403;
+
+    }
+
+
+    if (
+        message.includes("404") ||
+        message.includes("not found")
+    ) {
+
+        return 404;
+
+    }
+
+
+    return null;
+
+}
+
+
+// ==================================================
+// HELPER: SAFE USER-FACING ERROR
+// ==================================================
+
+function getSafeErrorMessage(
+    statusCode,
+    errorMessage
+) {
+
+    const message =
+        String(
+            errorMessage || ""
+        ).toLowerCase();
+
+
+    // ----------------------------------------------
+    // QUOTA / RATE LIMIT
+    // ----------------------------------------------
+
+    if (
+        statusCode === 429 ||
+        message.includes("quota") ||
+        message.includes("rate limit") ||
+        message.includes("resource exhausted") ||
+        message.includes("too many requests")
+    ) {
+
+        return (
+            "AI is temporarily busy. " +
+            "Please try again in a few moments."
+        );
+
+    }
+
+
+    // ----------------------------------------------
+    // AUTHENTICATION
+    // ----------------------------------------------
+
+    if (
+        statusCode === 401
+    ) {
+
+        return (
+            "AI service authentication failed. " +
+            "Please check the AI configuration."
+        );
+
+    }
+
+
+    // ----------------------------------------------
+    // PERMISSION
+    // ----------------------------------------------
+
+    if (
+        statusCode === 403
+    ) {
+
+        return (
+            "AI service access is currently unavailable."
+        );
+
+    }
+
+
+    // ----------------------------------------------
+    // MODEL / ENDPOINT
+    // ----------------------------------------------
+
+    if (
+        statusCode === 404
+    ) {
+
+        return (
+            "AI service is temporarily unavailable. " +
+            "Please try again later."
+        );
+
+    }
+
+
+    // ----------------------------------------------
+    // BAD REQUEST
+    // ----------------------------------------------
+
+    if (
+        statusCode === 400
+    ) {
+
+        return (
+            "Please check your request and try again."
+        );
+
+    }
+
+
+    // ----------------------------------------------
+    // SERVER ERROR
+    // ----------------------------------------------
+
+    if (
+        statusCode >= 500
+    ) {
+
+        return (
+            "AI service is temporarily unavailable. " +
+            "Please try again later."
+        );
+
+    }
+
+
+    // ----------------------------------------------
+    // DEFAULT
+    // ----------------------------------------------
+
+    return (
+        "Something went wrong. " +
+        "Please try again."
+    );
+
 }
 
 
@@ -71,18 +385,117 @@ function getErrorMessage(error) {
 // HELPER: API ERROR
 // ==================================================
 
-function sendAPIError(res, statusCode, errorMessage) {
+function sendAPIError(
+    res,
+    statusCode,
+    errorMessage
+) {
 
-    return res.status(statusCode).json({
+    const safeMessage =
+        getSafeErrorMessage(
+            statusCode,
+            errorMessage
+        );
+
+
+    return res.status(
+        statusCode
+    ).json({
 
         success: false,
 
-        error: String(
-            errorMessage ||
-            "An unexpected error occurred."
-        )
+        message:
+            safeMessage,
+
+        // Keep a simple error field for
+        // compatibility with existing frontend.
+
+        error:
+            safeMessage
 
     });
+
+}
+
+
+// ==================================================
+// HELPER: HANDLE AI ERROR
+// ==================================================
+
+function handleAIError(
+    res,
+    error,
+    label
+) {
+
+    const actualMessage =
+        getErrorMessage(
+            error
+        );
+
+    const detectedStatus =
+        getGeminiErrorStatus(
+            error
+        );
+
+
+    // ----------------------------------------------
+    // LOG REAL ERROR ONLY ON SERVER
+    // ----------------------------------------------
+
+    console.error(
+        `${label}:`,
+        error
+    );
+
+
+    console.error(
+        `${label} STATUS:`,
+        detectedStatus
+    );
+
+
+    console.error(
+        `${label} MESSAGE:`,
+        actualMessage
+    );
+
+
+    // ----------------------------------------------
+    // SEND SAFE ERROR TO USER
+    // ----------------------------------------------
+
+    return sendAPIError(
+        res,
+        detectedStatus || 500,
+        actualMessage
+    );
+
+}
+
+
+// ==================================================
+// HELPER: CHECK RAPID REQUEST
+// ==================================================
+
+function checkRequestCooldown(
+    req,
+    res
+) {
+
+    if (
+        isRequestTooFast(req)
+    ) {
+
+        return sendAPIError(
+            res,
+            429,
+            "Please wait a moment before sending another request."
+        );
+
+    }
+
+    return false;
 
 }
 
@@ -98,8 +511,14 @@ function cleanJSON(text) {
     }
 
     return String(text)
-        .replace(/```json/gi, "")
-        .replace(/```/g, "")
+        .replace(
+            /```json/gi,
+            ""
+        )
+        .replace(
+            /```/g,
+            ""
+        )
         .trim();
 
 }
@@ -111,21 +530,39 @@ function cleanJSON(text) {
 
 function extractJSONArray(text) {
 
-    const cleaned = cleanJSON(text);
+    const cleaned =
+        cleanJSON(text);
 
-    const start = cleaned.indexOf("[");
-    const end = cleaned.lastIndexOf("]");
+    const start =
+        cleaned.indexOf("[");
 
-    if (start === -1 || end === -1 || end <= start) {
+    const end =
+        cleaned.lastIndexOf("]");
+
+
+    if (
+        start === -1 ||
+        end === -1 ||
+        end <= start
+    ) {
+
         return null;
+
     }
 
+
     const jsonText =
-        cleaned.substring(start, end + 1);
+        cleaned.substring(
+            start,
+            end + 1
+        );
+
 
     try {
 
-        return JSON.parse(jsonText);
+        return JSON.parse(
+            jsonText
+        );
 
     } catch (error) {
 
@@ -135,7 +572,9 @@ function extractJSONArray(text) {
         );
 
         return null;
+
     }
+
 }
 
 
@@ -163,7 +602,10 @@ app.use(
 
 app.use(
     express.static(
-        path.join(__dirname, "public")
+        path.join(
+            __dirname,
+            "public"
+        )
     )
 );
 
@@ -172,106 +614,132 @@ app.use(
 // HOME
 // ==================================================
 
-app.get("/", (req, res) => {
+app.get(
+    "/",
+    (req, res) => {
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "auth.html"
-        )
-    );
+        res.sendFile(
+            path.join(
+                __dirname,
+                "public",
+                "auth.html"
+            )
+        );
 
-});
+    }
+);
 
 
 // ==================================================
 // AUTH
 // ==================================================
 
-app.get("/auth.html", (req, res) => {
+app.get(
+    "/auth.html",
+    (req, res) => {
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "auth.html"
-        )
-    );
+        res.sendFile(
+            path.join(
+                __dirname,
+                "public",
+                "auth.html"
+            )
+        );
 
-});
+    }
+);
 
 
 // ==================================================
 // DASHBOARD
 // ==================================================
 
-app.get("/dashboard.html", (req, res) => {
+app.get(
+    "/dashboard.html",
+    (req, res) => {
 
-    res.sendFile(
-        path.join(
-            __dirname,
-            "public",
-            "dashboard.html"
-        )
-    );
+        res.sendFile(
+            path.join(
+                __dirname,
+                "public",
+                "dashboard.html"
+            )
+        );
 
-});
+    }
+);
 
 
 // ==================================================
 // HEALTH CHECK
 // ==================================================
 
-app.get("/api/health", (req, res) => {
+app.get(
+    "/api/health",
+    (req, res) => {
 
-    return res.json({
+        return res.json({
 
-        success: true,
+            success: true,
 
-        message: "AI Study Assistant server is running.",
+            message:
+                "AI Study Assistant server is running.",
 
-        model: MODEL
+            model:
+                MODEL
 
-    });
+        });
 
-});
+    }
+);
 
 
 // ==================================================
 // AI TUTOR
 // ==================================================
 
-app.post("/api/study", async (req, res) => {
+app.post(
+    "/api/study",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const question =
-            req.body.question;
+            if (
+                checkRequestCooldown(
+                    req,
+                    res
+                )
+            ) {
+                return;
+            }
 
 
-        if (
-            !question ||
-            typeof question !== "string" ||
-            !question.trim()
-        ) {
+            const question =
+                req.body.question;
 
-            return sendAPIError(
-                res,
-                400,
-                "Please enter a study question."
+
+            if (
+                !question ||
+                typeof question !== "string" ||
+                !question.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a study question."
+                );
+
+            }
+
+
+            console.log(
+                "AI Tutor question:",
+                question.trim()
             );
 
-        }
 
-
-        console.log(
-            "AI Tutor question:",
-            question.trim()
-        );
-
-
-        const prompt = `
+            const prompt = `
 You are an AI Study Assistant and AI Tutor.
 
 Answer the student's actual academic question.
@@ -322,102 +790,109 @@ ${question.trim()}
 `;
 
 
-        const response =
-            await ai.models.generateContent({
+            const response =
+                await ai.models.generateContent({
 
-                model: MODEL,
+                    model:
+                        MODEL,
 
-                contents: prompt
+                    contents:
+                        prompt
+
+                });
+
+
+            const answer =
+                response.text || "";
+
+
+            if (
+                !answer ||
+                !answer.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty answer."
+                );
+
+            }
+
+
+            console.log(
+                "AI Tutor answer generated successfully."
+            );
+
+
+            return res.json({
+
+                success: true,
+
+                answer:
+                    answer.trim()
 
             });
 
 
-        const answer =
-            response.text || "";
+        } catch (error) {
 
-
-        if (
-            !answer ||
-            !answer.trim()
-        ) {
-
-            return sendAPIError(
+            return handleAIError(
                 res,
-                500,
-                "AI returned an empty answer."
+                error,
+                "AI TUTOR ERROR"
             );
 
         }
 
-
-        console.log(
-            "AI Tutor answer generated successfully."
-        );
-
-
-        return res.json({
-
-            success: true,
-
-            answer:
-                answer.trim()
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "AI TUTOR ERROR:",
-            error
-        );
-
-
-        return sendAPIError(
-            res,
-            500,
-            getErrorMessage(error)
-        );
-
     }
-
-});
-
-
+);
 // ==================================================
 // AI FLASHCARDS
 // ==================================================
 
-app.post("/api/flashcards", async (req, res) => {
+app.post(
+    "/api/flashcards",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const topic =
-            req.body.topic;
+            if (
+                checkRequestCooldown(
+                    req,
+                    res
+                )
+            ) {
+                return;
+            }
 
 
-        if (
-            !topic ||
-            typeof topic !== "string" ||
-            !topic.trim()
-        ) {
+            const topic =
+                req.body.topic;
 
-            return sendAPIError(
-                res,
-                400,
-                "Please enter a study topic."
+
+            if (
+                !topic ||
+                typeof topic !== "string" ||
+                !topic.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a study topic."
+                );
+
+            }
+
+
+            console.log(
+                "Generating flashcards:",
+                topic.trim()
             );
 
-        }
 
-
-        console.log(
-            "Generating flashcards:",
-            topic.trim()
-        );
-
-
-        const prompt = `
+            const prompt = `
 You are an AI Study Assistant.
 
 Create exactly 5 useful study flashcards
@@ -455,140 +930,151 @@ Rules:
 `;
 
 
-        const response =
-            await ai.models.generateContent({
+            const response =
+                await ai.models.generateContent({
 
-                model: MODEL,
+                    model:
+                        MODEL,
 
-                contents: prompt,
+                    contents:
+                        prompt,
 
-                config: {
-                    responseMimeType: "application/json"
-                }
+                    config: {
+
+                        responseMimeType:
+                            "application/json"
+
+                    }
+
+                });
+
+
+            const flashcards =
+                extractJSONArray(
+                    response.text || ""
+                );
+
+
+            if (
+                !Array.isArray(
+                    flashcards
+                )
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI did not return valid flashcards."
+                );
+
+            }
+
+
+            const validFlashcards =
+                flashcards
+                    .filter(
+                        function(card) {
+
+                            return (
+
+                                card &&
+
+                                typeof card.question ===
+                                "string" &&
+
+                                typeof card.answer ===
+                                "string"
+
+                            );
+
+                        }
+                    )
+                    .slice(0, 5);
+
+
+            if (
+                validFlashcards.length === 0
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI generated invalid flashcard data."
+                );
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                flashcards:
+                    validFlashcards
 
             });
 
 
-        const flashcards =
-            extractJSONArray(
-                response.text || ""
-            );
+        } catch (error) {
 
-
-        if (
-            !Array.isArray(flashcards)
-        ) {
-
-            console.error(
-                "FLASHCARD RAW RESPONSE:",
-                response.text
-            );
-
-            return sendAPIError(
+            return handleAIError(
                 res,
-                500,
-                "AI did not return valid flashcards."
+                error,
+                "FLASHCARD AI ERROR"
             );
 
         }
-
-
-        const validFlashcards =
-            flashcards
-                .filter(function(card) {
-
-                    return (
-
-                        card &&
-
-                        typeof card.question ===
-                        "string" &&
-
-                        typeof card.answer ===
-                        "string"
-
-                    );
-
-                })
-                .slice(0, 5);
-
-
-        if (
-            validFlashcards.length === 0
-        ) {
-
-            return sendAPIError(
-                res,
-                500,
-                "AI generated invalid flashcard data."
-            );
-
-        }
-
-
-        return res.json({
-
-            success: true,
-
-            flashcards:
-                validFlashcards
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "FLASHCARD AI ERROR:",
-            error
-        );
-
-
-        return sendAPIError(
-            res,
-            500,
-            getErrorMessage(error)
-        );
 
     }
-
-});
+);
 
 
 // ==================================================
 // AI QUIZ API
 // ==================================================
 
-app.post("/api/quiz", async (req, res) => {
+app.post(
+    "/api/quiz",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const topic =
-            req.body.topic;
+            if (
+                checkRequestCooldown(
+                    req,
+                    res
+                )
+            ) {
+                return;
+            }
 
 
-        if (
-            !topic ||
-            typeof topic !== "string" ||
-            !topic.trim()
-        ) {
+            const topic =
+                req.body.topic;
 
-            return sendAPIError(
-                res,
-                400,
-                "Please enter a quiz topic."
+
+            if (
+                !topic ||
+                typeof topic !== "string" ||
+                !topic.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a quiz topic."
+                );
+
+            }
+
+
+            console.log(
+                "AI QUIZ REQUEST:",
+                topic.trim()
             );
 
-        }
 
-
-        console.log(
-            "AI QUIZ REQUEST:",
-            topic.trim()
-        );
-
-
-        const prompt = `
+            const prompt = `
 You are an expert academic quiz generator.
 
 Create a quiz specifically about:
@@ -655,156 +1141,164 @@ Rules:
 `;
 
 
-        const response =
-            await ai.models.generateContent({
+            const response =
+                await ai.models.generateContent({
 
-                model: MODEL,
+                    model:
+                        MODEL,
 
-                contents: prompt,
+                    contents:
+                        prompt,
 
-                config: {
-                    responseMimeType: "application/json"
-                }
+                    config: {
+
+                        responseMimeType:
+                            "application/json"
+
+                    }
+
+                });
+
+
+            const quiz =
+                extractJSONArray(
+                    response.text || ""
+                );
+
+
+            if (
+                !Array.isArray(quiz)
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI did not return valid quiz data."
+                );
+
+            }
+
+
+            const validQuiz =
+                quiz
+                    .filter(
+                        function(q) {
+
+                            return (
+
+                                q &&
+
+                                typeof q.question ===
+                                "string" &&
+
+                                Array.isArray(
+                                    q.options
+                                ) &&
+
+                                q.options.length ===
+                                4 &&
+
+                                Number.isInteger(
+                                    q.answer
+                                ) &&
+
+                                q.answer >= 0 &&
+                                q.answer <= 3
+
+                            );
+
+                        }
+                    )
+                    .slice(0, 5);
+
+
+            if (
+                validQuiz.length === 0
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI generated invalid quiz data."
+                );
+
+            }
+
+
+            return res.json({
+
+                success: true,
+
+                quiz:
+                    validQuiz
 
             });
 
 
-        const quiz =
-            extractJSONArray(
-                response.text || ""
-            );
+        } catch (error) {
 
-
-        if (
-            !Array.isArray(quiz)
-        ) {
-
-            console.error(
-                "QUIZ RAW RESPONSE:",
-                response.text
-            );
-
-            return sendAPIError(
+            return handleAIError(
                 res,
-                500,
-                "AI did not return valid quiz data."
+                error,
+                "QUIZ AI ERROR"
             );
 
         }
-
-
-        const validQuiz =
-            quiz
-                .filter(function(q) {
-
-                    return (
-
-                        q &&
-
-                        typeof q.question ===
-                        "string" &&
-
-                        Array.isArray(q.options) &&
-
-                        q.options.length === 4 &&
-
-                        Number.isInteger(q.answer) &&
-
-                        q.answer >= 0 &&
-                        q.answer <= 3
-
-                    );
-
-                })
-                .slice(0, 5);
-
-
-        if (
-            validQuiz.length === 0
-        ) {
-
-            return sendAPIError(
-                res,
-                500,
-                "AI generated invalid quiz data."
-            );
-
-        }
-
-
-        return res.json({
-
-            success: true,
-
-            quiz:
-                validQuiz
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "QUIZ AI ERROR:",
-            error
-        );
-
-
-        return sendAPIError(
-            res,
-            500,
-            getErrorMessage(error)
-        );
 
     }
+);
 
-});
+
 // ==================================================
 // AI PRACTICE MODE API
 // ==================================================
 
-app.post("/api/practice", async (req, res) => {
+app.post(
+    "/api/practice",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const topic =
-            req.body.topic;
+            if (
+                checkRequestCooldown(
+                    req,
+                    res
+                )
+            ) {
+                return;
+            }
 
 
-        // ------------------------------------------
-        // CHECK TOPIC
-        // ------------------------------------------
+            const topic =
+                req.body.topic;
 
-        if (
-            !topic ||
-            typeof topic !== "string" ||
-            !topic.trim()
-        ) {
 
-            return sendAPIError(
-                res,
-                400,
-                "Please enter a practice topic."
+            if (
+                !topic ||
+                typeof topic !== "string" ||
+                !topic.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a practice topic."
+                );
+
+            }
+
+
+            const cleanTopic =
+                topic.trim();
+
+
+            console.log(
+                "AI PRACTICE REQUEST:",
+                cleanTopic
             );
 
-        }
 
-
-        const cleanTopic =
-            topic.trim();
-
-
-        console.log(
-            "AI PRACTICE REQUEST:",
-            cleanTopic
-        );
-
-
-        // ------------------------------------------
-        // PRACTICE PROMPT
-        // ------------------------------------------
-
-        const prompt = `
+            const prompt = `
 You are an expert AI Study Assistant.
 
 Generate a practice quiz ONLY about the
@@ -947,269 +1441,235 @@ RULES:
 `;
 
 
-        // ------------------------------------------
-        // GEMINI REQUEST
-        // ------------------------------------------
+            const response =
+                await ai.models.generateContent({
 
-        const response =
-            await ai.models.generateContent({
+                    model:
+                        MODEL,
 
-                model: MODEL,
+                    contents:
+                        prompt,
 
-                contents: prompt,
+                    config: {
 
-                config: {
+                        responseMimeType:
+                            "application/json"
 
-                    responseMimeType:
-                        "application/json"
+                    }
 
-                }
-
-            });
+                });
 
 
-        // ------------------------------------------
-        // RAW RESPONSE
-        // ------------------------------------------
-
-        const rawText =
-            response.text || "";
+            const rawText =
+                response.text || "";
 
 
-        console.log(
-            "PRACTICE RAW AI RESPONSE:",
-            rawText
-        );
-
-
-        // ------------------------------------------
-        // EXTRACT JSON
-        // ------------------------------------------
-
-        const practiceQuestions =
-            extractJSONArray(
+            console.log(
+                "PRACTICE RAW AI RESPONSE:",
                 rawText
             );
 
 
-        // ------------------------------------------
-        // CHECK JSON
-        // ------------------------------------------
+            const practiceQuestions =
+                extractJSONArray(
+                    rawText
+                );
 
-        if (
-            !Array.isArray(
+
+            if (
+                !Array.isArray(
+                    practiceQuestions
+                )
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI did not return valid practice questions."
+                );
+
+            }
+
+
+            const validQuestions =
                 practiceQuestions
-            )
-        ) {
+                    .filter(
+                        function(q) {
 
-            return sendAPIError(
+                            return (
+
+                                q &&
+
+                                typeof q.question ===
+                                "string" &&
+
+                                q.question.trim() !== "" &&
+
+                                Array.isArray(
+                                    q.options
+                                ) &&
+
+                                q.options.length ===
+                                4 &&
+
+                                q.options.every(
+                                    function(option) {
+
+                                        return (
+                                            typeof option ===
+                                            "string" &&
+                                            option.trim() !== ""
+                                        );
+
+                                    }
+                                ) &&
+
+                                Number.isInteger(
+                                    q.answer
+                                ) &&
+
+                                q.answer >= 0 &&
+
+                                q.answer <= 3
+
+                            );
+
+                        }
+                    )
+                    .slice(0, 5);
+
+
+            if (
+                validQuestions.length < 5
+            ) {
+
+                console.error(
+                    "INVALID PRACTICE QUESTIONS:",
+                    practiceQuestions
+                );
+
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI generated an incomplete practice quiz. Please try again."
+                );
+
+            }
+
+
+            console.log(
+                "Practice questions generated successfully:",
+                validQuestions.length
+            );
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                topic:
+                    cleanTopic,
+
+                questions:
+                    validQuestions
+
+            });
+
+
+        } catch (error) {
+
+            return handleAIError(
                 res,
-                500,
-                "AI did not return valid practice questions."
+                error,
+                "PRACTICE AI ERROR"
             );
 
         }
-
-
-        // ------------------------------------------
-        // VALIDATE QUESTIONS
-        // ------------------------------------------
-
-        const validQuestions =
-            practiceQuestions
-                .filter(function(q) {
-
-                    return (
-
-                        q &&
-
-                        typeof q.question ===
-                        "string" &&
-
-                        q.question.trim() !== "" &&
-
-                        Array.isArray(
-                            q.options
-                        ) &&
-
-                        q.options.length === 4 &&
-
-                        q.options.every(
-                            function(option) {
-
-                                return (
-                                    typeof option ===
-                                    "string" &&
-                                    option.trim() !== ""
-                                );
-
-                            }
-                        ) &&
-
-                        Number.isInteger(
-                            q.answer
-                        ) &&
-
-                        q.answer >= 0 &&
-
-                        q.answer <= 3
-
-                    );
-
-                })
-                .slice(0, 5);
-
-
-        // ------------------------------------------
-        // CHECK VALID QUESTION COUNT
-        // ------------------------------------------
-
-        if (
-            validQuestions.length < 5
-        ) {
-
-            console.error(
-                "INVALID PRACTICE QUESTIONS:",
-                practiceQuestions
-            );
-
-
-            return sendAPIError(
-                res,
-                500,
-                "AI generated an incomplete practice quiz. Please try again."
-            );
-
-        }
-
-
-        // ------------------------------------------
-        // SUCCESS
-        // ------------------------------------------
-
-        console.log(
-            "Practice questions generated successfully:",
-            validQuestions.length
-        );
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            topic:
-                cleanTopic,
-
-            questions:
-                validQuestions
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "PRACTICE AI ERROR:",
-            error
-        );
-
-
-        return sendAPIError(
-            res,
-            500,
-            getErrorMessage(error)
-        );
 
     }
-
-});
-
-
+);
 // ==================================================
 // PDF → AI SUMMARY
 // ==================================================
 
-app.post("/api/pdf-summary", async (req, res) => {
+app.post(
+    "/api/pdf-summary",
+    async (req, res) => {
 
-    try {
+        try {
 
-        let text =
-            req.body.text;
-
-
-        // ------------------------------------------
-        // CHECK TEXT
-        // ------------------------------------------
-
-        if (
-            !text ||
-            typeof text !== "string" ||
-            !text.trim()
-        ) {
-
-            return sendAPIError(
-                res,
-                400,
-                "PDF text is required."
-            );
-
-        }
-
-
-        // ------------------------------------------
-        // CLEAN TEXT
-        // ------------------------------------------
-
-        text =
-            text
-                .replace(
-                    /\u0000/g,
-                    ""
+            if (
+                checkRequestCooldown(
+                    req,
+                    res
                 )
-                .trim();
+            ) {
+                return;
+            }
 
 
-        // ------------------------------------------
-        // LIMIT TEXT
-        // ------------------------------------------
-
-        const MAX_TEXT_LENGTH =
-            120000;
+            let text =
+                req.body.text;
 
 
-        if (
-            text.length >
-            MAX_TEXT_LENGTH
-        ) {
+            if (
+                !text ||
+                typeof text !== "string" ||
+                !text.trim()
+            ) {
 
-            text =
-                text.substring(
-                    0,
-                    MAX_TEXT_LENGTH
+                return sendAPIError(
+                    res,
+                    400,
+                    "PDF text is required."
                 );
 
+            }
+
+
+            text =
+                text
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
+            const MAX_TEXT_LENGTH =
+                120000;
+
+
+            if (
+                text.length >
+                MAX_TEXT_LENGTH
+            ) {
+
+                text =
+                    text.substring(
+                        0,
+                        MAX_TEXT_LENGTH
+                    );
+
+                console.log(
+                    "PDF summary text shortened."
+                );
+
+            }
+
+
             console.log(
-                "PDF summary text shortened."
+                "PDF SUMMARY REQUEST RECEIVED"
             );
 
-        }
+            console.log(
+                "PDF text length:",
+                text.length
+            );
 
 
-        console.log(
-            "PDF SUMMARY REQUEST RECEIVED"
-        );
-
-        console.log(
-            "PDF text length:",
-            text.length
-        );
-
-
-        // ------------------------------------------
-        // PROMPT
-        // ------------------------------------------
-
-        const prompt = `
+            const prompt = `
 You are an AI Study Assistant.
 
 Read the study material below and create
@@ -1247,192 +1707,173 @@ ${text}
 `;
 
 
-        // ------------------------------------------
-        // GEMINI REQUEST
-        // ------------------------------------------
+            const response =
+                await ai.models.generateContent({
 
-        const response =
-            await ai.models.generateContent({
+                    model:
+                        MODEL,
 
-                model: MODEL,
+                    contents:
+                        prompt
 
-                contents: prompt
+                });
+
+
+            const summary =
+                response.text || "";
+
+
+            if (
+                !summary ||
+                !summary.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty summary."
+                );
+
+            }
+
+
+            console.log(
+                "PDF summary generated successfully."
+            );
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                summary:
+                    summary.trim()
 
             });
 
 
-        const summary =
-            response.text || "";
+        } catch (error) {
 
-
-        // ------------------------------------------
-        // CHECK SUMMARY
-        // ------------------------------------------
-
-        if (
-            !summary ||
-            !summary.trim()
-        ) {
-
-            return sendAPIError(
+            return handleAIError(
                 res,
-                500,
-                "AI returned an empty summary."
+                error,
+                "PDF SUMMARY AI ERROR"
             );
 
         }
 
-
-        console.log(
-            "PDF summary generated successfully."
-        );
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            summary:
-                summary.trim()
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "PDF SUMMARY AI ERROR:",
-            error
-        );
-
-
-        return sendAPIError(
-            res,
-            500,
-            getErrorMessage(error)
-        );
-
     }
-
-});
+);
 
 
 // ==================================================
 // PDF → ASK AI QUESTION
 // ==================================================
 
-app.post("/api/pdf-question", async (req, res) => {
+app.post(
+    "/api/pdf-question",
+    async (req, res) => {
 
-    try {
+        try {
 
-        let text =
-            req.body.text;
-
-        let question =
-            req.body.question;
-
-
-        // ------------------------------------------
-        // CHECK PDF TEXT
-        // ------------------------------------------
-
-        if (
-            !text ||
-            typeof text !== "string" ||
-            !text.trim()
-        ) {
-
-            return sendAPIError(
-                res,
-                400,
-                "PDF text is required. Please upload and read the PDF first."
-            );
-
-        }
-
-
-        // ------------------------------------------
-        // CHECK QUESTION
-        // ------------------------------------------
-
-        if (
-            !question ||
-            typeof question !== "string" ||
-            !question.trim()
-        ) {
-
-            return sendAPIError(
-                res,
-                400,
-                "Please enter a question about the PDF."
-            );
-
-        }
-
-
-        // ------------------------------------------
-        // CLEAN DATA
-        // ------------------------------------------
-
-        text =
-            text
-                .replace(
-                    /\u0000/g,
-                    ""
+            if (
+                checkRequestCooldown(
+                    req,
+                    res
                 )
-                .trim();
+            ) {
+                return;
+            }
 
 
-        question =
-            question
-                .replace(
-                    /\u0000/g,
-                    ""
-                )
-                .trim();
+            let text =
+                req.body.text;
+
+            let question =
+                req.body.question;
 
 
-        // ------------------------------------------
-        // LIMIT PDF TEXT
-        // ------------------------------------------
+            if (
+                !text ||
+                typeof text !== "string" ||
+                !text.trim()
+            ) {
 
-        const MAX_TEXT_LENGTH =
-            120000;
-
-
-        if (
-            text.length >
-            MAX_TEXT_LENGTH
-        ) {
-
-            text =
-                text.substring(
-                    0,
-                    MAX_TEXT_LENGTH
+                return sendAPIError(
+                    res,
+                    400,
+                    "PDF text is required. Please upload and read the PDF first."
                 );
 
+            }
+
+
+            if (
+                !question ||
+                typeof question !== "string" ||
+                !question.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    400,
+                    "Please enter a question about the PDF."
+                );
+
+            }
+
+
+            text =
+                text
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
+            question =
+                question
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
+            const MAX_TEXT_LENGTH =
+                120000;
+
+
+            if (
+                text.length >
+                MAX_TEXT_LENGTH
+            ) {
+
+                text =
+                    text.substring(
+                        0,
+                        MAX_TEXT_LENGTH
+                    );
+
+                console.log(
+                    "PDF question text shortened."
+                );
+
+            }
+
+
             console.log(
-                "PDF question text shortened."
+                "PDF QUESTION REQUEST RECEIVED"
             );
 
-        }
+            console.log(
+                "Question:",
+                question
+            );
 
 
-        console.log(
-            "PDF QUESTION REQUEST RECEIVED"
-        );
-
-        console.log(
-            "Question:",
-            question
-        );
-
-
-        // ------------------------------------------
-        // PROMPT
-        // ------------------------------------------
-
-        const prompt = `
+            const prompt = `
 You are an AI Study Assistant.
 
 A student has uploaded study material
@@ -1473,113 +1914,113 @@ in the provided study material."
 `;
 
 
-        // ------------------------------------------
-        // GEMINI REQUEST
-        // ------------------------------------------
+            const response =
+                await ai.models.generateContent({
 
-        const response =
-            await ai.models.generateContent({
+                    model:
+                        MODEL,
 
-                model: MODEL,
+                    contents:
+                        prompt
 
-                contents: prompt
+                });
+
+
+            const answer =
+                response.text || "";
+
+
+            if (
+                !answer ||
+                !answer.trim()
+            ) {
+
+                return sendAPIError(
+                    res,
+                    500,
+                    "AI returned an empty answer."
+                );
+
+            }
+
+
+            console.log(
+                "PDF question answered successfully."
+            );
+
+
+            return res.status(200).json({
+
+                success: true,
+
+                answer:
+                    answer.trim()
 
             });
 
 
-        const answer =
-            response.text || "";
+        } catch (error) {
 
-
-        // ------------------------------------------
-        // CHECK ANSWER
-        // ------------------------------------------
-
-        if (
-            !answer ||
-            !answer.trim()
-        ) {
-
-            return sendAPIError(
+            return handleAIError(
                 res,
-                500,
-                "AI returned an empty answer."
+                error,
+                "PDF QUESTION AI ERROR"
             );
 
         }
 
-
-        console.log(
-            "PDF question answered successfully."
-        );
-
-
-        return res.status(200).json({
-
-            success: true,
-
-            answer:
-                answer.trim()
-
-        });
-
-
-    } catch (error) {
-
-        console.error(
-            "PDF QUESTION AI ERROR:",
-            error
-        );
-
-
-        return sendAPIError(
-            res,
-            500,
-            getErrorMessage(error)
-        );
-
     }
+);
 
-});
+
 // ==================================================
 // 404 API HANDLER
 // ==================================================
 
-app.use("/api", (req, res) => {
+app.use(
+    "/api",
+    (req, res) => {
 
-    return sendAPIError(
-        res,
-        404,
-        "API endpoint not found."
-    );
+        return sendAPIError(
+            res,
+            404,
+            "API endpoint not found."
+        );
 
-});
+    }
+);
 
 
 // ==================================================
 // GENERAL ERROR HANDLER
 // ==================================================
 
-app.use((error, req, res, next) => {
+app.use(
+    (error, req, res, next) => {
 
-    console.error(
-        "SERVER ERROR:",
-        error
-    );
+        console.error(
+            "SERVER ERROR:",
+            error
+        );
 
 
-    if (res.headersSent) {
-        return next(error);
+        if (
+            res.headersSent
+        ) {
+
+            return next(error);
+
+        }
+
+
+        return handleAIError(
+            res,
+            error,
+            "SERVER ERROR"
+        );
+
     }
-
-
-    return sendAPIError(
-        res,
-        500,
-        getErrorMessage(error)
-    );
-
-});
+);
 
 
 // ==================================================
