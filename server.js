@@ -1,3 +1,8 @@
+// ==================================================
+// AI STUDY ASSISTANT - SERVER.JS
+// PART 1 / 3
+// ==================================================
+
 require("dotenv").config();
 
 const express = require("express");
@@ -29,25 +34,27 @@ const ai = new GoogleGenAI({
 // REQUEST CONTROL
 // ==================================================
 
-// Prevent accidental repeated requests from the
-// same IP within a short period.
-
 const requestTracker = new Map();
 
-const REQUEST_COOLDOWN = 1500; // 1.5 seconds
+const REQUEST_COOLDOWN = 1500;
 
 
 function isRequestTooFast(req) {
 
+    const forwarded =
+        req.headers["x-forwarded-for"];
+
     const ip =
         req.ip ||
-        req.headers["x-forwarded-for"] ||
-        "unknown";
+        (forwarded
+            ? String(forwarded).split(",")[0].trim()
+            : "unknown");
 
     const now = Date.now();
 
     const lastRequest =
         requestTracker.get(ip) || 0;
+
 
     if (
         now - lastRequest <
@@ -58,6 +65,7 @@ function isRequestTooFast(req) {
 
     }
 
+
     requestTracker.set(
         ip,
         now
@@ -67,11 +75,14 @@ function isRequestTooFast(req) {
 }
 
 
-// Clean old request tracker entries
+// ==================================================
+// CLEAN OLD REQUEST TRACKER
+// ==================================================
 
 setInterval(() => {
 
     const now = Date.now();
+
 
     for (
         const [ip, timestamp]
@@ -93,28 +104,52 @@ setInterval(() => {
 
 
 // ==================================================
-// HELPER: GET ERROR MESSAGE
+// ERROR MESSAGE HELPER
 // ==================================================
 
 function getErrorMessage(error) {
 
     if (!error) {
+
         return "Unknown error.";
+
     }
 
-    if (typeof error === "string") {
+
+    if (
+        typeof error === "string"
+    ) {
+
         return error;
+
     }
 
-    if (error.message) {
-        return String(error.message);
+
+    if (
+        error.message
+    ) {
+
+        return String(
+            error.message
+        );
+
     }
 
-    if (error.error?.message) {
-        return String(error.error.message);
+
+    if (
+        error.error?.message
+    ) {
+
+        return String(
+            error.error.message
+        );
+
     }
 
-    if (error.details) {
+
+    if (
+        error.details
+    ) {
 
         if (
             typeof error.details ===
@@ -124,6 +159,7 @@ function getErrorMessage(error) {
             return error.details;
 
         }
+
 
         try {
 
@@ -139,9 +175,12 @@ function getErrorMessage(error) {
 
     }
 
+
     try {
 
-        return JSON.stringify(error);
+        return JSON.stringify(
+            error
+        );
 
     } catch (e) {
 
@@ -153,14 +192,17 @@ function getErrorMessage(error) {
 
 
 // ==================================================
-// HELPER: DETECT GEMINI ERROR STATUS
+// DETECT GEMINI ERROR STATUS
 // ==================================================
 
 function getGeminiErrorStatus(error) {
 
     if (!error) {
+
         return null;
+
     }
+
 
     const possibleStatuses = [
 
@@ -176,6 +218,7 @@ function getGeminiErrorStatus(error) {
 
     ];
 
+
     for (
         const status
         of possibleStatuses
@@ -188,6 +231,7 @@ function getGeminiErrorStatus(error) {
 
             const numericStatus =
                 Number(status);
+
 
             if (
                 !Number.isNaN(
@@ -203,6 +247,7 @@ function getGeminiErrorStatus(error) {
 
     }
 
+
     const message =
         getErrorMessage(
             error
@@ -213,7 +258,8 @@ function getGeminiErrorStatus(error) {
         message.includes("429") ||
         message.includes("quota") ||
         message.includes("rate limit") ||
-        message.includes("resource exhausted")
+        message.includes("resource exhausted") ||
+        message.includes("too many requests")
     ) {
 
         return 429;
@@ -251,13 +297,23 @@ function getGeminiErrorStatus(error) {
     }
 
 
+    if (
+        message.includes("500") ||
+        message.includes("internal server error")
+    ) {
+
+        return 500;
+
+    }
+
+
     return null;
 
 }
 
 
 // ==================================================
-// HELPER: SAFE USER-FACING ERROR
+// SAFE USER ERROR MESSAGE
 // ==================================================
 
 function getSafeErrorMessage(
@@ -301,7 +357,7 @@ function getSafeErrorMessage(
 
         return (
             "AI service authentication failed. " +
-            "Please check the AI configuration."
+            "Please check the Gemini API key."
         );
 
     }
@@ -316,7 +372,8 @@ function getSafeErrorMessage(
     ) {
 
         return (
-            "AI service access is currently unavailable."
+            "AI service access is currently unavailable. " +
+            "Please check your Gemini API settings."
         );
 
     }
@@ -331,8 +388,8 @@ function getSafeErrorMessage(
     ) {
 
         return (
-            "AI service is temporarily unavailable. " +
-            "Please try again later."
+            "AI model or service was not found. " +
+            "Please check the Gemini model configuration."
         );
 
     }
@@ -382,7 +439,7 @@ function getSafeErrorMessage(
 
 
 // ==================================================
-// HELPER: API ERROR
+// SEND API ERROR
 // ==================================================
 
 function sendAPIError(
@@ -407,9 +464,6 @@ function sendAPIError(
         message:
             safeMessage,
 
-        // Keep a simple error field for
-        // compatibility with existing frontend.
-
         error:
             safeMessage
 
@@ -419,7 +473,7 @@ function sendAPIError(
 
 
 // ==================================================
-// HELPER: HANDLE AI ERROR
+// HANDLE AI ERROR
 // ==================================================
 
 function handleAIError(
@@ -433,15 +487,12 @@ function handleAIError(
             error
         );
 
+
     const detectedStatus =
         getGeminiErrorStatus(
             error
         );
 
-
-    // ----------------------------------------------
-    // LOG REAL ERROR ONLY ON SERVER
-    // ----------------------------------------------
 
     console.error(
         `${label}:`,
@@ -461,10 +512,6 @@ function handleAIError(
     );
 
 
-    // ----------------------------------------------
-    // SEND SAFE ERROR TO USER
-    // ----------------------------------------------
-
     return sendAPIError(
         res,
         detectedStatus || 500,
@@ -475,7 +522,7 @@ function handleAIError(
 
 
 // ==================================================
-// HELPER: CHECK RAPID REQUEST
+// REQUEST COOLDOWN CHECK
 // ==================================================
 
 function checkRequestCooldown(
@@ -487,13 +534,16 @@ function checkRequestCooldown(
         isRequestTooFast(req)
     ) {
 
-        return sendAPIError(
+        sendAPIError(
             res,
             429,
             "Please wait a moment before sending another request."
         );
 
+        return true;
+
     }
+
 
     return false;
 
@@ -501,31 +551,131 @@ function checkRequestCooldown(
 
 
 // ==================================================
-// HELPER: CLEAN AI JSON
+// CLEAN AI TEXT
+// ==================================================
+// Ye function AI ke answer se unwanted
+// Markdown symbols jaise ### aur ** ko
+// clean karta hai.
+
+function cleanAIText(text) {
+
+    if (!text) {
+
+        return "";
+
+    }
+
+
+    let cleaned =
+        String(text);
+
+
+    // Remove code fences
+
+    cleaned =
+        cleaned.replace(
+            /```[a-zA-Z0-9_-]*/g,
+            ""
+        );
+
+
+    cleaned =
+        cleaned.replace(
+            /```/g,
+            ""
+        );
+
+
+    // Remove heading markers
+    // ### What can a force do?
+    // becomes:
+    // What can a force do?
+
+    cleaned =
+        cleaned.replace(
+            /^\s*#{1,6}\s*/gm,
+            ""
+        );
+
+
+    // Remove bold / italic markdown
+
+    cleaned =
+        cleaned.replace(
+            /\*\*(.*?)\*\*/g,
+            "$1"
+        );
+
+
+    cleaned =
+        cleaned.replace(
+            /__(.*?)__/g,
+            "$1"
+        );
+
+
+    cleaned =
+        cleaned.replace(
+            /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
+            "$1"
+        );
+
+
+    // Remove excessive spaces
+
+    cleaned =
+        cleaned.replace(
+            /[ \t]+$/gm,
+            ""
+        );
+
+
+    // Remove excessive blank lines
+
+    cleaned =
+        cleaned.replace(
+            /\n{3,}/g,
+            "\n\n"
+        );
+
+
+    return cleaned.trim();
+
+}
+
+
+// ==================================================
+// CLEAN JSON
 // ==================================================
 
 function cleanJSON(text) {
 
     if (!text) {
+
         return "";
+
     }
 
+
     return String(text)
+
         .replace(
             /```json/gi,
             ""
         )
+
         .replace(
             /```/g,
             ""
         )
+
         .trim();
 
 }
 
 
 // ==================================================
-// HELPER: EXTRACT JSON ARRAY
+// EXTRACT JSON ARRAY
 // ==================================================
 
 function extractJSONArray(text) {
@@ -533,8 +683,10 @@ function extractJSONArray(text) {
     const cleaned =
         cleanJSON(text);
 
+
     const start =
         cleaned.indexOf("[");
+
 
     const end =
         cleaned.lastIndexOf("]");
@@ -571,6 +723,7 @@ function extractJSONArray(text) {
             error
         );
 
+
         return null;
 
     }
@@ -587,6 +740,7 @@ app.use(
         limit: "15mb"
     })
 );
+
 
 app.use(
     express.urlencoded({
@@ -710,7 +864,9 @@ app.post(
                     res
                 )
             ) {
+
                 return;
+
             }
 
 
@@ -733,11 +889,24 @@ app.post(
             }
 
 
+            const cleanQuestion =
+                question
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
             console.log(
-                "AI Tutor question:",
-                question.trim()
+                "AI TUTOR QUESTION:",
+                cleanQuestion
             );
 
+
+            // ------------------------------------------
+            // AI TUTOR PROMPT
+            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant and AI Tutor.
@@ -746,49 +915,43 @@ Answer the student's actual academic question.
 
 The student can ask about ANY educational subject.
 
-Examples:
-
-Physics
-Chemistry
-Mathematics
-Biology
-Computer Science
-Programming
-C++
-English
-Artificial Intelligence
-History
-Geography
-Economics
-Business
-Commerce
-E-commerce
-and other academic subjects.
-
-Do NOT restrict the student to a fixed list of topics.
-
 Give a clear, accurate and student-friendly answer.
 
-Use simple English.
+IMPORTANT FORMATTING RULES:
+
+- Use clean plain text.
+- Use simple headings when useful.
+- Use bullet points when useful.
+- Use numbered steps when useful.
+- Do NOT use Markdown heading symbols such as #, ##, ###.
+- Do NOT use **bold** or *italic* Markdown.
+- Do NOT put unnecessary symbols around words.
+- Keep the answer clean and easy to read.
+- Do not start headings with #.
+- Do not add unnecessary decorative symbols.
 
 For mathematics:
-- show the steps
-- explain formulas
-- give the final answer
+- Show the steps.
+- Explain formulas.
+- Give the final answer clearly.
 
 For science:
-- explain the concept clearly
-- give examples where useful
+- Explain the concept clearly.
+- Give examples where useful.
 
 For programming:
-- explain the concept
-- provide correct code when useful
+- Explain the concept.
+- Provide correct code when useful.
 
 Student Question:
 
-${question.trim()}
+${cleanQuestion}
 `;
 
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
 
             const response =
                 await ai.models.generateContent({
@@ -802,9 +965,23 @@ ${question.trim()}
                 });
 
 
-            const answer =
+            // ------------------------------------------
+            // GET ANSWER
+            // ------------------------------------------
+
+            const rawAnswer =
                 response.text || "";
 
+
+            const answer =
+                cleanAIText(
+                    rawAnswer
+                );
+
+
+            // ------------------------------------------
+            // CHECK ANSWER
+            // ------------------------------------------
 
             if (
                 !answer ||
@@ -824,6 +1001,10 @@ ${question.trim()}
                 "AI Tutor answer generated successfully."
             );
 
+
+            // ------------------------------------------
+            // SEND ANSWER
+            // ------------------------------------------
 
             return res.json({
 
@@ -847,6 +1028,11 @@ ${question.trim()}
 
     }
 );
+
+
+// ==================================================
+// PART 1 ENDS HERE
+// ==================================================
 // ==================================================
 // AI FLASHCARDS
 // ==================================================
@@ -886,11 +1072,24 @@ app.post(
             }
 
 
+            const cleanTopic =
+                topic
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
             console.log(
-                "Generating flashcards:",
-                topic.trim()
+                "GENERATING FLASHCARDS:",
+                cleanTopic
             );
 
+
+            // ------------------------------------------
+            // FLASHCARD PROMPT
+            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
@@ -898,7 +1097,7 @@ You are an AI Study Assistant.
 Create exactly 5 useful study flashcards
 specifically about this topic:
 
-${topic.trim()}
+${cleanTopic}
 
 IMPORTANT:
 
@@ -970,6 +1169,10 @@ Rules:
             }
 
 
+            // ------------------------------------------
+            // VALIDATE FLASHCARDS
+            // ------------------------------------------
+
             const validFlashcards =
                 flashcards
                     .filter(
@@ -982,8 +1185,12 @@ Rules:
                                 typeof card.question ===
                                 "string" &&
 
+                                card.question.trim() !== "" &&
+
                                 typeof card.answer ===
-                                "string"
+                                "string" &&
+
+                                card.answer.trim() !== ""
 
                             );
 
@@ -993,21 +1200,36 @@ Rules:
 
 
             if (
-                validFlashcards.length === 0
+                validFlashcards.length < 5
             ) {
+
+                console.error(
+                    "INVALID FLASHCARDS:",
+                    flashcards
+                );
+
 
                 return sendAPIError(
                     res,
                     500,
-                    "AI generated invalid flashcard data."
+                    "AI generated an incomplete flashcard set. Please try again."
                 );
 
             }
 
 
+            console.log(
+                "Flashcards generated successfully:",
+                validFlashcards.length
+            );
+
+
             return res.json({
 
                 success: true,
+
+                topic:
+                    cleanTopic,
 
                 flashcards:
                     validFlashcards
@@ -1068,18 +1290,31 @@ app.post(
             }
 
 
+            const cleanTopic =
+                topic
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
+
+
             console.log(
                 "AI QUIZ REQUEST:",
-                topic.trim()
+                cleanTopic
             );
 
+
+            // ------------------------------------------
+            // QUIZ PROMPT
+            // ------------------------------------------
 
             const prompt = `
 You are an expert academic quiz generator.
 
 Create a quiz specifically about:
 
-${topic.trim()}
+${cleanTopic}
 
 The topic can be ANY academic subject.
 
@@ -1167,7 +1402,9 @@ Rules:
 
 
             if (
-                !Array.isArray(quiz)
+                !Array.isArray(
+                    quiz
+                )
             ) {
 
                 return sendAPIError(
@@ -1178,6 +1415,10 @@ Rules:
 
             }
 
+
+            // ------------------------------------------
+            // VALIDATE QUIZ
+            // ------------------------------------------
 
             const validQuiz =
                 quiz
@@ -1191,18 +1432,33 @@ Rules:
                                 typeof q.question ===
                                 "string" &&
 
+                                q.question.trim() !== "" &&
+
                                 Array.isArray(
                                     q.options
                                 ) &&
 
-                                q.options.length ===
-                                4 &&
+                                q.options.length === 4 &&
+
+                                q.options.every(
+                                    function(option) {
+
+                                        return (
+                                            typeof option ===
+                                            "string" &&
+
+                                            option.trim() !== ""
+                                        );
+
+                                    }
+                                ) &&
 
                                 Number.isInteger(
                                     q.answer
                                 ) &&
 
                                 q.answer >= 0 &&
+
                                 q.answer <= 3
 
                             );
@@ -1213,21 +1469,36 @@ Rules:
 
 
             if (
-                validQuiz.length === 0
+                validQuiz.length < 5
             ) {
+
+                console.error(
+                    "INVALID QUIZ DATA:",
+                    quiz
+                );
+
 
                 return sendAPIError(
                     res,
                     500,
-                    "AI generated invalid quiz data."
+                    "AI generated an incomplete quiz. Please try again."
                 );
 
             }
 
 
+            console.log(
+                "Quiz generated successfully:",
+                validQuiz.length
+            );
+
+
             return res.json({
 
                 success: true,
+
+                topic:
+                    cleanTopic,
 
                 quiz:
                     validQuiz
@@ -1289,7 +1560,12 @@ app.post(
 
 
             const cleanTopic =
-                topic.trim();
+                topic
+                    .replace(
+                        /\u0000/g,
+                        ""
+                    )
+                    .trim();
 
 
             console.log(
@@ -1298,6 +1574,10 @@ app.post(
             );
 
 
+            // ------------------------------------------
+            // PRACTICE PROMPT
+            // ------------------------------------------
+
             const prompt = `
 You are an expert AI Study Assistant.
 
@@ -1305,6 +1585,7 @@ Generate a practice quiz ONLY about the
 specific academic topic provided by the student.
 
 STUDENT TOPIC:
+
 ${cleanTopic}
 
 IMPORTANT TOPIC RULE:
@@ -1322,6 +1603,7 @@ If the topic is:
 Force
 
 Questions can include:
+
 - definition of force
 - SI unit of force
 - Newton's laws
@@ -1336,6 +1618,7 @@ If the topic is:
 Periodic Table
 
 Questions can include:
+
 - atomic number
 - chemical symbols
 - groups
@@ -1350,6 +1633,7 @@ If the topic is:
 C++ Loops
 
 Questions can include:
+
 - for loop
 - while loop
 - do-while loop
@@ -1491,6 +1775,10 @@ RULES:
             }
 
 
+            // ------------------------------------------
+            // VALIDATE PRACTICE QUESTIONS
+            // ------------------------------------------
+
             const validQuestions =
                 practiceQuestions
                     .filter(
@@ -1509,8 +1797,7 @@ RULES:
                                     q.options
                                 ) &&
 
-                                q.options.length ===
-                                4 &&
+                                q.options.length === 4 &&
 
                                 q.options.every(
                                     function(option) {
@@ -1518,6 +1805,7 @@ RULES:
                                         return (
                                             typeof option ===
                                             "string" &&
+
                                             option.trim() !== ""
                                         );
 
@@ -1589,6 +1877,12 @@ RULES:
 
     }
 );
+
+
+// ==================================================
+// PART 2 ENDS HERE
+// ==================================================
+// ==================================================
 // ==================================================
 // PDF → AI SUMMARY
 // ==================================================
@@ -1613,6 +1907,10 @@ app.post(
                 req.body.text;
 
 
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
+
             if (
                 !text ||
                 typeof text !== "string" ||
@@ -1628,6 +1926,10 @@ app.post(
             }
 
 
+            // ------------------------------------------
+            // CLEAN PDF TEXT
+            // ------------------------------------------
+
             text =
                 text
                     .replace(
@@ -1636,6 +1938,10 @@ app.post(
                     )
                     .trim();
 
+
+            // ------------------------------------------
+            // LIMIT PDF TEXT
+            // ------------------------------------------
 
             const MAX_TEXT_LENGTH =
                 120000;
@@ -1652,6 +1958,7 @@ app.post(
                         MAX_TEXT_LENGTH
                     );
 
+
                 console.log(
                     "PDF summary text shortened."
                 );
@@ -1663,11 +1970,16 @@ app.post(
                 "PDF SUMMARY REQUEST RECEIVED"
             );
 
+
             console.log(
                 "PDF text length:",
                 text.length
             );
 
+
+            // ------------------------------------------
+            // SUMMARY PROMPT
+            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
@@ -1677,24 +1989,36 @@ a clear, accurate and student-friendly summary.
 
 Use these sections:
 
-SHORT SUMMARY:
+SHORT SUMMARY
+
 Give a concise overview.
 
-MAIN CONCEPTS:
-List the most important concepts.
+MAIN CONCEPTS
 
-IMPORTANT POINTS:
+List the most important concepts using
+simple bullet points.
+
+IMPORTANT POINTS
+
 List the key points a student should remember.
 
-KEY TERMS:
+KEY TERMS
+
 List important terms and explain them simply.
 
-STUDY TIPS:
+STUDY TIPS
+
 Give useful revision tips based only
 on the provided material.
 
-Rules:
+IMPORTANT FORMATTING RULES:
 
+- Use clean plain text.
+- Use simple headings.
+- Use bullet points when useful.
+- Do NOT use Markdown heading symbols such as #, ## or ###.
+- Do NOT use **bold** or *italic* Markdown.
+- Do NOT add unnecessary decorative symbols.
 - Use simple English.
 - Keep information accurate.
 - Do not invent information.
@@ -1706,6 +2030,10 @@ STUDY MATERIAL:
 ${text}
 `;
 
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
 
             const response =
                 await ai.models.generateContent({
@@ -1719,9 +2047,23 @@ ${text}
                 });
 
 
-            const summary =
+            const rawSummary =
                 response.text || "";
 
+
+            // ------------------------------------------
+            // CLEAN SUMMARY
+            // ------------------------------------------
+
+            const summary =
+                cleanAIText(
+                    rawSummary
+                );
+
+
+            // ------------------------------------------
+            // CHECK SUMMARY
+            // ------------------------------------------
 
             if (
                 !summary ||
@@ -1789,9 +2131,14 @@ app.post(
             let text =
                 req.body.text;
 
+
             let question =
                 req.body.question;
 
+
+            // ------------------------------------------
+            // CHECK PDF TEXT
+            // ------------------------------------------
 
             if (
                 !text ||
@@ -1808,6 +2155,10 @@ app.post(
             }
 
 
+            // ------------------------------------------
+            // CHECK QUESTION
+            // ------------------------------------------
+
             if (
                 !question ||
                 typeof question !== "string" ||
@@ -1822,6 +2173,10 @@ app.post(
 
             }
 
+
+            // ------------------------------------------
+            // CLEAN DATA
+            // ------------------------------------------
 
             text =
                 text
@@ -1841,6 +2196,10 @@ app.post(
                     .trim();
 
 
+            // ------------------------------------------
+            // LIMIT PDF TEXT
+            // ------------------------------------------
+
             const MAX_TEXT_LENGTH =
                 120000;
 
@@ -1856,6 +2215,7 @@ app.post(
                         MAX_TEXT_LENGTH
                     );
 
+
                 console.log(
                     "PDF question text shortened."
                 );
@@ -1867,11 +2227,16 @@ app.post(
                 "PDF QUESTION REQUEST RECEIVED"
             );
 
+
             console.log(
                 "Question:",
                 question
             );
 
+
+            // ------------------------------------------
+            // PDF QUESTION PROMPT
+            // ------------------------------------------
 
             const prompt = `
 You are an AI Study Assistant.
@@ -1905,14 +2270,25 @@ ${question}
 5. If the answer cannot be found,
    say:
 
-"I couldn't find the answer to this question
-in the provided study material."
+"I couldn't find the answer to this question in the provided study material."
 
 6. Use simple student-friendly language.
 
-7. Do not mention these instructions.
+7. Use clean plain text.
+
+8. You may use short headings or bullet
+   points when useful.
+
+9. Do NOT use Markdown symbols such as
+   ###, ** or *.
+
+10. Do not mention these instructions.
 `;
 
+
+            // ------------------------------------------
+            // GEMINI REQUEST
+            // ------------------------------------------
 
             const response =
                 await ai.models.generateContent({
@@ -1926,9 +2302,23 @@ in the provided study material."
                 });
 
 
-            const answer =
+            const rawAnswer =
                 response.text || "";
 
+
+            // ------------------------------------------
+            // CLEAN ANSWER
+            // ------------------------------------------
+
+            const answer =
+                cleanAIText(
+                    rawAnswer
+                );
+
+
+            // ------------------------------------------
+            // CHECK ANSWER
+            // ------------------------------------------
 
             if (
                 !answer ||
@@ -2044,3 +2434,8 @@ app.listen(
 // ==================================================
 
 module.exports = app;
+
+
+// ==================================================
+// END OF SERVER.JS
+// ==================================================
