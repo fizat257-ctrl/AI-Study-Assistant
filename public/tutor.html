@@ -12,7 +12,6 @@
 
     <title>AI Study Assistant - AI Tutor</title>
 
-
     <style>
 
         * {
@@ -22,264 +21,358 @@
             font-family: Arial, sans-serif;
         }
 
-
         body {
             min-height: 100vh;
             background: #0f1115;
             color: white;
         }
 
-
         header {
             padding: 20px 30px;
-
             border-bottom: 1px solid #292d36;
-
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 15px;
         }
-
 
         header h1 {
             font-size: 22px;
+            white-space: nowrap;
         }
-
 
         .back-btn {
             border: none;
-
             background: #2563eb;
-
             color: white;
-
             padding: 10px 16px;
-
             border-radius: 8px;
-
             cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s ease;
         }
-
 
         .back-btn:hover {
             opacity: 0.9;
+            transform: translateY(-1px);
         }
 
-
         .container {
+            width: 100%;
             max-width: 900px;
-
             margin: auto;
-
             padding: 45px 20px;
         }
 
-
         .intro {
             text-align: center;
-
             margin-bottom: 35px;
         }
 
-
         .intro h2 {
             font-size: 32px;
-
             margin-bottom: 10px;
         }
 
-
         .intro p {
             color: #a8afbf;
-
             font-size: 16px;
+            line-height: 1.6;
         }
-
 
         .tutor-card {
             background: #181b21;
-
             border: 1px solid #292d36;
-
             border-radius: 16px;
-
             padding: 30px;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.15);
         }
-
 
         textarea {
             width: 100%;
-
             min-height: 150px;
-
             resize: vertical;
-
             padding: 15px;
-
             border: 1px solid #363b46;
-
             border-radius: 10px;
-
             background: #101217;
-
             color: white;
-
             font-size: 16px;
-
             line-height: 1.6;
-
             outline: none;
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
         }
-
 
         textarea:focus {
             border-color: #2563eb;
+            box-shadow:
+                0 0 0 3px rgba(37, 99, 235, 0.12);
         }
-
 
         textarea::placeholder {
             color: #6b7280;
         }
 
-
         .ask-btn {
             width: 100%;
-
             margin-top: 15px;
-
             padding: 13px;
-
             border: none;
-
             border-radius: 9px;
-
             background: #2563eb;
-
             color: white;
-
             font-size: 16px;
-
             font-weight: bold;
-
             cursor: pointer;
+            transition: 0.2s ease;
         }
-
 
         .ask-btn:hover {
-            opacity: 0.9;
+            opacity: 0.92;
+            transform: translateY(-1px);
         }
-
 
         .ask-btn:disabled {
             opacity: 0.6;
-
             cursor: not-allowed;
+            transform: none;
         }
-
 
         .answer-section {
             margin-top: 30px;
         }
 
-
         .answer-section h3 {
             margin-bottom: 12px;
-
             font-size: 20px;
         }
 
-
         .answer {
             min-height: 150px;
-
-            padding: 20px;
-
+            padding: 22px;
             background: #101217;
-
             border: 1px solid #292d36;
-
             border-radius: 10px;
-
             color: #d7dbe4;
-
-            line-height: 1.7;
-
-            white-space: pre-wrap;
-
+            line-height: 1.75;
             overflow-wrap: break-word;
+            word-wrap: break-word;
+            font-size: 16px;
         }
 
+        .answer p {
+            margin: 0 0 14px 0;
+        }
+
+        .answer p:last-child {
+            margin-bottom: 0;
+        }
+
+        .answer h2 {
+            font-size: 22px;
+            color: white;
+            margin: 22px 0 12px;
+            line-height: 1.4;
+        }
+
+        .answer h3 {
+            font-size: 19px;
+            color: white;
+            margin: 20px 0 10px;
+            line-height: 1.4;
+        }
+
+        .answer h4 {
+            font-size: 17px;
+            color: white;
+            margin: 18px 0 8px;
+            line-height: 1.4;
+        }
+
+        .answer strong {
+            color: white;
+            font-weight: 700;
+        }
+
+        .answer ul {
+            margin: 10px 0 16px 22px;
+            padding-left: 18px;
+        }
+
+        .answer ul li {
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .answer ol {
+            margin: 10px 0 16px 22px;
+            padding-left: 18px;
+        }
+
+        .answer ol li {
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .answer code {
+            background: #1b2029;
+            color: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-family:
+                Consolas,
+                Monaco,
+                monospace;
+            font-size: 14px;
+        }
+
+        .answer pre {
+            background: #080a0e;
+            border: 1px solid #292d36;
+            border-radius: 9px;
+            padding: 16px;
+            margin: 14px 0;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.6;
+        }
+
+        .answer pre code {
+            background: transparent;
+            padding: 0;
+            color: #e5e7eb;
+            font-size: 14px;
+            font-family:
+                Consolas,
+                Monaco,
+                monospace;
+        }
+
+        .answer hr {
+            border: none;
+            border-top: 1px solid #292d36;
+            margin: 18px 0;
+        }
+
+        .answer a {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
 
         .progress-note {
             margin-top: 20px;
-
             padding: 14px;
-
             background: #111827;
-
             border: 1px solid #1f2937;
-
             border-radius: 9px;
-
             color: #9ca3af;
-
             font-size: 14px;
-
             text-align: center;
+            line-height: 1.5;
         }
 
+        .ai-loading {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .ai-error {
+            color: #fca5a5;
+            line-height: 1.6;
+        }
+
+        .ai-error-title {
+            color: #f87171;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
 
         @media (max-width: 600px) {
 
             header {
-                padding: 17px;
+                padding: 15px;
+                flex-wrap: wrap;
             }
-
 
             header h1 {
-                font-size: 18px;
+                font-size: 17px;
             }
 
+            .back-btn {
+                padding: 9px 12px;
+                font-size: 13px;
+            }
 
             .container {
-                padding: 30px 15px;
+                padding: 28px 14px;
             }
 
+            .intro {
+                margin-bottom: 25px;
+            }
 
             .intro h2 {
                 font-size: 26px;
             }
 
-
-            .tutor-card {
-                padding: 20px;
+            .intro p {
+                font-size: 14px;
             }
 
+            .tutor-card {
+                padding: 18px;
+                border-radius: 13px;
+            }
 
             textarea {
                 min-height: 130px;
+                font-size: 15px;
             }
 
+            .answer {
+                padding: 17px;
+                font-size: 15px;
+                line-height: 1.7;
+            }
+
+            .answer h2 {
+                font-size: 20px;
+            }
+
+            .answer h3 {
+                font-size: 18px;
+            }
+
+            .answer h4 {
+                font-size: 16px;
+            }
+
+            .answer ul,
+            .answer ol {
+                margin-left: 15px;
+                padding-left: 16px;
+            }
+
+            .answer pre {
+                padding: 12px;
+                font-size: 13px;
+            }
         }
 
     </style>
 
 </head>
 
-
 <body>
-
-
-    <!-- ==================================================
-         HEADER
-    ================================================== -->
 
     <header>
 
         <h1>
             🤖 AI Study Assistant
         </h1>
-
 
         <button
             class="back-btn"
@@ -291,23 +384,13 @@
 
     </header>
 
-
-
-    <!-- ==================================================
-         MAIN
-    ================================================== -->
-
     <main class="container">
-
-
-        <!-- INTRO -->
 
         <section class="intro">
 
             <h2>
                 🤖 AI Tutor
             </h2>
-
 
             <p>
                 Ask any study question and get a simple,
@@ -316,26 +399,13 @@
 
         </section>
 
-
-
-        <!-- ==================================================
-             TUTOR CARD
-        ================================================== -->
-
         <section class="tutor-card">
-
-
-            <!-- QUESTION -->
 
             <textarea
                 id="question"
-                placeholder="Example: What is friction?"
+                placeholder="Example: What is force?"
                 autocomplete="off"
             ></textarea>
-
-
-
-            <!-- ASK BUTTON -->
 
             <button
                 class="ask-btn"
@@ -346,18 +416,11 @@
                 Ask AI
             </button>
 
-
-
-            <!-- ==================================================
-                 ANSWER
-            ================================================== -->
-
             <div class="answer-section">
 
                 <h3>
                     AI Answer
                 </h3>
-
 
                 <div
                     id="answer"
@@ -368,12 +431,6 @@
 
             </div>
 
-
-
-            <!-- ==================================================
-                 PROGRESS
-            ================================================== -->
-
             <div class="progress-note">
 
                 📊 Your AI Tutor questions will automatically
@@ -381,30 +438,503 @@
 
             </div>
 
-
         </section>
-
 
     </main>
 
-
-
-    <!-- ==================================================
-         AI TUTOR JAVASCRIPT
-    ================================================== -->
-
     <script src="script.js"></script>
-
-
-
-    <!-- ==================================================
-         ENTER KEY SUPPORT
-    ================================================== -->
-
     <script>
 
+        /* ==================================================
+           HTML ESCAPE
+        ================================================== */
+
+        function escapeHTML(text) {
+
+            return String(text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+
+        /* ==================================================
+           MARKDOWN → CLEAN HTML
+        ================================================== */
+
+        function formatAIAnswer(text) {
+
+            if (!text) {
+                return "";
+            }
+
+            let value =
+                String(text)
+                    .replace(/\r\n/g, "\n")
+                    .replace(/\r/g, "\n")
+                    .trim();
+
+
+            /* ----------------------------------------------
+               CODE BLOCKS
+            ---------------------------------------------- */
+
+            const codeBlocks = [];
+
+            value =
+                value.replace(
+                    /```(?:[a-zA-Z0-9_+-]+)?\n?([\s\S]*?)```/g,
+                    function(match, code) {
+
+                        const index =
+                            codeBlocks.length;
+
+                        codeBlocks.push(
+                            escapeHTML(
+                                code.trim()
+                            )
+                        );
+
+                        return (
+                            "\n@@CODEBLOCK" +
+                            index +
+                            "@@\n"
+                        );
+
+                    }
+                );
+
+
+            /* ----------------------------------------------
+               ESCAPE HTML
+            ---------------------------------------------- */
+
+            value =
+                escapeHTML(value);
+
+
+            /* ----------------------------------------------
+               INLINE CODE
+            ---------------------------------------------- */
+
+            value =
+                value.replace(
+                    /`([^`]+)`/g,
+                    "<code>$1</code>"
+                );
+
+
+            /* ----------------------------------------------
+               BOLD
+            ---------------------------------------------- */
+
+            value =
+                value.replace(
+                    /\*\*(.*?)\*\*/g,
+                    "<strong>$1</strong>"
+                );
+
+
+            /* ----------------------------------------------
+               ITALIC
+            ---------------------------------------------- */
+
+            value =
+                value.replace(
+                    /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
+                    "<em>$1</em>"
+                );
+
+
+            /* ----------------------------------------------
+               HEADINGS
+            ---------------------------------------------- */
+
+            value =
+                value.replace(
+                    /^###\s+(.+)$/gm,
+                    "<h4>$1</h4>"
+                );
+
+            value =
+                value.replace(
+                    /^##\s+(.+)$/gm,
+                    "<h3>$1</h3>"
+                );
+
+            value =
+                value.replace(
+                    /^#\s+(.+)$/gm,
+                    "<h2>$1</h2>"
+                );
+
+
+            /* ----------------------------------------------
+               HORIZONTAL LINE
+            ---------------------------------------------- */
+
+            value =
+                value.replace(
+                    /^---+$/gm,
+                    "<hr>"
+                );
+
+
+            /* ----------------------------------------------
+               BULLET POINTS
+            ---------------------------------------------- */
+
+            const lines =
+                value.split("\n");
+
+            let output = "";
+
+            let paragraph = "";
+
+            let listItems = [];
+
+            let listType = null;
+
+
+            function flushParagraph() {
+
+                if (
+                    paragraph.trim()
+                ) {
+
+                    output +=
+                        "<p>" +
+                        paragraph.trim() +
+                        "</p>";
+
+                    paragraph = "";
+
+                }
+
+            }
+
+
+            function flushList() {
+
+                if (
+                    listItems.length === 0
+                ) {
+
+                    return;
+
+                }
+
+
+                const tag =
+                    listType === "ol"
+                        ? "ol"
+                        : "ul";
+
+
+                output +=
+                    "<" + tag + ">";
+
+
+                listItems.forEach(
+                    function(item) {
+
+                        output +=
+                            "<li>" +
+                            item +
+                            "</li>";
+
+                    }
+                );
+
+
+                output +=
+                    "</" + tag + ">";
+
+
+                listItems = [];
+
+                listType = null;
+
+            }
+
+
+            lines.forEach(
+                function(line) {
+
+                    const trimmed =
+                        line.trim();
+
+
+                    /* Empty line */
+
+                    if (!trimmed) {
+
+                        flushParagraph();
+
+                        flushList();
+
+                        return;
+
+                    }
+
+
+                    /* Headings */
+
+                    if (
+                        trimmed.startsWith("<h2>") ||
+                        trimmed.startsWith("<h3>") ||
+                        trimmed.startsWith("<h4>") ||
+                        trimmed === "<hr>"
+                    ) {
+
+                        flushParagraph();
+
+                        flushList();
+
+                        output += trimmed;
+
+                        return;
+
+                    }
+
+
+                    /* Code block */
+
+                    if (
+                        trimmed.includes(
+                            "@@CODEBLOCK"
+                        )
+                    ) {
+
+                        flushParagraph();
+
+                        flushList();
+
+                        output +=
+                            trimmed;
+
+                        return;
+
+                    }
+
+
+                    /* Bullet */
+
+                    const bulletMatch =
+                        trimmed.match(
+                            /^[-*+]\s+(.+)$/
+                        );
+
+
+                    if (bulletMatch) {
+
+                        flushParagraph();
+
+
+                        if (
+                            listType !== "ul"
+                        ) {
+
+                            flushList();
+
+                            listType = "ul";
+
+                        }
+
+
+                        listItems.push(
+                            bulletMatch[1]
+                        );
+
+                        return;
+
+                    }
+
+
+                    /* Numbered list */
+
+                    const numberMatch =
+                        trimmed.match(
+                            /^\d+\.\s+(.+)$/
+                        );
+
+
+                    if (numberMatch) {
+
+                        flushParagraph();
+
+
+                        if (
+                            listType !== "ol"
+                        ) {
+
+                            flushList();
+
+                            listType = "ol";
+
+                        }
+
+
+                        listItems.push(
+                            numberMatch[1]
+                        );
+
+                        return;
+
+                    }
+
+
+                    /* Normal paragraph */
+
+                    flushList();
+
+
+                    paragraph +=
+                        (paragraph
+                            ? "<br>"
+                            : "") +
+                        trimmed;
+
+                }
+            );
+
+
+            flushParagraph();
+
+            flushList();
+
+
+            /* ----------------------------------------------
+               RESTORE CODE BLOCKS
+            ---------------------------------------------- */
+
+            codeBlocks.forEach(
+                function(code, index) {
+
+                    output =
+                        output.replace(
+                            "@@CODEBLOCK" +
+                            index +
+                            "@@",
+
+                            "<pre><code>" +
+                            code +
+                            "</code></pre>"
+                        );
+
+                }
+            );
+
+
+            return output;
+
+        }
+
+
+        /* ==================================================
+           AI ANSWER OBSERVER
+        ================================================== */
+
+        const answerBox =
+            document.getElementById(
+                "answer"
+            );
+
+
+        let formattingAnswer =
+            false;
+
+
+        if (answerBox) {
+
+            const observer =
+                new MutationObserver(
+                    function() {
+
+                        if (
+                            formattingAnswer
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const rawText =
+                            answerBox.textContent;
+
+
+                        if (
+                            !rawText ||
+                            !rawText.trim()
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        if (
+                            rawText.trim() ===
+                            "Your AI answer will appear here."
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        if (
+                            answerBox.querySelector(
+                                "p, h2, h3, h4, ul, ol, pre"
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        formattingAnswer =
+                            true;
+
+
+                        answerBox.innerHTML =
+                            formatAIAnswer(
+                                rawText
+                            );
+
+
+                        formattingAnswer =
+                            false;
+
+                    }
+                );
+
+
+            observer.observe(
+                answerBox,
+                {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                }
+            );
+
+        }
+
+
+        /* ==================================================
+           ENTER KEY SUPPORT
+        ================================================== */
+
         const questionInput =
-            document.getElementById("question");
+            document.getElementById(
+                "question"
+            );
 
 
         if (questionInput) {
@@ -419,6 +949,7 @@
                     ) {
 
                         event.preventDefault();
+
 
                         if (
                             typeof askAssistant ===
@@ -437,7 +968,6 @@
         }
 
     </script>
-
 
 </body>
 
